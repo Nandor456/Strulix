@@ -28,6 +28,8 @@ model User {
   attendances        Attendance[]
   chatParticipants   ChatParticipant[]
   sentMessages       Message[]
+  workerDocuments    WorkerDocument[] @relation("WorkerDocuments")
+  uploadedDocuments  WorkerDocument[] @relation("UploadedWorkerDocuments")
 }
 
 model WorkPoint {
@@ -80,6 +82,24 @@ model Attendance {
   @@unique([workerId, workPointId, date])
   @@index([workPointId, date])
   @@map("attendances")
+}
+
+model WorkerDocument {
+  id           String   @id @default(uuid())
+  workerId     String   @map("worker_id")
+  uploadedById String?  @map("uploaded_by_id")
+  originalName String   @map("original_name")
+  storedName   String   @unique @map("stored_name")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  worker     User  @relation("WorkerDocuments", fields: [workerId], references: [id], onDelete: Cascade)
+  uploadedBy User? @relation("UploadedWorkerDocuments", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([workerId, createdAt])
+  @@index([uploadedById])
+  @@map("worker_documents")
 }
 
 model Session {

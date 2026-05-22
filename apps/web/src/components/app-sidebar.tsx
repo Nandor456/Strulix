@@ -13,7 +13,7 @@ import {
     useSidebar,
     SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { Building2, Home as HomeIcon, MessageSquare, Users, ChevronDown, ChevronsUpDown, Moon, Sun, LogOut } from "lucide-react";
+import { Building2, FileText, Home as HomeIcon, MessageSquare, Users, ChevronDown, ChevronsUpDown, Moon, Sun, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import buildPulseLogo from "@/assets/buildpulselogo.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,9 +34,10 @@ export function AppSidebar() {
     const isDarkMode = mode === "dark";
     const canManageWorkPoints = user?.role === "ADMIN" || user?.role === "LEADER";
     const canManageUsers = user?.role === "ADMIN";
+    const canViewWorkers = user?.role === "ADMIN" || user?.role === "LEADER";
     const isWorker = user?.role === "WORKER";
     const isUsersRoute =
-        canManageUsers &&
+        canViewWorkers &&
         (location.pathname.startsWith("/invitations") || location.pathname.startsWith("/workers"));
 
     return (
@@ -61,17 +62,30 @@ export function AppSidebar() {
                 <SidebarGroup>
                     <SidebarMenu>
                         {isWorker && (
-                            <SidebarMenuItem>
-                                <SidebarMenuButton
-                                    asChild
-                                    isActive={location.pathname === "/"}
-                                >
-                                    <Link to="/">
-                                        <HomeIcon />
-                                        <span>Home</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
+                            <>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        isActive={location.pathname === "/"}
+                                    >
+                                        <Link to="/">
+                                            <HomeIcon />
+                                            <span>Home</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        isActive={location.pathname.startsWith("/documents")}
+                                    >
+                                        <Link to="/documents">
+                                            <FileText />
+                                            <span>Documents</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </>
                         )}
                         <SidebarMenuItem>
                             <SidebarMenuButton
@@ -99,7 +113,7 @@ export function AppSidebar() {
                         )}
                     </SidebarMenu>
                 </SidebarGroup>
-                {canManageUsers && (
+                {canViewWorkers && (
                     <>
                         <SidebarSeparator />
                         <SidebarGroup>
@@ -115,14 +129,16 @@ export function AppSidebar() {
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
                                             <SidebarMenuSub>
-                                                <SidebarMenuSubItem>
-                                                    <SidebarMenuSubButton
-                                                        asChild
-                                                        isActive={location.pathname.startsWith("/invitations")}
-                                                    >
-                                                        <Link to="/invitations">Invitations</Link>
-                                                    </SidebarMenuSubButton>
-                                                </SidebarMenuSubItem>
+                                                {canManageUsers && (
+                                                    <SidebarMenuSubItem>
+                                                        <SidebarMenuSubButton
+                                                            asChild
+                                                            isActive={location.pathname.startsWith("/invitations")}
+                                                        >
+                                                            <Link to="/invitations">Invitations</Link>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                )}
                                                 <SidebarMenuSubItem>
                                                     <SidebarMenuSubButton
                                                         asChild

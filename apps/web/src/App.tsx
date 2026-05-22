@@ -15,6 +15,7 @@ import WorkpointPage from "./pages/WorkpointPage";
 import WorkpointDetailPage from "./pages/WorkpointDetailPage";
 import CheckinPage from "./pages/CheckinPage";
 import WorkerHomePage from "./pages/WorkerHomePage";
+import WorkerDocumentsPage from "./pages/WorkerDocumentsPage";
 import { useAuth } from "./hooks/useAuth";
 import type { UserRole } from "./types/UserTypes";
 
@@ -53,6 +54,14 @@ function App() {
                         <Route path="/" element={<Home />} />
                         <Route path="/messages" element={<MessagingPage />} />
                         <Route
+                            path="/documents"
+                            element={
+                                <RequireRoles roles={["WORKER"]}>
+                                    <WorkerDocumentsPage />
+                                </RequireRoles>
+                            }
+                        />
+                        <Route
                             path="/workpoints"
                             element={
                                 <RequireRoles roles={["ADMIN", "LEADER"]}>
@@ -80,7 +89,7 @@ function App() {
                         <Route
                             path="/workers"
                             element={
-                                <RequireRoles roles={["ADMIN"]}>
+                                <RequireRoles roles={["ADMIN", "LEADER"]}>
                                     <WorkerManagementPage />
                                 </RequireRoles>
                             }

@@ -5,6 +5,7 @@ dist
 build
 coverage
 logs
+private
 *.log
 *.env
 .DS_Store

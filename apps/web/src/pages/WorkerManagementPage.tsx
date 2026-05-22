@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Pencil, Trash2, Users } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
+import { Download, ExternalLink, FileText, Pencil, Trash2, Upload, Users } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,11 +38,30 @@ import {
     useUpdateWorker,
     useWorkers,
 } from "../hooks/useWorkers";
+import {
+    useDeleteWorkerDocument,
+    useUploadWorkerDocument,
+    useWorkerDocuments,
+} from "../hooks/useWorkerDocuments";
+import { useAuth } from "../hooks/useAuth";
+import { formatDateTime, formatFileSize } from "../lib/format";
 import type { WorkerSummary } from "../services/api/workerApi";
+import {
+    getWorkerDocumentFileUrl,
+    type WorkerDocumentSummary,
+} from "../services/api/workerDocumentApi";
 
 const EDITABLE_ROLES = ["WORKER", "LEADER"];
 
+function getDocumentKind(document: WorkerDocumentSummary) {
+    if (document.mimeType === "application/pdf") return "PDF";
+    if (document.mimeType.startsWith("image/")) return "Image";
+    return "File";
+}
+
 export default function WorkerManagementPage() {
+    const { user } = useAuth();
+    const canManageWorkerAccounts = user?.role === "ADMIN";
     const { data: workers = [], isLoading } = useWorkers();
     const updateWorkerMutation = useUpdateWorker();
     const deleteWorkerMutation = useDeleteWorker();
@@ -55,6 +74,15 @@ export default function WorkerManagementPage() {
     const [editError, setEditError] = useState<string | null>(null);
 
     const [deleteWorker, setDeleteWorker] = useState<WorkerSummary | null>(null);
+    const [documentsWorker, setDocumentsWorker] = useState<WorkerSummary | null>(null);
+    const [documentFile, setDocumentFile] = useState<File | null>(null);
+    const [documentError, setDocumentError] = useState<string | null>(null);
+    const documentFileInputRef = useRef<HTMLInputElement>(null);
+
+    const { data: workerDocuments = [], isLoading: isDocumentsLoading } =
+        useWorkerDocuments(documentsWorker?.id ?? null);
+    const uploadDocumentMutation = useUploadWorkerDocument(documentsWorker?.id ?? null);
+    const deleteDocumentMutation = useDeleteWorkerDocument();
 
     function openEditDialog(worker: WorkerSummary) {
         setEditWorker(worker);
@@ -68,6 +96,24 @@ export default function WorkerManagementPage() {
     function closeEditDialog() {
         setEditWorker(null);
         setEditError(null);
+    }
+
+    function openDocumentsDialog(worker: WorkerSummary) {
+        setDocumentsWorker(worker);
+        setDocumentFile(null);
+        setDocumentError(null);
+        if (documentFileInputRef.current) {
+            documentFileInputRef.current.value = "";
+        }
+    }
+
+    function closeDocumentsDialog() {
+        setDocumentsWorker(null);
+        setDocumentFile(null);
+        setDocumentError(null);
+        if (documentFileInputRef.current) {
+            documentFileInputRef.current.value = "";
+        }
     }
 
     async function handleEditSave() {
@@ -99,6 +145,30 @@ export default function WorkerManagementPage() {
         setDeleteWorker(null);
     }
 
+    async function handleDocumentUpload(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (!documentFile) return;
+
+        setDocumentError(null);
+        try {
+            await uploadDocumentMutation.mutateAsync(documentFile);
+            setDocumentFile(null);
+            if (documentFileInputRef.current) {
+                documentFileInputRef.current.value = "";
+            }
+        } catch (err: unknown) {
+            const message =
+                (err as { response?: { data?: { error?: string } } })?.response?.data
+                    ?.error ?? "Failed to upload document";
+            setDocumentError(message);
+        }
+    }
+
+    async function handleDocumentDelete(document: WorkerDocumentSummary) {
+        if (!window.confirm(`Delete ${document.originalName}?`)) return;
+        await deleteDocumentMutation.mutateAsync(document.id);
+    }
+
     return (
         <div className="container mx-auto max-w-6xl px-4 py-8">
             <div className="mb-6 flex items-center gap-3">
@@ -106,8 +176,7 @@ export default function WorkerManagementPage() {
                 <div>
                     <h1 className="text-3xl font-semibold">Workers</h1>
                     <p className="text-sm text-muted-foreground">
-                        Manage registered workers — edit their details or remove their
-                        accounts.
+                        Manage registered workers and their documents.
                     </p>
                 </div>
             </div>
@@ -164,28 +233,45 @@ export default function WorkerManagementPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() => openEditDialog(worker)}
-                                                        aria-label="Edit worker"
+                                                        onClick={() => openDocumentsDialog(worker)}
+                                                        aria-label="Manage worker documents"
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <FileText className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
-                                                <TooltipContent>Edit worker</TooltipContent>
+                                                <TooltipContent>Worker documents</TooltipContent>
                                             </Tooltip>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="text-destructive hover:text-destructive"
-                                                        onClick={() => setDeleteWorker(worker)}
-                                                        aria-label="Delete worker"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Delete worker</TooltipContent>
-                                            </Tooltip>
+                                            {canManageWorkerAccounts && (
+                                                <>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => openEditDialog(worker)}
+                                                                aria-label="Edit worker"
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Edit worker</TooltipContent>
+                                                    </Tooltip>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="text-destructive hover:text-destructive"
+                                                                onClick={() => setDeleteWorker(worker)}
+                                                                aria-label="Delete worker"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Delete worker</TooltipContent>
+                                                    </Tooltip>
+                                                </>
+                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -194,6 +280,134 @@ export default function WorkerManagementPage() {
                     </Table>
                 </div>
             )}
+
+            <Dialog
+                open={documentsWorker !== null}
+                onOpenChange={(open) => !open && closeDocumentsDialog()}
+            >
+                <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            Documents{documentsWorker ? ` for ${documentsWorker.username}` : ""}
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <form
+                        onSubmit={(event) => void handleDocumentUpload(event)}
+                        className="rounded-md border bg-muted/30 p-3"
+                    >
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <Input
+                                ref={documentFileInputRef}
+                                type="file"
+                                accept="application/pdf,image/png,image/jpeg,image/webp"
+                                onChange={(event) =>
+                                    setDocumentFile(event.target.files?.[0] ?? null)
+                                }
+                            />
+                            <Button
+                                type="submit"
+                                disabled={!documentFile || uploadDocumentMutation.isPending}
+                            >
+                                {uploadDocumentMutation.isPending ? (
+                                    <Spinner size={16} />
+                                ) : (
+                                    <Upload className="h-4 w-4" />
+                                )}
+                                Upload
+                            </Button>
+                        </div>
+                        {documentError && (
+                            <Alert variant="destructive" className="mt-3">
+                                {documentError}
+                            </Alert>
+                        )}
+                    </form>
+
+                    {isDocumentsLoading ? (
+                        <div className="flex justify-center py-8">
+                            <Spinner size={28} />
+                        </div>
+                    ) : workerDocuments.length === 0 ? (
+                        <Alert>No documents uploaded for this worker.</Alert>
+                    ) : (
+                        <div className="space-y-2">
+                            {workerDocuments.map((document) => (
+                                <div
+                                    key={document.id}
+                                    className="flex flex-col gap-3 rounded-md border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="truncate text-sm font-medium">
+                                                {document.originalName}
+                                            </p>
+                                            <Badge variant="outline">
+                                                {getDocumentKind(document)}
+                                            </Badge>
+                                        </div>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            {formatFileSize(document.sizeBytes)} · Uploaded{" "}
+                                            {formatDateTime(document.createdAt)}
+                                            {document.uploadedBy
+                                                ? ` by ${document.uploadedBy.username}`
+                                                : ""}
+                                        </p>
+                                    </div>
+                                    <div className="flex shrink-0 justify-end gap-1">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" asChild>
+                                                    <a
+                                                        href={getWorkerDocumentFileUrl(document.id)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        aria-label="Preview document"
+                                                    >
+                                                        <ExternalLink className="h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Preview document</TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" asChild>
+                                                    <a
+                                                        href={getWorkerDocumentFileUrl(
+                                                            document.id,
+                                                            true,
+                                                        )}
+                                                        aria-label="Download document"
+                                                    >
+                                                        <Download className="h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Download document</TooltipContent>
+                                        </Tooltip>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-destructive hover:text-destructive"
+                                                    onClick={() => void handleDocumentDelete(document)}
+                                                    disabled={deleteDocumentMutation.isPending}
+                                                    aria-label="Delete document"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Delete document</TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             <Dialog
                 open={editWorker !== null}
