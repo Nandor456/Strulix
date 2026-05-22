@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Download, ExternalLink, FileImage, FileText } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -35,19 +35,11 @@ export default function WorkerDocumentsPage() {
   const { data: documents = [], isLoading, error } = useMyWorkerDocuments();
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (documents.length === 0) {
-      setSelectedDocumentId(null);
-      return;
-    }
-
-    if (!selectedDocumentId || !documents.some((document) => document.id === selectedDocumentId)) {
-      setSelectedDocumentId(documents[0].id);
-    }
-  }, [documents, selectedDocumentId]);
-
   const selectedDocument = useMemo(
-    () => documents.find((document) => document.id === selectedDocumentId) ?? null,
+    () =>
+      documents.find((document) => document.id === selectedDocumentId) ??
+      documents[0] ??
+      null,
     [documents, selectedDocumentId],
   );
 
@@ -91,7 +83,7 @@ export default function WorkerDocumentsPage() {
                   key={document.id}
                   className={cn(
                     "flex items-center gap-2 px-3 py-2",
-                    selectedDocumentId === document.id && "bg-muted/60",
+                    selectedDocument?.id === document.id && "bg-muted/60",
                   )}
                 >
                   <button

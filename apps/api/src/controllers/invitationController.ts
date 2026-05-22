@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { AuthenticatedRequest } from "../types/AuthRequest.js";
 import {
   createInvitation,
   listInvitations,
@@ -10,10 +11,11 @@ export async function listInvitationsController(_req: Request, res: Response) {
   res.json({ invitations });
 }
 
-export async function createInvitationController(req: Request, res: Response) {
-  const userId = req.session?.userId;
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
+export async function createInvitationController(
+  req: AuthenticatedRequest,
+  res: Response,
+) {
+  const userId = req.auth!.userId;
   const { email, role } = req.body as { email: string; role: string };
   try {
     const invitation = await createInvitation({

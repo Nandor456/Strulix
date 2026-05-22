@@ -1,5 +1,5 @@
 import type { Response } from "express";
-import type { SessionRequest } from "../types/SessionRequest.js";
+import type { AuthenticatedRequest } from "../types/AuthRequest.js";
 import {
   createWorkPoint,
   deleteWorkPoint,
@@ -22,7 +22,7 @@ function messageForError(error: unknown, fallback: string) {
 }
 
 export async function listWorkPointsController(
-  _req: SessionRequest,
+  _req: AuthenticatedRequest,
   res: Response,
 ) {
   try {
@@ -36,11 +36,11 @@ export async function listWorkPointsController(
 }
 
 export async function listMyAssignedWorkPointsController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
 ) {
   try {
-    const workPoints = await listMyAssignedWorkPoints(req.session.userId!);
+    const workPoints = await listMyAssignedWorkPoints(req.auth!.userId);
     res.json({ workPoints });
   } catch (error) {
     res.status(500).json({
@@ -50,7 +50,7 @@ export async function listMyAssignedWorkPointsController(
 }
 
 export async function getWorkPointController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ) {
   const { id } = req.params;
@@ -70,13 +70,13 @@ export async function getWorkPointController(
 }
 
 export async function createWorkPointController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
 ) {
   try {
     const workPoint = await createWorkPoint(
       req.body as WorkPointInput,
-      req.session.userId,
+      req.auth!.userId,
     );
     res.status(201).json({ workPoint });
   } catch (error) {
@@ -87,7 +87,7 @@ export async function createWorkPointController(
 }
 
 export async function updateWorkPointController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ) {
   const { id } = req.params;
@@ -103,7 +103,7 @@ export async function updateWorkPointController(
 }
 
 export async function deleteWorkPointController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ) {
   const { id } = req.params;

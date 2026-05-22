@@ -1,7 +1,26 @@
-import axios from "axios";
+import axios, {
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
+} from "axios";
 import { API_BASE_URL } from "./config";
 
 export const UNAUTHORIZED_EVENT_NAME = "app:unauthorized";
+
+type AuthRetryConfig = InternalAxiosRequestConfig & {
+  _authRetry?: boolean;
+  _skipAuthRefresh?: boolean;
+};
+
+type AuthRefreshConfig = AxiosRequestConfig & {
+  _skipAuthRefresh?: boolean;
+};
+
+const AUTH_REFRESH_SKIPPED_PATHS = new Set([
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh",
+  "/auth/logout",
+]);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,18 +30,68 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+let refreshPromise: Promise<void> | null = null;
+
+function isAuthRefreshSkipped(config: AuthRetryConfig | undefined) {
+  if (!config) return true;
+  if (config._skipAuthRefresh) return true;
+
+  const url = config.url ?? "";
+  const pathname =
+    typeof window === "undefined"
+      ? url
+      : new URL(url, window.location.origin).pathname;
+
+  return Array.from(AUTH_REFRESH_SKIPPED_PATHS).some((path) =>
+    pathname.endsWith(path),
+  );
+}
+
+function redirectToLogin() {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(new Event(UNAUTHORIZED_EVENT_NAME));
+
+  const isAuthPage =
+    window.location.pathname === "/login" ||
+    window.location.pathname === "/register";
+  if (!isAuthPage) {
+    window.location.replace("/login");
+  }
+}
+
+function refreshSession() {
+  if (!refreshPromise) {
+    refreshPromise = api
+      .post<{ ok: true }>("/auth/refresh", undefined, {
+        _skipAuthRefresh: true,
+      } as AuthRefreshConfig)
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT_NAME));
+  async (error) => {
+    const config = error.config as AuthRetryConfig | undefined;
 
-      const isAuthPage =
-        window.location.pathname === "/login" ||
-        window.location.pathname === "/register";
-      if (!isAuthPage) {
-        window.location.replace("/login");
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      if (config && !config._authRetry && !isAuthRefreshSkipped(config)) {
+        config._authRetry = true;
+        try {
+          await refreshSession();
+          return api(config);
+        } catch {
+          redirectToLogin();
+        }
+      } else {
+        redirectToLogin();
       }
     }
 

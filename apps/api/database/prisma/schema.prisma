@@ -30,6 +30,7 @@ model User {
   sentMessages       Message[]
   workerDocuments    WorkerDocument[] @relation("WorkerDocuments")
   uploadedDocuments  WorkerDocument[] @relation("UploadedWorkerDocuments")
+  refreshTokens      RefreshToken[]
 }
 
 model WorkPoint {
@@ -102,13 +103,20 @@ model WorkerDocument {
   @@map("worker_documents")
 }
 
-model Session {
-  sid    String   @id @db.VarChar
-  sess   Json
-  expire DateTime @db.Timestamp(6)
+model RefreshToken {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  jtiHash           String    @unique @map("jti_hash")
+  expiresAt         DateTime  @map("expires_at")
+  revokedAt         DateTime? @map("revoked_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  replacedByTokenId String?   @map("replaced_by_token_id")
 
-  @@index([expire])
-  @@map("session")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }
 
 // ─── Messaging ───────────────────────────────────────────────────────────────

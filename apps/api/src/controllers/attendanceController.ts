@@ -1,6 +1,6 @@
 import { Response } from "express";
 import ExcelJS from "exceljs";
-import { SessionRequest } from "../types/SessionRequest.js";
+import { AuthenticatedRequest } from "../types/AuthRequest.js";
 import {
   recordAttendance,
   listAttendance,
@@ -14,7 +14,7 @@ import {
   getMyMonthlySummary,
 } from "../services/attendanceService.js";
 
-function getFrontendBaseUrl(req: SessionRequest): string {
+function getFrontendBaseUrl(req: AuthenticatedRequest): string {
   return (
     process.env.FRONTEND_BASE_URL ??
     `${req.protocol}://${req.hostname}${req.hostname === "localhost" ? ":5173" : ""}`
@@ -28,10 +28,10 @@ function parseDate(value: unknown): Date | undefined {
 }
 
 export async function checkinController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> {
-  const userId = req.session.userId!;
+  const userId = req.auth!.userId;
   const { qrToken } = req.body as { qrToken: string };
 
   try {
@@ -57,7 +57,7 @@ export async function checkinController(
 }
 
 export async function listAttendanceController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const workPointId = req.params.id;
@@ -74,7 +74,7 @@ export async function listAttendanceController(
 }
 
 export async function manualMarkController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const workPointId = req.params.id;
@@ -128,7 +128,7 @@ export async function manualMarkController(
 }
 
 export async function updateCheckoutController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const { id } = req.params;
@@ -155,7 +155,7 @@ export async function updateCheckoutController(
 }
 
 export async function deleteAttendanceController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const { id } = req.params;
@@ -169,7 +169,7 @@ export async function deleteAttendanceController(
 }
 
 export async function getQrController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const workPointId = req.params.id;
@@ -195,7 +195,7 @@ export async function getQrController(
 }
 
 export async function rotateQrController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const workPointId = req.params.id;
@@ -220,10 +220,10 @@ export async function rotateQrController(
 }
 
 export async function getMyDailyStatsController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> {
-  const userId = req.session.userId!;
+  const userId = req.auth!.userId;
   const { year, month } = req.query as unknown as { year: number; month: number };
 
   try {
@@ -236,10 +236,10 @@ export async function getMyDailyStatsController(
 }
 
 export async function getMyMonthlySummaryController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> {
-  const userId = req.session.userId!;
+  const userId = req.auth!.userId;
   const { year, month } = req.query as unknown as { year: number; month: number };
 
   try {
@@ -252,7 +252,7 @@ export async function getMyMonthlySummaryController(
 }
 
 export async function exportAttendanceController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const workPointId = req.params.id;

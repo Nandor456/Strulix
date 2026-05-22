@@ -1,5 +1,5 @@
 import type { Response } from "express";
-import type { SessionRequest } from "../types/SessionRequest.js";
+import type { AuthenticatedRequest } from "../types/AuthRequest.js";
 import { prisma } from "../../database/prisma.js";
 import {
   assignWorkerToWorkPoint,
@@ -18,7 +18,7 @@ async function ensureWorkPointExists(workPointId: string) {
 }
 
 export async function listWorkersController(
-  _req: SessionRequest,
+  _req: AuthenticatedRequest,
   res: Response,
 ) {
   try {
@@ -32,7 +32,7 @@ export async function listWorkersController(
 }
 
 export async function listWorkPointWorkersController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ) {
   const { id } = req.params;
@@ -55,7 +55,7 @@ export async function listWorkPointWorkersController(
 }
 
 export async function assignWorkerController(
-  req: SessionRequest<{ id: string }>,
+  req: AuthenticatedRequest<{ id: string }>,
   res: Response,
 ) {
   const { id } = req.params;
@@ -71,7 +71,7 @@ export async function assignWorkerController(
       return res.status(404).json({ error: "Work point not found" });
     }
 
-    await assignWorkerToWorkPoint(id, workerId, req.session.userId);
+    await assignWorkerToWorkPoint(id, workerId, req.auth!.userId);
     const workers = await listWorkersForWorkPoint(id);
     res.status(200).json({ workers });
   } catch (error) {
@@ -82,7 +82,7 @@ export async function assignWorkerController(
 }
 
 export async function removeWorkerController(
-  req: SessionRequest<{ id: string; workerId: string }>,
+  req: AuthenticatedRequest<{ id: string; workerId: string }>,
   res: Response,
 ) {
   const { id, workerId } = req.params;
@@ -104,7 +104,7 @@ export async function removeWorkerController(
 }
 
 export async function updateWorkerController(
-  req: SessionRequest<{ workerId: string }>,
+  req: AuthenticatedRequest<{ workerId: string }>,
   res: Response,
 ) {
   const { workerId } = req.params;
@@ -126,7 +126,7 @@ export async function updateWorkerController(
 }
 
 export async function deleteWorkerController(
-  req: SessionRequest<{ workerId: string }>,
+  req: AuthenticatedRequest<{ workerId: string }>,
   res: Response,
 ) {
   const { workerId } = req.params;

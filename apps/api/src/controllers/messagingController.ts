@@ -1,5 +1,5 @@
 import type { Response, NextFunction } from "express";
-import type { SessionRequest } from "../types/SessionRequest.js";
+import type { AuthenticatedRequest } from "../types/AuthRequest.js";
 import {
   listChatsForUser,
   getChatMessages,
@@ -10,12 +10,12 @@ import {
 } from "../services/messagingService.js";
 
 export async function listChatsController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const userId = req.session.userId!;
+    const userId = req.auth!.userId;
     const chats = await listChatsForUser(userId);
     res.json(chats);
   } catch (err) {
@@ -24,12 +24,12 @@ export async function listChatsController(
 }
 
 export async function getMessagesController(
-  req: SessionRequest<{ chatId: string }>,
+  req: AuthenticatedRequest<{ chatId: string }>,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const userId = req.session.userId!;
+    const userId = req.auth!.userId;
     const { chatId } = req.params;
     const cursor = req.query.cursor as string | undefined;
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
@@ -41,12 +41,12 @@ export async function getMessagesController(
 }
 
 export async function createDirectChatController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const userId = req.session.userId!;
+    const userId = req.auth!.userId;
     const { userId: otherUserId } = req.body as { userId: string };
     const result = await findOrCreateDirectChat(userId, otherUserId);
     res.status(result.isNew ? 201 : 200).json({ chatId: result.id });
@@ -56,12 +56,12 @@ export async function createDirectChatController(
 }
 
 export async function sendMessageController(
-  req: SessionRequest<{ chatId: string }>,
+  req: AuthenticatedRequest<{ chatId: string }>,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const userId = req.session.userId!;
+    const userId = req.auth!.userId;
     const { chatId } = req.params;
     const { body, replyToId, attachmentUrl, attachmentName, attachmentType, clientNonce } =
       req.body as {
@@ -88,12 +88,12 @@ export async function sendMessageController(
 }
 
 export async function markReadController(
-  req: SessionRequest<{ chatId: string }>,
+  req: AuthenticatedRequest<{ chatId: string }>,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const userId = req.session.userId!;
+    const userId = req.auth!.userId;
     const { chatId } = req.params;
     await markChatRead(chatId, userId);
     res.json({ ok: true });
@@ -103,7 +103,7 @@ export async function markReadController(
 }
 
 export async function uploadAttachmentController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
@@ -124,12 +124,12 @@ export async function uploadAttachmentController(
 }
 
 export async function listUsersController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const userId = req.session.userId!;
+    const userId = req.auth!.userId;
     const users = await listAllUsers(userId);
     res.json(users);
   } catch (err) {

@@ -6,17 +6,17 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 ## Overview
 
 - Base path: `/api`
-- Auth: cookie-based sessions (express-session + connect-pg-simple)
+- Auth: JWT cookie auth with short-lived access cookies and rotating refresh tokens
 - Role-based access: invitations and worker account edits are `ADMIN`-only; workpoint, worker assignment, and workpoint attendance admin routes allow `ADMIN` and `LEADER`
-- Real-time: Socket.IO with session auth and chat events
+- Real-time: Socket.IO with JWT auth and chat events
 - File uploads: `/uploads` static (messaging attachments)
 
 ## Runtime and environment
 
-- Required env: `DATABASE_URL`, `SESSION_SECRET`
+- Required env: `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
 - Optional env: `PORT` (default 4000), `FRONTEND_BASE_URL`, `APP_BASE_URL`, SMTP vars for mail
 - CORS allows `http://localhost:5173` and `http://localhost:3000` with credentials
-- Sessions stored in Postgres (table auto-created)
+- Refresh tokens are stored hashed in Postgres
 
 ## Errors and validation
 
@@ -29,14 +29,18 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 `POST /api/auth/register`
 - Body: `{ username, email, password, token? }`
 - First user becomes `ADMIN`. Subsequent users must use a valid invitation token.
-- Response: `{ id }` and session cookie set.
+- Response: `{ id }` and auth cookies set.
 
 `POST /api/auth/login`
 - Body: `{ username, password }`
-- Response: `{ id }` and session cookie set.
+- Response: `{ id }` and auth cookies set.
+
+`POST /api/auth/refresh`
+- Rotates the refresh token and sets fresh auth cookies.
+- Response: `{ ok: true }`
 
 `POST /api/auth/logout`
-- Clears session and cookie.
+- Revokes the active refresh token when possible and clears auth cookies.
 
 ## Invitation routes (ADMIN)
 
@@ -134,7 +138,7 @@ Worker assignment routes:
 
 ## Socket.IO events
 
-Socket auth uses the same session cookie. Unauthenticated sockets are rejected.
+Socket auth uses the access JWT cookie, bearer token, or socket auth token. Unauthenticated sockets are rejected.
 
 Client -> server:
 - `message:send` `{ chatId, body, replyToId?, attachmentUrl?, attachmentName?, attachmentType?, clientNonce? }`

@@ -1,5 +1,5 @@
 import type { NextFunction, Response } from "express";
-import type { SessionRequest } from "../types/SessionRequest.js";
+import type { AuthenticatedRequest } from "../types/AuthRequest.js";
 import {
   WorkerDocumentError,
   createWorkerDocument,
@@ -30,7 +30,7 @@ function encodeDispositionFilename(filename: string) {
 }
 
 export async function listWorkerDocumentsController(
-  req: SessionRequest<{ workerId: string }>,
+  req: AuthenticatedRequest<{ workerId: string }>,
   res: Response,
 ) {
   const { workerId } = req.params;
@@ -46,7 +46,7 @@ export async function listWorkerDocumentsController(
 }
 
 export async function uploadWorkerDocumentController(
-  req: SessionRequest<{ workerId: string }>,
+  req: AuthenticatedRequest<{ workerId: string }>,
   res: Response,
 ) {
   const { workerId } = req.params;
@@ -59,7 +59,7 @@ export async function uploadWorkerDocumentController(
   try {
     const document = await createWorkerDocument({
       workerId,
-      uploadedById: req.session.userId!,
+      uploadedById: req.auth!.userId,
       file,
     });
     res.status(201).json({ document });
@@ -71,7 +71,7 @@ export async function uploadWorkerDocumentController(
 }
 
 export async function deleteWorkerDocumentController(
-  req: SessionRequest<{ documentId: string }>,
+  req: AuthenticatedRequest<{ documentId: string }>,
   res: Response,
 ) {
   const { documentId } = req.params;
@@ -87,11 +87,11 @@ export async function deleteWorkerDocumentController(
 }
 
 export async function listMyWorkerDocumentsController(
-  req: SessionRequest,
+  req: AuthenticatedRequest,
   res: Response,
 ) {
   try {
-    const documents = await listMyWorkerDocuments(req.session.userId!);
+    const documents = await listMyWorkerDocuments(req.auth!.userId);
     res.json({ documents });
   } catch (error) {
     res
@@ -101,7 +101,7 @@ export async function listMyWorkerDocumentsController(
 }
 
 export async function streamWorkerDocumentFileController(
-  req: SessionRequest<{ documentId: string }>,
+  req: AuthenticatedRequest<{ documentId: string }>,
   res: Response,
   next: NextFunction,
 ) {
@@ -111,7 +111,7 @@ export async function streamWorkerDocumentFileController(
   try {
     const document = await getWorkerDocumentFile({
       documentId,
-      userId: req.session.userId!,
+      userId: req.auth!.userId,
     });
 
     res.setHeader("Content-Type", document.mimeType);

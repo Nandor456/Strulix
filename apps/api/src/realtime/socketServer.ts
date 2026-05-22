@@ -1,12 +1,15 @@
 import { Server as SocketIOServer } from "socket.io";
 import type { Server as HttpServer } from "node:http";
-import { sessionMiddleware } from "../app.js";
 import {
   createMessage,
   markChatRead,
   getChatParticipantIds,
   getUserChatIds,
 } from "../services/messagingService.js";
+import {
+  getAccessTokenFromSocket,
+  verifyAccessToken,
+} from "../services/authTokenService.js";
 
 interface ServerToClientEvents {
   "message:new": (message: Record<string, unknown>) => void;
@@ -43,21 +46,28 @@ export function initSocketServer(httpServer: HttpServer) {
     },
   });
 
-  // Share the same session middleware so socket can read req.session.userId
-  io.engine.use(sessionMiddleware);
-
   // Auth gate
-  io.use((socket, next) => {
-    const session = (socket.request as { session?: { userId?: string } }).session;
-    if (!session?.userId) {
+  io.use(async (socket, next) => {
+    const token = getAccessTokenFromSocket(
+      socket.request.headers,
+      socket.handshake.auth?.token,
+    );
+
+    if (!token) {
       return next(new Error("Unauthorized"));
     }
-    next();
+
+    try {
+      const verified = await verifyAccessToken(token);
+      socket.data.userId = verified.userId;
+      next();
+    } catch {
+      next(new Error("Unauthorized"));
+    }
   });
 
   io.on("connection", async (socket) => {
-    const req = socket.request as { session?: { userId?: string } };
-    const userId = req.session?.userId;
+    const userId = socket.data.userId as string | undefined;
     if (!userId) return socket.disconnect();
 
     // Track presence

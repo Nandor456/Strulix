@@ -64,7 +64,8 @@ export default function CheckinPage() {
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated || !qrToken) return;
 
-    startScan(qrToken);
+    const timeoutId = window.setTimeout(() => startScan(qrToken), 0);
+    return () => window.clearTimeout(timeoutId);
   }, [isAuthLoading, isAuthenticated, qrToken, startScan]);
 
   if (!isAuthLoading && !isAuthenticated) {

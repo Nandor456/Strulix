@@ -2,6 +2,15 @@ import type { Request, Response } from "express";
 import { register, validateCredentials } from "../services/authService.js";
 import { log } from "node:console";
 import { getUserById } from "../services/userService.js";
+import type { AuthenticatedRequest } from "../types/AuthRequest.js";
+import {
+  AuthTokenError,
+  clearAuthCookies,
+  getRefreshTokenFromRequest,
+  issueAuthCookies,
+  revokeRefreshToken,
+  rotateRefreshToken,
+} from "../services/authTokenService.js";
 
 export async function registerController(req: Request, res: Response) {
   const { username, email, password, token } = req.body as {
@@ -12,7 +21,7 @@ export async function registerController(req: Request, res: Response) {
   };
   try {
     const user = await register(username, email, password, token);
-    req.session.userId = user.id;
+    await issueAuthCookies(res, user.id);
     res.status(201).json({ id: user.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Registration failed";
@@ -29,7 +38,7 @@ export async function loginController(req: Request, res: Response) {
     };
     const user = await validateCredentials(username, password);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
-    req.session.userId = user.id;
+    await issueAuthCookies(res, user.id);
     log("Login successful for user:", user.id);
 
     res.json({ id: user.id });
@@ -39,20 +48,40 @@ export async function loginController(req: Request, res: Response) {
   }
 }
 
-export function logoutController(req: Request, res: Response) {
-  req.session.destroy((err: Error | null) => {
-    if (err) return res.status(500).json({ error: "Logout failed" });
+export async function refreshController(req: Request, res: Response) {
+  const refreshToken = getRefreshTokenFromRequest(req);
+  if (!refreshToken) {
+    clearAuthCookies(res);
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
-    res.clearCookie("connect.sid");
-    res.status(204).send();
-  });
+  try {
+    await rotateRefreshToken(res, refreshToken);
+    res.json({ ok: true });
+  } catch (error) {
+    if (error instanceof AuthTokenError) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const message = error instanceof Error ? error.message : "Refresh failed";
+    res.status(500).json({ error: message });
+  }
 }
 
-export async function meController(req: Request, res: Response) {
-  if (!req.session.userId)
-    return res.status(401).json({ error: "Unauthorized" });
+export async function logoutController(req: Request, res: Response) {
+  try {
+    await revokeRefreshToken(getRefreshTokenFromRequest(req));
+  } catch (error) {
+    console.error("Failed to revoke refresh token during logout:", error);
+  }
 
-  const user = await getUserById(req.session.userId);
+  clearAuthCookies(res);
+  res.status(204).send();
+}
+
+export async function meController(req: AuthenticatedRequest, res: Response) {
+  const user = await getUserById(req.auth!.userId);
   if (!user) return res.status(404).json({ error: "User not found" });
   res.json({ user });
 }

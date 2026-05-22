@@ -6,6 +6,7 @@ import type { ChatListItem, Message } from "@/types/messaging";
 import { MessagingContext } from "@/context/MessagingSocketContext";
 import { useAuth } from "@/hooks/useAuth";
 import { API_ORIGIN } from "@/services/api/config";
+import { api } from "@/services/api/axios";
 
 const EMPTY_ONLINE_USERS = new Set<string>();
 
@@ -38,6 +39,21 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
         const handleDisconnect = () => {
             setIsConnected(false);
             setOnlineUsers(new Set());
+        };
+        let isRefreshingSocketAuth = false;
+        const handleConnectError = (error: Error) => {
+            if (isRefreshingSocketAuth || error.message !== "Unauthorized") return;
+
+            isRefreshingSocketAuth = true;
+            void api
+                .post("/auth/refresh")
+                .then(() => {
+                    if (socket.disconnected) socket.connect();
+                })
+                .catch(() => undefined)
+                .finally(() => {
+                    isRefreshingSocketAuth = false;
+                });
         };
 
         const handlePresenceOnline = ({ userId }: { userId: string }) => {
@@ -120,6 +136,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
 
         socket.on("connect", handleConnect);
         socket.on("disconnect", handleDisconnect);
+        socket.on("connect_error", handleConnectError);
         socket.on("presence:online", handlePresenceOnline);
         socket.on("presence:offline", handlePresenceOffline);
         socket.on("message:new", handleNewMessage);
@@ -129,6 +146,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
         return () => {
             socket.off("connect", handleConnect);
             socket.off("disconnect", handleDisconnect);
+            socket.off("connect_error", handleConnectError);
             socket.off("presence:online", handlePresenceOnline);
             socket.off("presence:offline", handlePresenceOffline);
             socket.off("message:new", handleNewMessage);
