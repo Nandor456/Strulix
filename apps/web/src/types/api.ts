@@ -28,6 +28,7 @@ export type ScanResult =
   | {
       checkedInAt: string
       checkedOutAt: string
+      checkoutSource: 'QR' | 'MANUAL' | 'AUTO' | null
       date: string
       earnings: number | null
       event: 'CHECK_OUT' | 'ALREADY_COMPLETED'
@@ -38,6 +39,7 @@ export type ScanResult =
 export type DailyStatRow = {
   checkedInAt: string
   checkedOutAt: string | null
+  checkoutSource: 'QR' | 'MANUAL' | 'AUTO' | null
   complete: boolean
   date: string
   earnings: number
@@ -60,6 +62,7 @@ export type MonthlySummary = {
 export type AttendanceRecord = {
   checkedInAt: string
   checkedOutAt: string | null
+  checkoutSource: 'QR' | 'MANUAL' | 'AUTO' | null
   date: string
   id: string
   source: string

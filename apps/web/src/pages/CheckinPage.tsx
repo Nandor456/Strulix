@@ -1,12 +1,33 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useLocation, useParams } from "react-router-dom";
 import { CheckCircle2, Clock, LogIn, XCircle } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/useAuth";
-import { useCheckin } from "@/hooks/useAttendance";
 import { formatDate, formatDateTime, formatHours, formatMoney } from "@/lib/format";
+import { attendanceAPI, type ScanResult } from "@/services/api/attendanceApi";
+
+const inFlightScans = new Map<string, Promise<ScanResult>>();
+
+type ScanState =
+  | { status: "pending" }
+  | { status: "success"; result: ScanResult }
+  | { status: "error"; error: unknown };
+
+function scanQrToken(qrToken: string) {
+  const existing = inFlightScans.get(qrToken);
+  if (existing) return existing;
+
+  const request = attendanceAPI.checkin(qrToken).finally(() => {
+    if (inFlightScans.get(qrToken) === request) {
+      inFlightScans.delete(qrToken);
+    }
+  });
+
+  inFlightScans.set(qrToken, request);
+  return request;
+}
 
 function getErrorMessage(error: unknown) {
   return (
@@ -18,21 +39,35 @@ function getErrorMessage(error: unknown) {
 export default function CheckinPage() {
   const { qrToken } = useParams<{ qrToken: string }>();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
-  const checkin = useCheckin();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const [scanState, setScanState] = useState<ScanState>({ status: "pending" });
+  const latestScanIdRef = useRef(0);
+
+  const startScan = useCallback((token: string) => {
+    const scanId = latestScanIdRef.current + 1;
+    latestScanIdRef.current = scanId;
+    setScanState({ status: "pending" });
+
+    void scanQrToken(token)
+      .then((result) => {
+        if (latestScanIdRef.current === scanId) {
+          setScanState({ status: "success", result });
+        }
+      })
+      .catch((error: unknown) => {
+        if (latestScanIdRef.current === scanId) {
+          setScanState({ status: "error", error });
+        }
+      });
+  }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || !qrToken || checkin.isPending || checkin.data) return;
+    if (isAuthLoading || !isAuthenticated || !qrToken) return;
 
-    const lockKey = `checkin:${qrToken}`;
-    const lastAttempt = Number(window.sessionStorage.getItem(lockKey) ?? 0);
-    if (Date.now() - lastAttempt < 3000) return;
+    startScan(qrToken);
+  }, [isAuthLoading, isAuthenticated, qrToken, startScan]);
 
-    window.sessionStorage.setItem(lockKey, String(Date.now()));
-    checkin.mutate(qrToken);
-  }, [checkin, isAuthenticated, qrToken]);
-
-  if (!isAuthenticated) {
+  if (!isAuthLoading && !isAuthenticated) {
     const redirect = encodeURIComponent(location.pathname);
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
@@ -47,8 +82,10 @@ export default function CheckinPage() {
     );
   }
 
-  const result = checkin.data;
+  const result = scanState.status === "success" ? scanState.result : null;
   const completedResult = result && result.event !== "CHECK_IN" ? result : null;
+  const isPending = scanState.status === "pending" || isAuthLoading;
+  const isError = scanState.status === "error";
   const resultAlertClassName =
     result?.event === "CHECK_IN"
       ? "border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
@@ -67,7 +104,7 @@ export default function CheckinPage() {
       <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            {checkin.isError ? (
+            {isError ? (
               <XCircle className="h-7 w-7" />
             ) : result ? (
               <CheckCircle2 className="h-7 w-7" />
@@ -78,7 +115,7 @@ export default function CheckinPage() {
           <div>
             <h1 className="text-xl font-semibold">Attendance scan</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {checkin.isPending
+              {isPending
                 ? "Recording attendance..."
                 : result
                   ? result.workPointName
@@ -87,21 +124,20 @@ export default function CheckinPage() {
           </div>
         </div>
 
-        {checkin.isPending && (
+        {isPending && (
           <div className="flex justify-center py-8">
             <Spinner size={36} />
           </div>
         )}
 
-        {checkin.isError && (
+        {isError && (
           <div className="space-y-4">
-            <Alert variant="destructive">{getErrorMessage(checkin.error)}</Alert>
+            <Alert variant="destructive">{getErrorMessage(scanState.error)}</Alert>
             <Button
               className="w-full"
               onClick={() => {
-                window.sessionStorage.removeItem(`checkin:${qrToken}`);
-                checkin.reset();
-                checkin.mutate(qrToken);
+                if (!qrToken) return;
+                startScan(qrToken);
               }}
             >
               <LogIn className="h-4 w-4" />
@@ -116,6 +152,12 @@ export default function CheckinPage() {
             {result.event === "ALREADY_COMPLETED" && (
               <Alert>
                 This attendance was already completed for today.
+              </Alert>
+            )}
+            {completedResult?.checkoutSource === "AUTO" && (
+              <Alert variant="destructive">
+                This attendance was automatically closed at 22:00 and may need
+                review.
               </Alert>
             )}
             <div className="rounded-md border">

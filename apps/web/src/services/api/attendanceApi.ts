@@ -1,5 +1,7 @@
 import { api } from "./axios";
 
+export type CheckoutSource = "QR" | "MANUAL" | "AUTO";
+
 export interface AttendanceRecord {
   id: string;
   workerId: string;
@@ -7,6 +9,7 @@ export interface AttendanceRecord {
   date: string;
   checkedInAt: string;
   checkedOutAt: string | null;
+  checkoutSource: CheckoutSource | null;
   source: "QR" | "MANUAL";
   worker: { id: string; username: string; email: string };
 }
@@ -29,6 +32,7 @@ export type ScanResult =
       date: string;
       checkedInAt: string;
       checkedOutAt: string;
+      checkoutSource: CheckoutSource | null;
       hours: number;
       earnings: number | null;
     };
@@ -39,6 +43,7 @@ export interface DailyStatRow {
   workPoint: { id: string; name: string };
   checkedInAt: string;
   checkedOutAt: string | null;
+  checkoutSource: CheckoutSource | null;
   hours: number;
   earnings: number;
   complete: boolean;

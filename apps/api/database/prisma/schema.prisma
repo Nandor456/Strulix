@@ -71,6 +71,7 @@ model Attendance {
   date          DateTime  @db.Date @map("date")
   checkedInAt   DateTime  @default(now()) @map("checked_in_at")
   checkedOutAt  DateTime? @map("checked_out_at")
+  checkoutSource String?   @map("checkout_source")
   source        String
 
   worker      User      @relation(fields: [workerId], references: [id], onDelete: Cascade)

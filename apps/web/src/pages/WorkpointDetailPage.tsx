@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   Check,
+  CircleAlert,
   Clock,
   Copy,
   Download,
@@ -572,14 +573,30 @@ export default function WorkpointDetailPage() {
                             {formatDateTime(record.checkedInAt)}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {record.checkedOutAt ? formatDateTime(record.checkedOutAt) : "Open"}
+                            <div className="flex items-center gap-2">
+                              <span>
+                                {record.checkedOutAt
+                                  ? formatDateTime(record.checkedOutAt)
+                                  : "Open"}
+                              </span>
+                              {record.checkoutSource === "AUTO" && (
+                                <Badge
+                                  variant="destructive"
+                                  title="Automatically closed at 22:00. Edit to mark reviewed."
+                                >
+                                  <CircleAlert className="h-3 w-3" />
+                                  Auto
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-right tabular-nums">
                             {hours == null ? "Open" : formatHours(hours)}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-1">
-                              {!record.checkedOutAt && (
+                              {(!record.checkedOutAt ||
+                                record.checkoutSource === "AUTO") && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
@@ -587,7 +604,12 @@ export default function WorkpointDetailPage() {
                                       size="icon"
                                       onClick={() => {
                                         setCheckoutRecord(record);
-                                        setCheckoutValue(getDateTimeInputValue(new Date().toISOString()));
+                                        setCheckoutValue(
+                                          getDateTimeInputValue(
+                                            record.checkedOutAt ??
+                                              new Date().toISOString(),
+                                          ),
+                                        );
                                       }}
                                       aria-label="Set checkout"
                                     >

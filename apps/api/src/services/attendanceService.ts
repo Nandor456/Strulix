@@ -1,5 +1,10 @@
 import { prisma } from "../../database/prisma.js";
-import { todayInZone } from "../utils/dateHelpers.js";
+import {
+  ATTENDANCE_TIMEZONE,
+  attendanceDateTimeToUtc,
+  dateInZone,
+  todayInZone,
+} from "../utils/dateHelpers.js";
 import QRCode from "qrcode";
 
 export type AttendanceRecord = {
@@ -9,6 +14,7 @@ export type AttendanceRecord = {
   date: Date;
   checkedInAt: Date;
   checkedOutAt: Date | null;
+  checkoutSource: string | null;
   source: string;
   worker: { id: string; username: string; email: string };
 };
@@ -35,6 +41,7 @@ export type CompletedScanResult = {
   date: Date;
   checkedInAt: Date;
   checkedOutAt: Date;
+  checkoutSource: string | null;
   hours: number;
   earnings: number | null;
 };
@@ -45,6 +52,7 @@ export type DailyStatRow = {
   workPoint: { id: string; name: string };
   checkedInAt: Date;
   checkedOutAt: Date | null;
+  checkoutSource: string | null;
   hours: number;
   earnings: number;
   complete: boolean;
@@ -63,6 +71,81 @@ function computeHours(checkedInAt: Date, checkedOutAt: Date): number {
   return Math.max(0, ms / (1000 * 60 * 60));
 }
 
+function computeBillableHours(checkedInAt: Date, checkedOutAt: Date): number {
+  return Math.ceil(computeHours(checkedInAt, checkedOutAt));
+}
+
+async function closeEligibleOpenAttendances(now: Date): Promise<number> {
+  const today = dateInZone(now, ATTENDANCE_TIMEZONE);
+  const openRecords = await prisma.attendance.findMany({
+    where: {
+      checkedOutAt: null,
+      date: { lte: today },
+    },
+    select: { id: true, date: true },
+  });
+
+  const updates = openRecords
+    .map((record) => ({
+      id: record.id,
+      checkedOutAt: attendanceDateTimeToUtc({
+        date: record.date,
+        hour: 22,
+        tz: ATTENDANCE_TIMEZONE,
+      }),
+    }))
+    .filter((record) => record.checkedOutAt <= now);
+
+  if (updates.length === 0) return 0;
+
+  const results = await prisma.$transaction(
+    updates.map((record) =>
+      prisma.attendance.updateMany({
+        where: { id: record.id, checkedOutAt: null },
+        data: {
+          checkedOutAt: record.checkedOutAt,
+          checkoutSource: "AUTO",
+        },
+      }),
+    ),
+  );
+
+  return results.reduce((sum, result) => sum + result.count, 0);
+}
+
+let activeAutoClose: Promise<number> | null = null;
+let autoCloseInterval: NodeJS.Timeout | null = null;
+
+export function autoCloseOpenAttendances(now = new Date()): Promise<number> {
+  if (activeAutoClose) return activeAutoClose;
+
+  activeAutoClose = closeEligibleOpenAttendances(now).finally(() => {
+    activeAutoClose = null;
+  });
+
+  return activeAutoClose;
+}
+
+export function startAttendanceAutoCloseJob(): NodeJS.Timeout {
+  if (autoCloseInterval) return autoCloseInterval;
+
+  const run = () => {
+    void autoCloseOpenAttendances()
+      .then((closedCount) => {
+        if (closedCount > 0) {
+          console.log(`Auto-closed ${closedCount} attendance record(s).`);
+        }
+      })
+      .catch((err) => {
+        console.error("Attendance auto-close job failed:", err);
+      });
+  };
+
+  run();
+  autoCloseInterval = setInterval(run, 60_000);
+  return autoCloseInterval;
+}
+
 async function buildCompletedScanResult(params: {
   userId: string;
   event: CompletedScanResult["event"];
@@ -70,8 +153,9 @@ async function buildCompletedScanResult(params: {
   date: Date;
   checkedInAt: Date;
   checkedOutAt: Date;
+  checkoutSource: string | null;
 }): Promise<CompletedScanResult> {
-  const hours = computeHours(params.checkedInAt, params.checkedOutAt);
+  const hours = computeBillableHours(params.checkedInAt, params.checkedOutAt);
 
   const worker = await prisma.user.findUnique({
     where: { id: params.userId },
@@ -87,6 +171,7 @@ async function buildCompletedScanResult(params: {
     date: params.date,
     checkedInAt: params.checkedInAt,
     checkedOutAt: params.checkedOutAt,
+    checkoutSource: params.checkoutSource,
     hours,
     earnings,
   };
@@ -97,6 +182,8 @@ export async function recordAttendance(params: {
   qrToken: string;
   source: "QR" | "MANUAL";
 }): Promise<ScanResult> {
+  await autoCloseOpenAttendances();
+
   const workPoint = await prisma.workPoint.findUnique({
     where: { qrToken: params.qrToken },
     select: {
@@ -128,7 +215,12 @@ export async function recordAttendance(params: {
         date,
       },
     },
-    select: { id: true, checkedInAt: true, checkedOutAt: true },
+    select: {
+      id: true,
+      checkedInAt: true,
+      checkedOutAt: true,
+      checkoutSource: true,
+    },
   });
 
   if (!existing) {
@@ -157,6 +249,7 @@ export async function recordAttendance(params: {
       date,
       checkedInAt: existing.checkedInAt,
       checkedOutAt: existing.checkedOutAt,
+      checkoutSource: existing.checkoutSource,
     });
   }
 
@@ -164,7 +257,7 @@ export async function recordAttendance(params: {
 
   await prisma.attendance.update({
     where: { id: existing.id },
-    data: { checkedOutAt },
+    data: { checkedOutAt, checkoutSource: "QR" },
   });
 
   return buildCompletedScanResult({
@@ -174,6 +267,7 @@ export async function recordAttendance(params: {
     date,
     checkedInAt: existing.checkedInAt,
     checkedOutAt,
+    checkoutSource: "QR",
   });
 }
 
@@ -182,16 +276,18 @@ export async function listAttendance(params: {
   from?: Date;
   to?: Date;
 }): Promise<AttendanceRecord[]> {
+  await autoCloseOpenAttendances();
+
   return prisma.attendance.findMany({
     where: {
       workPointId: params.workPointId,
       ...(params.from || params.to
         ? {
-            date: {
-              ...(params.from ? { gte: params.from } : {}),
-              ...(params.to ? { lte: params.to } : {}),
-            },
-          }
+          date: {
+            ...(params.from ? { gte: params.from } : {}),
+            ...(params.to ? { lte: params.to } : {}),
+          },
+        }
         : {}),
     },
     select: {
@@ -201,6 +297,7 @@ export async function listAttendance(params: {
       date: true,
       checkedInAt: true,
       checkedOutAt: true,
+      checkoutSource: true,
       source: true,
       worker: { select: { id: true, username: true, email: true } },
     },
@@ -230,7 +327,9 @@ export async function manualMark(params: {
         date: params.date,
         checkedInAt,
         source: "MANUAL",
-        ...(params.checkedOutAt ? { checkedOutAt: params.checkedOutAt } : {}),
+        ...(params.checkedOutAt
+          ? { checkedOutAt: params.checkedOutAt, checkoutSource: "MANUAL" }
+          : {}),
       },
       select: {
         id: true,
@@ -239,6 +338,7 @@ export async function manualMark(params: {
         date: true,
         checkedInAt: true,
         checkedOutAt: true,
+        checkoutSource: true,
         source: true,
         worker: { select: { id: true, username: true, email: true } },
       },
@@ -281,7 +381,7 @@ export async function setCheckoutTime(
 
   return prisma.attendance.update({
     where: { id: attendanceId },
-    data: { checkedOutAt },
+    data: { checkedOutAt, checkoutSource: "MANUAL" },
     select: {
       id: true,
       workerId: true,
@@ -289,6 +389,7 @@ export async function setCheckoutTime(
       date: true,
       checkedInAt: true,
       checkedOutAt: true,
+      checkoutSource: true,
       source: true,
       worker: { select: { id: true, username: true, email: true } },
     },
@@ -347,6 +448,8 @@ export async function rotateQrToken(workPointId: string): Promise<{
 export async function getAttendanceSummary(
   workPointId: string,
 ): Promise<AttendanceSummary[]> {
+  await autoCloseOpenAttendances();
+
   const assignedWorkers = await prisma.workPoint.findUnique({
     where: { id: workPointId },
     select: {
@@ -384,7 +487,7 @@ export async function getAttendanceSummary(
     const entry = byWorker.get(r.workerId)!;
     entry.dates.push(r.date);
     if (r.checkedOutAt) {
-      entry.totalHours += computeHours(r.checkedInAt, r.checkedOutAt);
+      entry.totalHours += computeBillableHours(r.checkedInAt, r.checkedOutAt);
     }
   }
 
@@ -416,6 +519,8 @@ export async function getMyDailyStats(
   year: number,
   month: number,
 ): Promise<DailyStatRow[]> {
+  await autoCloseOpenAttendances();
+
   const from = new Date(Date.UTC(year, month - 1, 1));
   const to = new Date(Date.UTC(year, month, 0));
 
@@ -434,6 +539,7 @@ export async function getMyDailyStats(
       date: true,
       checkedInAt: true,
       checkedOutAt: true,
+      checkoutSource: true,
       workPoint: { select: { id: true, name: true } },
     },
     orderBy: { date: "asc" },
@@ -441,7 +547,7 @@ export async function getMyDailyStats(
 
   return records.map((r) => {
     const complete = r.checkedOutAt !== null;
-    const hours = complete ? computeHours(r.checkedInAt, r.checkedOutAt!) : 0;
+    const hours = complete ? computeBillableHours(r.checkedInAt, r.checkedOutAt!) : 0;
     const earnings =
       complete && worker?.hourlyWage != null ? hours * worker.hourlyWage : 0;
     return {
@@ -450,6 +556,7 @@ export async function getMyDailyStats(
       workPoint: r.workPoint,
       checkedInAt: r.checkedInAt,
       checkedOutAt: r.checkedOutAt,
+      checkoutSource: r.checkoutSource,
       hours,
       earnings,
       complete,

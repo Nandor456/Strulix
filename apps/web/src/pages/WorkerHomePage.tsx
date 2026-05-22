@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Building2, Clock, DollarSign, MapPin } from "lucide-react";
+import { Building2, CircleAlert, Clock, DollarSign, MapPin } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -423,7 +423,18 @@ function AttendanceGroupCard({
                     {formatDateTime(row.checkedInAt)}
                   </TableCell>
                   <TableCell className="min-w-36 text-sm text-muted-foreground">
-                    {formatDateTime(row.checkedOutAt)}
+                    <div className="flex items-center gap-2">
+                      <span>{formatDateTime(row.checkedOutAt)}</span>
+                      {row.checkoutSource === "AUTO" && (
+                        <Badge
+                          variant="destructive"
+                          title="Automatically closed at 22:00"
+                        >
+                          <CircleAlert className="h-3 w-3" />
+                          Auto
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatHours(row.hours)}
@@ -436,8 +447,20 @@ function AttendanceGroupCard({
                         : "Open"}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={row.complete ? "success" : "warning"}>
-                      {row.complete ? "Complete" : "Open"}
+                    <Badge
+                      variant={
+                        row.checkoutSource === "AUTO"
+                          ? "destructive"
+                          : row.complete
+                            ? "success"
+                            : "warning"
+                      }
+                    >
+                      {row.checkoutSource === "AUTO"
+                        ? "Auto-closed"
+                        : row.complete
+                          ? "Complete"
+                          : "Open"}
                     </Badge>
                   </TableCell>
                 </TableRow>
