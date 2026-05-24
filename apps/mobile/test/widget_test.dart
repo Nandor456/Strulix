@@ -9,6 +9,7 @@ import 'package:mobile/core/api/buildpulse_api.dart';
 import 'package:mobile/core/app_router.dart';
 import 'package:mobile/core/app_scope.dart';
 import 'package:mobile/core/formatters.dart';
+import 'package:mobile/core/i18n.dart';
 import 'package:mobile/core/models.dart';
 import 'package:mobile/core/theme_controller.dart';
 import 'package:mobile/messaging/messaging_controller.dart';
@@ -188,12 +189,14 @@ Widget _host(Widget child) {
   final auth = AuthController(api);
   final messaging = MessagingController(api, auth);
   final theme = ThemeController();
+  final language = LanguageController(systemLocale: const Locale('en'));
 
   return AppScope(
     api: api,
     auth: auth,
     messaging: messaging,
     theme: theme,
+    language: language,
     child: MaterialApp(home: child),
   );
 }

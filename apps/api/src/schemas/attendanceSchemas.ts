@@ -5,6 +5,8 @@ const uuidSchema = z.string().uuid("Must be a valid UUID");
 export const checkinSchema = z.object({
   body: z.object({
     qrToken: uuidSchema,
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
   }),
 });
 

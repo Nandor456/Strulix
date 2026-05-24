@@ -65,8 +65,9 @@ InvitationDTO fields:
 User routes:
 
 `POST /api/attendance/checkin`
-- Body: `{ qrToken }`
+- Body: `{ qrToken, lat, lng }`
 - Returns a scan result for `CHECK_IN`, `CHECK_OUT`, or `ALREADY_COMPLETED`.
+- QR attendance enforces the worker's one-time scan location within 100m of the workpoint coordinates; missing workpoint coordinates reject the scan.
 
 `GET /api/attendance/me/daily?year=YYYY&month=M`
 `GET /api/attendance/me/monthly?year=YYYY&month=M`

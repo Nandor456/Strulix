@@ -57,9 +57,18 @@ export interface MonthlySummary {
   hourlyWage: number | null;
 }
 
+export interface ScanLocation {
+  lat: number;
+  lng: number;
+}
+
 export const attendanceAPI = {
-  async checkin(qrToken: string): Promise<ScanResult> {
-    const res = await api.post<ScanResult>("/attendance/checkin", { qrToken });
+  async checkin(qrToken: string, location: ScanLocation): Promise<ScanResult> {
+    const res = await api.post<ScanResult>("/attendance/checkin", {
+      qrToken,
+      lat: location.lat,
+      lng: location.lng,
+    });
     return res.data;
   },
 

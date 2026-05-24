@@ -5,6 +5,8 @@ import { Copy, Mail, Send, Trash2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/hooks/useI18n";
+import { formatDateTime } from "@/lib/format";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -59,12 +61,8 @@ const STATUS_VARIANTS: Record<InvitationStatus, BadgeVariant> = {
   expired: "warning",
 };
 
-function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString();
-}
-
 export default function InvitationsPage() {
+  const { t, roleLabel, invitationStatusLabel } = useI18n();
   const { data: invitations = [], isLoading, error } = useInvitations();
   const createMutation = useCreateInvitation();
   const revokeMutation = useRevokeInvitation();
@@ -74,6 +72,10 @@ export default function InvitationsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const roleOptions = useMemo(
+    () => ROLE_OPTIONS.map((option) => ({ ...option, label: roleLabel(option.value) })),
+    [roleLabel],
+  );
 
   const canSubmit = useMemo(() => {
     return email.trim().length > 0 && !createMutation.isPending;
@@ -85,7 +87,7 @@ export default function InvitationsPage() {
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setFormError("Email is required.");
+      setFormError(t("Email is required."));
       return;
     }
 
@@ -96,7 +98,7 @@ export default function InvitationsPage() {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error ?? "Failed to send invitation";
+          ?.error ?? t("Failed to send invitation");
       setFormError(message);
     }
   }
@@ -118,20 +120,21 @@ export default function InvitationsPage() {
       <div className="mb-8 flex items-center gap-3">
         <Mail className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-semibold">User Invitations</h1>
+          <h1 className="text-3xl font-semibold">{t("User Invitations")}</h1>
           <p className="text-sm text-muted-foreground">
-            Invite new users by email. Each invitation carries a role and a
-            one-time registration link.
+            {t(
+              "Invite new users by email. Each invitation carries a role and a one-time registration link.",
+            )}
           </p>
         </div>
       </div>
 
       <div className="mb-8 rounded-lg border p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold">Invite a new user</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t("Invite a new user")}</h2>
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex flex-1 flex-col gap-1.5">
-              <Label htmlFor="invite-email">Email address</Label>
+              <Label htmlFor="invite-email">{t("Email address")}</Label>
               <Input
                 id="invite-email"
                 type="email"
@@ -142,7 +145,7 @@ export default function InvitationsPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5 sm:min-w-[180px]">
-              <Label htmlFor="invite-role">Role</Label>
+              <Label htmlFor="invite-role">{t("Role")}</Label>
               <Select
                 value={role}
                 onValueChange={(value) => setRole(value as InvitationRole)}
@@ -151,7 +154,7 @@ export default function InvitationsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {ROLE_OPTIONS.map((option) => (
+                  {roleOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -169,7 +172,7 @@ export default function InvitationsPage() {
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              {createMutation.isPending ? "Sending…" : "Send invitation"}
+              {createMutation.isPending ? t("Sending…") : t("Send invitation")}
             </Button>
           </div>
           {formError && (
@@ -188,13 +191,13 @@ export default function InvitationsPage() {
 
       {error != null && !isLoading && (
         <Alert variant="destructive" className="mb-4">
-          Failed to load invitations.
+          {t("Failed to load invitations.")}
         </Alert>
       )}
 
       {!isLoading && !error && invitations.length === 0 && (
         <Alert>
-          No invitations yet. Use the form above to invite your first user.
+          {t("No invitations yet. Use the form above to invite your first user.")}
         </Alert>
       )}
 
@@ -203,12 +206,12 @@ export default function InvitationsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sent</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                <TableHead>{t("Email")}</TableHead>
+                <TableHead>{t("Role")}</TableHead>
+                <TableHead>{t("Status")}</TableHead>
+                <TableHead>{t("Sent")}</TableHead>
+                <TableHead>{t("Expires")}</TableHead>
+                <TableHead className="text-center">{t("Actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -220,18 +223,18 @@ export default function InvitationsPage() {
                       {invitation.email}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{invitation.role}</Badge>
+                      <Badge variant="outline">{roleLabel(invitation.role)}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_VARIANTS[invitation.status]}>
-                        {invitation.status}
+                        {invitationStatusLabel(invitation.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(invitation.createdAt)}
+                      {formatDateTime(invitation.createdAt)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(invitation.expiresAt)}
+                      {formatDateTime(invitation.expiresAt)}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-1">
@@ -243,7 +246,7 @@ export default function InvitationsPage() {
                                 size="icon"
                                 onClick={() => handleCopyLink(invitation)}
                                 disabled={invitation.status !== "pending"}
-                                aria-label="Copy invite link"
+                                aria-label={t("Copy invite link")}
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
@@ -251,8 +254,8 @@ export default function InvitationsPage() {
                           </TooltipTrigger>
                           <TooltipContent>
                             {copiedId === invitation.id
-                              ? "Copied!"
-                              : "Copy invite link"}
+                              ? t("Copied!")
+                              : t("Copy invite link")}
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -266,14 +269,14 @@ export default function InvitationsPage() {
                                 onClick={() =>
                                   revokeMutation.mutate(invitation.id)
                                 }
-                                aria-label="Revoke invitation"
+                                aria-label={t("Revoke invitation")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>
-                            {canRevoke ? "Revoke invitation" : "—"}
+                            {canRevoke ? t("Revoke invitation") : "—"}
                           </TooltipContent>
                         </Tooltip>
                       </div>

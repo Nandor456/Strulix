@@ -31,6 +31,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>BuildPulse uses the camera to scan attendance QR codes.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BuildPulse uses your location once when scanning attendance to confirm you are at the workpoint.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

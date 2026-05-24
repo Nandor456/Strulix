@@ -1,7 +1,10 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Building2, CircleAlert, Clock, DollarSign, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Building2, CircleAlert, Clock, DollarSign, MapPin, QrCode } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useI18n } from "@/hooks/useI18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -19,6 +22,8 @@ import {
   formatDate,
   formatDateTime,
   formatHours,
+  formatMoney,
+  formatMonthLabel,
   getCurrentPeriod,
   parsePeriod,
 } from "@/lib/format";
@@ -33,29 +38,6 @@ type AttendanceGroup = {
   isCurrentAssignment: boolean;
   rows: DailyStatRow[];
 };
-
-const currencyFormatter = new Intl.NumberFormat(undefined, {
-  currency: "RON",
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 0,
-  style: "currency",
-});
-
-function formatCurrency(value: number) {
-  return currencyFormatter.format(value);
-}
-
-function formatHourlyWage(value: number | null | undefined) {
-  if (value == null) return "Not set";
-  return `${formatCurrency(value)}/h`;
-}
-
-function getPeriodLabel(year: number, month: number) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "long",
-    year: "numeric",
-  }).format(new Date(year, month - 1, 1));
-}
 
 function getRowsByWorkPoint(rows: DailyStatRow[]) {
   const byWorkPoint = new Map<string, DailyStatRow[]>();
@@ -89,6 +71,7 @@ function getWorkPointTotals(rows: DailyStatRow[]) {
 function buildAttendanceGroups(
   workPoints: AssignedWorkPointSummary[],
   rows: DailyStatRow[],
+  previousWorkpointLabel: string,
 ): AttendanceGroup[] {
   const byWorkPoint = getRowsByWorkPoint(rows);
   const assignedIds = new Set(workPoints.map((workPoint) => workPoint.id));
@@ -106,7 +89,7 @@ function buildAttendanceGroups(
     .filter(([workPointId]) => !assignedIds.has(workPointId))
     .map(([workPointId, workPointRows]) => ({
       id: workPointId,
-      name: workPointRows[0]?.workPoint.name ?? "Previous workpoint",
+      name: workPointRows[0]?.workPoint.name ?? previousWorkpointLabel,
       isCurrentAssignment: false,
       rows: workPointRows,
     }));
@@ -115,9 +98,10 @@ function buildAttendanceGroups(
 }
 
 export default function WorkerHomePage() {
+  const { t } = useI18n();
   const [period, setPeriod] = useState(getCurrentPeriod);
   const [year, month] = parsePeriod(period);
-  const periodLabel = getPeriodLabel(year, month);
+  const periodLabel = formatMonthLabel(year, month);
 
   const {
     data: assignedWorkPoints = [],
@@ -136,8 +120,13 @@ export default function WorkerHomePage() {
   } = useMyMonthlySummary(year, month);
 
   const attendanceGroups = useMemo(
-    () => buildAttendanceGroups(assignedWorkPoints, dailyRows),
-    [assignedWorkPoints, dailyRows],
+    () =>
+      buildAttendanceGroups(
+        assignedWorkPoints,
+        dailyRows,
+        t("Previous workpoint"),
+      ),
+    [assignedWorkPoints, dailyRows, t],
   );
 
   const hasWage = monthlySummary?.hourlyWage != null;
@@ -160,24 +149,32 @@ export default function WorkerHomePage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <Badge variant="outline" className="mb-3 bg-background/70">
-                Worker dashboard
+                {t("Worker dashboard")}
               </Badge>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Your BuildPulse home
+                {t("Your BuildPulse home")}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-                Track your assigned workpoints, attendance, hours, and wage-based
-                earnings for {periodLabel}.
+                {t(
+                  "Track your assigned workpoints, attendance, hours, and wage-based earnings for {periodLabel}.",
+                  { periodLabel },
+                )}
               </p>
             </div>
-            <div className="flex w-full flex-col gap-1.5 sm:w-56">
-              <Label htmlFor="worker-period">Month</Label>
+            <div className="flex w-full flex-col gap-2 sm:w-56">
+              <Label htmlFor="worker-period">{t("Month")}</Label>
               <Input
                 id="worker-period"
                 type="month"
                 value={period}
                 onChange={(event) => setPeriod(event.target.value || getCurrentPeriod())}
               />
+              <Button asChild>
+                <Link to="/scan">
+                  <QrCode className="h-4 w-4" />
+                  {t("Scan attendance")}
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -191,7 +188,7 @@ export default function WorkerHomePage() {
 
       {hasError && !isLoading && (
         <Alert variant="destructive" className="mb-4">
-          Failed to load your worker dashboard.
+          {t("Failed to load your worker dashboard.")}
         </Alert>
       )}
 
@@ -199,33 +196,45 @@ export default function WorkerHomePage() {
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <SummaryCard
-              label="Monthly earnings"
-              value={hasWage ? formatCurrency(monthlySummary.totalEarnings) : "Unavailable"}
-              helper={hasWage ? "Completed attendances only" : "Ask an admin to set your wage"}
+              label={t("Monthly earnings")}
+              value={
+                hasWage
+                  ? formatMoney(monthlySummary.totalEarnings, { precise: true })
+                  : t("Unavailable")
+              }
+              helper={
+                hasWage
+                  ? t("Completed attendances only")
+                  : t("Ask an admin to set your wage")
+              }
               icon={<DollarSign className="h-4 w-4" />}
             />
             <SummaryCard
-              label="Hourly wage"
-              value={formatHourlyWage(monthlySummary?.hourlyWage)}
-              helper="Configured on your worker profile"
+              label={t("Hourly wage")}
+              value={formatMoney(monthlySummary?.hourlyWage, { precise: true })}
+              helper={t("Configured on your worker profile")}
               icon={<DollarSign className="h-4 w-4" />}
             />
             <SummaryCard
-              label="Total hours"
+              label={t("Total hours")}
               value={formatHours(monthlySummary?.totalHours ?? 0)}
-              helper={`${monthlySummary?.completeDays ?? 0} complete days`}
+              helper={t("{count} complete days", {
+                count: `${monthlySummary?.completeDays ?? 0}`,
+              })}
               icon={<Clock className="h-4 w-4" />}
             />
             <SummaryCard
-              label="Attendance days"
+              label={t("Attendance days")}
               value={`${monthlySummary?.totalDays ?? 0}`}
-              helper={`${monthlySummary?.completeDays ?? 0} complete`}
+              helper={t("{count} complete", {
+                count: `${monthlySummary?.completeDays ?? 0}`,
+              })}
               icon={<Clock className="h-4 w-4" />}
             />
             <SummaryCard
-              label="Open records"
+              label={t("Open records")}
               value={`${openRecords}`}
-              helper="Missing check-out"
+              helper={t("Missing check-out")}
               icon={<Clock className="h-4 w-4" />}
             />
           </div>
@@ -234,15 +243,15 @@ export default function WorkerHomePage() {
             <div className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
               <div>
-                <h2 className="text-xl font-semibold">Assigned workpoints</h2>
+                <h2 className="text-xl font-semibold">{t("Assigned workpoints")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Current workpoints assigned to you.
+                  {t("Current workpoints assigned to you.")}
                 </p>
               </div>
             </div>
 
             {assignedWorkPoints.length === 0 ? (
-              <Alert>No workpoints are assigned to you yet.</Alert>
+              <Alert>{t("No workpoints are assigned to you yet.")}</Alert>
             ) : (
               <div className="grid gap-3 lg:grid-cols-2">
                 {assignedWorkPoints.map((workPoint) => {
@@ -267,7 +276,7 @@ export default function WorkerHomePage() {
                           </p>
                         </div>
                         <Badge variant="outline">
-                          Deadline: {formatDate(workPoint.deadline)}
+                          {t("Deadline")}: {formatDate(workPoint.deadline)}
                         </Badge>
                       </div>
                       {workPoint.description && (
@@ -276,13 +285,15 @@ export default function WorkerHomePage() {
                         </p>
                       )}
                       <div className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-                        <MiniStat label="Hours" value={formatHours(totals.totalHours)} />
-                        <MiniStat label="Days" value={`${rows.length}`} />
-                        <MiniStat label="Complete" value={`${totals.completeDays}`} />
+                        <MiniStat label={t("Hours")} value={formatHours(totals.totalHours)} />
+                        <MiniStat label={t("Days")} value={`${rows.length}`} />
+                        <MiniStat label={t("Complete")} value={`${totals.completeDays}`} />
                         <MiniStat
-                          label="Earnings"
+                          label={t("Earnings")}
                           value={
-                            hasWage ? formatCurrency(totals.totalEarnings) : "Unavailable"
+                            hasWage
+                              ? formatMoney(totals.totalEarnings, { precise: true })
+                              : t("Unavailable")
                           }
                         />
                       </div>
@@ -297,15 +308,17 @@ export default function WorkerHomePage() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
               <div>
-                <h2 className="text-xl font-semibold">Attendance by workpoint</h2>
+                <h2 className="text-xl font-semibold">{t("Attendance by workpoint")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Your own check-ins and check-outs for {periodLabel}.
+                  {t("Your own check-ins and check-outs for {periodLabel}.", {
+                    periodLabel,
+                  })}
                 </p>
               </div>
             </div>
 
             {attendanceGroups.length === 0 ? (
-              <Alert>No attendance records for {periodLabel}.</Alert>
+              <Alert>{t("No attendance records for {periodLabel}.", { periodLabel })}</Alert>
             ) : (
               <div className="space-y-4">
                 {attendanceGroups.map((group) => (
@@ -368,6 +381,7 @@ function AttendanceGroupCard({
   hasWage: boolean;
   periodLabel: string;
 }) {
+  const { t } = useI18n();
   const totals = getWorkPointTotals(group.rows);
 
   return (
@@ -378,7 +392,7 @@ function AttendanceGroupCard({
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-semibold">{group.name}</h3>
               {!group.isCurrentAssignment && (
-                <Badge variant="warning">Previous assignment</Badge>
+                <Badge variant="warning">{t("Previous")}</Badge>
               )}
             </div>
             {group.address && (
@@ -390,27 +404,27 @@ function AttendanceGroupCard({
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
             <span>{formatHours(totals.totalHours)}</span>
-            <span>{group.rows.length} records</span>
-            {group.deadline && <span>Deadline: {formatDate(group.deadline)}</span>}
+            <span>{t("{count} records", { count: group.rows.length })}</span>
+            {group.deadline && <span>{t("Deadline")}: {formatDate(group.deadline)}</span>}
           </div>
         </div>
       </div>
 
       {group.rows.length === 0 ? (
         <div className="p-4">
-          <Alert>No attendance recorded here for {periodLabel}.</Alert>
+          <Alert>{t("No attendance recorded here for {periodLabel}.", { periodLabel })}</Alert>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Check in</TableHead>
-                <TableHead>Check out</TableHead>
-                <TableHead className="text-right">Hours</TableHead>
-                <TableHead className="text-right">Earnings</TableHead>
-                <TableHead className="text-center">Status</TableHead>
+                <TableHead>{t("Date")}</TableHead>
+                <TableHead>{t("Checked in")}</TableHead>
+                <TableHead>{t("Checked out")}</TableHead>
+                <TableHead className="text-right">{t("Hours")}</TableHead>
+                <TableHead className="text-right">{t("Earnings")}</TableHead>
+                <TableHead className="text-center">{t("Status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -428,10 +442,10 @@ function AttendanceGroupCard({
                       {row.checkoutSource === "AUTO" && (
                         <Badge
                           variant="destructive"
-                          title="Automatically closed at 22:00"
+                          title={t("Automatically closed at 22:00")}
                         >
                           <CircleAlert className="h-3 w-3" />
-                          Auto
+                          {t("Auto")}
                         </Badge>
                       )}
                     </div>
@@ -441,10 +455,10 @@ function AttendanceGroupCard({
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {row.complete && hasWage
-                      ? formatCurrency(row.earnings)
+                      ? formatMoney(row.earnings, { precise: true })
                       : row.complete
-                        ? "Unavailable"
-                        : "Open"}
+                        ? t("Unavailable")
+                        : t("Open")}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
@@ -457,10 +471,10 @@ function AttendanceGroupCard({
                       }
                     >
                       {row.checkoutSource === "AUTO"
-                        ? "Auto-closed"
+                        ? t("Auto-closed")
                         : row.complete
-                          ? "Complete"
-                          : "Open"}
+                          ? t("Complete")
+                          : t("Open")}
                     </Badge>
                   </TableCell>
                 </TableRow>

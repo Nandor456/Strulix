@@ -16,6 +16,7 @@ import WorkpointDetailPage from "./pages/WorkpointDetailPage";
 import CheckinPage from "./pages/CheckinPage";
 import WorkerHomePage from "./pages/WorkerHomePage";
 import WorkerDocumentsPage from "./pages/WorkerDocumentsPage";
+import ScanPage from "./pages/ScanPage";
 import { useAuth } from "./hooks/useAuth";
 import type { UserRole } from "./types/UserTypes";
 
@@ -60,6 +61,14 @@ function App() {
                             element={
                                 <RequireRoles roles={["WORKER"]}>
                                     <WorkerDocumentsPage />
+                                </RequireRoles>
+                            }
+                        />
+                        <Route
+                            path="/scan"
+                            element={
+                                <RequireRoles roles={["WORKER"]}>
+                                    <ScanPage />
                                 </RequireRoles>
                             }
                         />

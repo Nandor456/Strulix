@@ -3,6 +3,7 @@ import { ArrowRight, Building2, Pencil, Plus, Trash2, Users } from "lucide-react
 import { useNavigate } from "react-router-dom";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/hooks/useI18n";
 import {
   Dialog,
   DialogContent,
@@ -84,6 +85,7 @@ function buildWorkPointPayload(form: WorkPointFormState): WorkPointUpdate {
 }
 
 export default function WorkpointPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { data: workPoints = [], isLoading, error } = useWorkPoints();
   const { data: workers = [] } = useWorkers();
@@ -132,7 +134,7 @@ export default function WorkpointPage() {
 
     const basePayload = buildWorkPointPayload(form);
     if (!basePayload.name || !basePayload.address) {
-      setFormError("Name and address are required.");
+      setFormError(t("Name and address are required."));
       return;
     }
 
@@ -159,7 +161,7 @@ export default function WorkpointPage() {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        "Failed to save workpoint";
+        t("Failed to save workpoint");
       setFormError(message);
     }
   }
@@ -176,15 +178,17 @@ export default function WorkpointPage() {
         <div className="flex items-center gap-3">
           <Building2 className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-semibold">Workpoints</h1>
+            <h1 className="text-3xl font-semibold">{t("Workpoints")}</h1>
             <p className="text-sm text-muted-foreground">
-              Browse your job sites and open one to manage its workers, attendance, and QR tools.
+              {t(
+                "Browse your job sites and open one to manage its workers, attendance, and QR tools.",
+              )}
             </p>
           </div>
         </div>
         <Button onClick={openCreateDialog}>
           <Plus className="h-4 w-4" />
-          New workpoint
+          {t("New workpoint")}
         </Button>
       </div>
 
@@ -196,28 +200,28 @@ export default function WorkpointPage() {
 
       {error != null && !isLoading && (
         <Alert variant="destructive" className="mb-4">
-          Failed to load workpoints.
+          {t("Failed to load workpoints.")}
         </Alert>
       )}
 
       {!isLoading && !error && workPoints.length === 0 && (
-        <Alert>No workpoints yet. Create one to start assigning workers.</Alert>
+        <Alert>{t("No workpoints yet. Create one to start assigning workers.")}</Alert>
       )}
 
       {!isLoading && workPoints.length > 0 && (
         <div className="overflow-hidden rounded-md border bg-card">
           <div className="border-b px-4 py-3">
-            <h2 className="text-sm font-semibold">All workpoints</h2>
+            <h2 className="text-sm font-semibold">{t("All workpoints")}</h2>
           </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead className="text-center">Workers</TableHead>
-                  <TableHead className="text-center">Attendance</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
+                  <TableHead>{t("Name")}</TableHead>
+                  <TableHead>{t("Address")}</TableHead>
+                  <TableHead className="text-center">{t("Workers")}</TableHead>
+                  <TableHead className="text-center">{t("Attendance")}</TableHead>
+                  <TableHead className="text-center">{t("Actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -230,7 +234,7 @@ export default function WorkpointPage() {
                     <TableCell className="min-w-56 font-medium">
                       <div>{workPoint.name}</div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Deadline: {formatDate(workPoint.deadline)}
+                        {t("Deadline")}: {formatDate(workPoint.deadline)}
                       </p>
                     </TableCell>
                     <TableCell className="min-w-72 text-sm text-muted-foreground">
@@ -253,12 +257,12 @@ export default function WorkpointPage() {
                                 event.stopPropagation();
                                 navigate(`/workpoints/${workPoint.id}`);
                               }}
-                              aria-label="Open workpoint"
+                              aria-label={t("Open workpoint")}
                             >
                               <ArrowRight className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Open workpoint</TooltipContent>
+                          <TooltipContent>{t("Open workpoint")}</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -269,12 +273,12 @@ export default function WorkpointPage() {
                                 event.stopPropagation();
                                 openEditDialog(workPoint);
                               }}
-                              aria-label="Edit workpoint"
+                              aria-label={t("Edit workpoint")}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Edit workpoint</TooltipContent>
+                          <TooltipContent>{t("Edit workpoint")}</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -286,12 +290,12 @@ export default function WorkpointPage() {
                                 event.stopPropagation();
                                 setDeleteTarget(workPoint);
                               }}
-                              aria-label="Delete workpoint"
+                              aria-label={t("Delete workpoint")}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>Delete workpoint</TooltipContent>
+                          <TooltipContent>{t("Delete workpoint")}</TooltipContent>
                         </Tooltip>
                       </div>
                     </TableCell>
@@ -307,13 +311,13 @@ export default function WorkpointPage() {
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {formMode === "create" ? "Create workpoint" : "Edit workpoint"}
+              {formMode === "create" ? t("Create workpoint") : t("Edit workpoint")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={(event) => void handleFormSubmit(event)} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="workpoint-name">Name</Label>
+                <Label htmlFor="workpoint-name">{t("Name")}</Label>
                 <Input
                   id="workpoint-name"
                   value={form.name}
@@ -322,7 +326,7 @@ export default function WorkpointPage() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="workpoint-address">Address</Label>
+                <Label htmlFor="workpoint-address">{t("Address")}</Label>
                 <Input
                   id="workpoint-address"
                   value={form.address}
@@ -330,11 +334,11 @@ export default function WorkpointPage() {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Coordinates are generated automatically from the address.
+                  {t("Coordinates are generated automatically from the address.")}
                 </p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="workpoint-deadline">Deadline</Label>
+                <Label htmlFor="workpoint-deadline">{t("Deadline")}</Label>
                 <Input
                   id="workpoint-deadline"
                   type="date"
@@ -345,7 +349,7 @@ export default function WorkpointPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="workpoint-description">Description</Label>
+              <Label htmlFor="workpoint-description">{t("Description")}</Label>
               <Textarea
                 id="workpoint-description"
                 value={form.description}
@@ -358,10 +362,10 @@ export default function WorkpointPage() {
               <div className="rounded-md border p-3">
                 <div className="mb-3 flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold">Initial workers</h3>
+                  <h3 className="text-sm font-semibold">{t("Initial workers")}</h3>
                 </div>
                 {workers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No workers available.</p>
+                  <p className="text-sm text-muted-foreground">{t("No workers available.")}</p>
                 ) : (
                   <div className="grid max-h-52 gap-2 overflow-y-auto sm:grid-cols-2">
                     {workers.map((worker) => (
@@ -392,14 +396,16 @@ export default function WorkpointPage() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeFormDialog}>
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={createWorkPoint.isPending || updateWorkPoint.isPending}
               >
                 {(createWorkPoint.isPending || updateWorkPoint.isPending) && <Spinner size={16} />}
-                Save
+                {createWorkPoint.isPending || updateWorkPoint.isPending
+                  ? t("Saving...")
+                  : t("Save")}
               </Button>
             </DialogFooter>
           </form>
@@ -409,15 +415,17 @@ export default function WorkpointPage() {
       <Dialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete workpoint</DialogTitle>
+            <DialogTitle>{t("Delete workpoint")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Delete <strong>{deleteTarget?.name}</strong>? Attendance, assignments, and the
-            workpoint chat will be removed.
+            {t(
+              "Delete {name}? Attendance, assignments, and the workpoint chat will be removed.",
+              { name: deleteTarget?.name ?? "" },
+            )}
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -425,7 +433,7 @@ export default function WorkpointPage() {
               disabled={deleteWorkPoint.isPending}
             >
               {deleteWorkPoint.isPending && <Spinner size={16} />}
-              Delete
+              {t("Delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

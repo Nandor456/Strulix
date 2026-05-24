@@ -5,8 +5,13 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/useAuth";
+import { useI18n } from "@/hooks/useI18n";
 import { formatDate, formatDateTime, formatHours, formatMoney } from "@/lib/format";
-import { attendanceAPI, type ScanResult } from "@/services/api/attendanceApi";
+import {
+  attendanceAPI,
+  type ScanLocation,
+  type ScanResult,
+} from "@/services/api/attendanceApi";
 
 const inFlightScans = new Map<string, Promise<ScanResult>>();
 
@@ -15,11 +20,65 @@ type ScanState =
   | { status: "success"; result: ScanResult }
   | { status: "error"; error: unknown };
 
-function scanQrToken(qrToken: string) {
+class LocationScanError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LocationScanError";
+  }
+}
+
+function getCurrentScanLocation(
+  t: (key: string) => string,
+): Promise<ScanLocation> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    return Promise.reject(
+      new LocationScanError(
+        t("This browser cannot provide location for attendance scans."),
+      ),
+    );
+  }
+
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        if (error.code === 1) {
+          reject(new LocationScanError(t("Allow location access to scan attendance.")));
+          return;
+        }
+        if (error.code === 3) {
+          reject(
+            new LocationScanError(
+              t("Location timed out. Move somewhere with a clearer signal and try again."),
+            ),
+          );
+          return;
+        }
+        reject(
+          new LocationScanError(
+            t("Unable to get your current location. Check location services and try again."),
+          ),
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 12000,
+      },
+    );
+  });
+}
+
+function scanQrToken(qrToken: string, location: ScanLocation) {
   const existing = inFlightScans.get(qrToken);
   if (existing) return existing;
 
-  const request = attendanceAPI.checkin(qrToken).finally(() => {
+  const request = attendanceAPI.checkin(qrToken, location).finally(() => {
     if (inFlightScans.get(qrToken) === request) {
       inFlightScans.delete(qrToken);
     }
@@ -29,10 +88,12 @@ function scanQrToken(qrToken: string) {
   return request;
 }
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: (key: string) => string) {
+  if (error instanceof LocationScanError) return error.message;
+
   return (
     (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-    "Unable to record attendance."
+    t("Unable to record attendance.")
   );
 }
 
@@ -40,6 +101,7 @@ export default function CheckinPage() {
   const { qrToken } = useParams<{ qrToken: string }>();
   const location = useLocation();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { t } = useI18n();
   const [scanState, setScanState] = useState<ScanState>({ status: "pending" });
   const latestScanIdRef = useRef(0);
 
@@ -48,7 +110,8 @@ export default function CheckinPage() {
     latestScanIdRef.current = scanId;
     setScanState({ status: "pending" });
 
-    void scanQrToken(token)
+    void getCurrentScanLocation(t)
+      .then((scanLocation) => scanQrToken(token, scanLocation))
       .then((result) => {
         if (latestScanIdRef.current === scanId) {
           setScanState({ status: "success", result });
@@ -59,7 +122,7 @@ export default function CheckinPage() {
           setScanState({ status: "error", error });
         }
       });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated || !qrToken) return;
@@ -77,7 +140,7 @@ export default function CheckinPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
         <Alert variant="destructive" className="max-w-sm">
-          Invalid QR code.
+          {t("Invalid QR code.")}
         </Alert>
       </main>
     );
@@ -95,10 +158,10 @@ export default function CheckinPage() {
         : undefined;
   const resultLabel =
     result?.event === "CHECK_IN"
-      ? "Checked in"
+      ? t("Checked in")
       : result?.event === "CHECK_OUT"
-        ? "Checked out"
-        : "Already completed today";
+        ? t("Checked out")
+        : t("Already completed today");
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
@@ -114,13 +177,13 @@ export default function CheckinPage() {
             )}
           </div>
           <div>
-            <h1 className="text-xl font-semibold">Attendance scan</h1>
+            <h1 className="text-xl font-semibold">{t("Attendance scan")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {isPending
-                ? "Recording attendance..."
+                ? t("Recording attendance...")
                 : result
                   ? result.workPointName
-                  : "Preparing scan"}
+                  : t("Preparing scan")}
             </p>
           </div>
         </div>
@@ -133,7 +196,7 @@ export default function CheckinPage() {
 
         {isError && (
           <div className="space-y-4">
-            <Alert variant="destructive">{getErrorMessage(scanState.error)}</Alert>
+            <Alert variant="destructive">{getErrorMessage(scanState.error, t)}</Alert>
             <Button
               className="w-full"
               onClick={() => {
@@ -142,7 +205,7 @@ export default function CheckinPage() {
               }}
             >
               <LogIn className="h-4 w-4" />
-              Try again
+              {t("Try again")}
             </Button>
           </div>
         )}
@@ -152,26 +215,25 @@ export default function CheckinPage() {
             <Alert className={resultAlertClassName}>{resultLabel}</Alert>
             {result.event === "ALREADY_COMPLETED" && (
               <Alert>
-                This attendance was already completed for today.
+                {t("This attendance was already completed for today.")}
               </Alert>
             )}
             {completedResult?.checkoutSource === "AUTO" && (
               <Alert variant="destructive">
-                This attendance was automatically closed at 22:00 and may need
-                review.
+                {t("This attendance was automatically closed at 22:00 and may need review.")}
               </Alert>
             )}
             <div className="rounded-md border">
               <div className="grid grid-cols-2 gap-3 border-b px-4 py-3 text-sm">
-                <span className="text-muted-foreground">Workpoint</span>
+                <span className="text-muted-foreground">{t("Workpoint")}</span>
                 <span className="text-right font-medium">{result.workPointName}</span>
               </div>
               <div className="grid grid-cols-2 gap-3 border-b px-4 py-3 text-sm">
-                <span className="text-muted-foreground">Date</span>
+                <span className="text-muted-foreground">{t("Date")}</span>
                 <span className="text-right font-medium">{formatDate(result.date)}</span>
               </div>
               <div className="grid grid-cols-2 gap-3 px-4 py-3 text-sm">
-                <span className="text-muted-foreground">Checked in</span>
+                <span className="text-muted-foreground">{t("Checked in")}</span>
                 <span className="text-right font-medium">
                   {formatDateTime(result.checkedInAt)}
                 </span>
@@ -180,19 +242,19 @@ export default function CheckinPage() {
             {completedResult && (
               <div className="rounded-md border">
                 <div className="grid grid-cols-2 gap-3 border-b px-4 py-3 text-sm">
-                  <span className="text-muted-foreground">Checked out</span>
+                  <span className="text-muted-foreground">{t("Checked out")}</span>
                   <span className="text-right font-medium">
                     {formatDateTime(completedResult.checkedOutAt)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 border-b px-4 py-3 text-sm">
-                  <span className="text-muted-foreground">Hours</span>
+                  <span className="text-muted-foreground">{t("Hours")}</span>
                   <span className="text-right font-medium">
                     {formatHours(completedResult.hours)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 px-4 py-3 text-sm">
-                  <span className="text-muted-foreground">Earnings</span>
+                  <span className="text-muted-foreground">{t("Earnings")}</span>
                   <span className="text-right font-medium">
                     {formatMoney(completedResult.earnings)}
                   </span>
@@ -200,7 +262,7 @@ export default function CheckinPage() {
               </div>
             )}
             <Button asChild className="w-full">
-              <RouterLink to="/messages">Done</RouterLink>
+              <RouterLink to="/messages">{t("Done")}</RouterLink>
             </Button>
           </div>
         )}

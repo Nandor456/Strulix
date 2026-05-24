@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useI18n } from "@/hooks/useI18n";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
 
@@ -41,6 +43,7 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { refreshUser } = useAuth();
+  const { t } = useI18n();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -57,7 +60,7 @@ export default function Login() {
 
     const trimmedUsername = username.trim();
     if (trimmedUsername.length < 3 || password.length === 0) {
-      setError("Please enter a username and password.");
+      setError(t("Please enter a username and password."));
       return;
     }
 
@@ -77,12 +80,12 @@ export default function Login() {
       if (error instanceof AxiosError) {
         const data = error.response?.data as LoginResponse | undefined;
         if (data) {
-          setError(getErrorMessageFromResponse(data, "Login failed"));
+          setError(getErrorMessageFromResponse(data, t("Login failed")));
           return;
         }
       }
 
-      setError("Network error. Please try again.");
+      setError(t("Network error. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -91,20 +94,23 @@ export default function Login() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-sm">
+        <div className="mb-4 flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <div className="mb-8 flex flex-col items-center gap-2">
           <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
             <Building2 className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-center text-xl font-bold">Sign in</h1>
+          <h1 className="text-center text-xl font-bold">{t("Sign in")}</h1>
           <p className="text-center text-sm text-muted-foreground">
-            Welcome back to BuildPulse
+            {t("Welcome back to BuildPulse")}
           </p>
         </div>
 
         <div className="rounded-2xl border bg-card p-6 sm:p-8">
           <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-username">Username</Label>
+              <Label htmlFor="login-username">{t("Username")}</Label>
               <Input
                 id="login-username"
                 value={username}
@@ -117,7 +123,7 @@ export default function Login() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-password">Password</Label>
+              <Label htmlFor="login-password">{t("Password")}</Label>
               <Input
                 id="login-password"
                 value={password}
@@ -137,18 +143,18 @@ export default function Login() {
               className="w-full py-2.5 font-semibold"
             >
               {isSubmitting && <Spinner className="mr-2" />}
-              {isSubmitting ? "Signing in…" : "Sign in"}
+              {isSubmitting ? t("Signing in…") : t("Sign in")}
             </Button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          No account?{" "}
+          {t("No account?")}{" "}
           <RouterLink
             to="/register"
             className="font-medium text-primary hover:underline"
           >
-            Register
+            {t("Register")}
           </RouterLink>
         </p>
       </div>

@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useI18n } from "@/hooks/useI18n";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
 
@@ -46,6 +48,7 @@ export default function Register() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { refreshUser } = useAuth();
+  const { t } = useI18n();
 
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -76,18 +79,18 @@ export default function Register() {
     const trimmedUsername = username.trim();
     const trimmedEmail = emailValue.trim();
     if (trimmedUsername.length < 3) {
-      setError("Username must be at least 3 characters.");
+      setError(t("Username must be at least 3 characters."));
       return;
     }
 
     if (!trimmedEmail) {
-      setError("Email is required.");
+      setError(t("Email is required."));
       return;
     }
 
     if (!hasValidPassword) {
       setError(
-        "Password must start with an uppercase letter and be at least 6 characters."
+        t("Password must start with an uppercase letter and be at least 6 characters."),
       );
       return;
     }
@@ -108,12 +111,12 @@ export default function Register() {
       if (error instanceof AxiosError) {
         const data = error.response?.data as RegisterResponse | undefined;
         if (data) {
-          setError(getErrorMessageFromResponse(data, "Registration failed"));
+          setError(getErrorMessageFromResponse(data, t("Registration failed")));
           return;
         }
       }
 
-      setError("Network error. Please try again.");
+      setError(t("Network error. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -122,26 +125,28 @@ export default function Register() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
+        <div className="mb-4 flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <div className="mb-8 flex flex-col items-center gap-2">
           <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
             <Building2 className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-center text-xl font-bold">Create your account</h1>
+          <h1 className="text-center text-xl font-bold">{t("Create your account")}</h1>
           <p className="text-center text-sm text-muted-foreground">
-            Join the Construction ERP system
+            {t("Join the Construction ERP system")}
           </p>
         </div>
 
         <div className="rounded-2xl border bg-card p-6 sm:p-8">
           {token && (
             <Alert className="mb-5">
-              You're accepting an invitation. Your role will be assigned
-              automatically.
+              {t("You're accepting an invitation. Your role will be assigned automatically.")}
             </Alert>
           )}
           <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-username">Username</Label>
+              <Label htmlFor="register-username">{t("Username")}</Label>
               <Input
                 id="register-username"
                 value={username}
@@ -154,7 +159,7 @@ export default function Register() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-email">Email address</Label>
+              <Label htmlFor="register-email">{t("Email address")}</Label>
               <Input
                 id="register-email"
                 value={emailValue}
@@ -167,13 +172,13 @@ export default function Register() {
               />
               {prefilledEmail && (
                 <p className="text-xs text-muted-foreground">
-                  Email is locked to the invited address.
+                  {t("Email is locked to the invited address.")}
                 </p>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-password">Password</Label>
+              <Label htmlFor="register-password">{t("Password")}</Label>
               <Input
                 id="register-password"
                 value={password}
@@ -185,7 +190,7 @@ export default function Register() {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Must start with an uppercase letter and be at least 6 characters.
+                {t("Must start with an uppercase letter and be at least 6 characters.")}
               </p>
             </div>
 
@@ -197,18 +202,18 @@ export default function Register() {
               className="w-full py-2.5 font-semibold"
             >
               {isSubmitting && <Spinner className="mr-2" />}
-              {isSubmitting ? "Creating account…" : "Create account"}
+              {isSubmitting ? t("Creating account…") : t("Create account")}
             </Button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          {t("Already have an account?")}{" "}
           <RouterLink
             to="/login"
             className="font-medium text-primary hover:underline"
           >
-            Sign in
+            {t("Sign in")}
           </RouterLink>
         </p>
       </div>

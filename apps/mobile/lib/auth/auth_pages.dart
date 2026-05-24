@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/app_scope.dart';
+import '../core/i18n.dart';
 import '../core/widgets.dart';
 
 class LoginPage extends StatefulWidget {
@@ -50,9 +51,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return _AuthScaffold(
-      title: 'Sign in',
-      subtitle: 'Welcome back to BuildPulse',
+      title: l10n.t('Sign in'),
+      subtitle: l10n.t('Welcome back to BuildPulse'),
       child: Form(
         key: _formKey,
         child: Column(
@@ -62,9 +64,10 @@ class _LoginPageState extends State<LoginPage> {
               key: const Key('login-username'),
               controller: _username,
               autofillHints: const [AutofillHints.username],
-              decoration: const InputDecoration(labelText: 'Username'),
-              validator: (value) =>
-                  (value ?? '').trim().length >= 3 ? null : 'Please enter a username.',
+              decoration: InputDecoration(labelText: l10n.t('Username')),
+              validator: (value) => (value ?? '').trim().length >= 3
+                  ? null
+                  : l10n.t('Please enter a username.'),
             ),
             const SizedBox(height: 14),
             TextFormField(
@@ -72,8 +75,9 @@ class _LoginPageState extends State<LoginPage> {
               controller: _password,
               obscureText: true,
               autofillHints: const [AutofillHints.password],
-              decoration: const InputDecoration(labelText: 'Password'),
-              validator: (value) => (value ?? '').isNotEmpty ? null : 'Password is required.',
+              decoration: InputDecoration(labelText: l10n.t('Password')),
+              validator: (value) =>
+                  (value ?? '').isNotEmpty ? null : l10n.t('Password is required.'),
               onFieldSubmitted: (_) => _submit(),
             ),
             if (_error != null) ...[
@@ -90,11 +94,13 @@ class _LoginPageState extends State<LoginPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.login),
-              label: Text(_isSubmitting ? 'Signing in...' : 'Sign in'),
+              label: Text(
+                _isSubmitting ? l10n.t('Signing in...') : l10n.t('Sign in'),
+              ),
             ),
             TextButton(
               onPressed: _isSubmitting ? null : () => context.go('/register'),
-              child: const Text('No account? Register'),
+              child: Text(l10n.t('No account? Register')),
             ),
           ],
         ),
@@ -160,25 +166,31 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final invited = widget.token?.isNotEmpty == true;
     return _AuthScaffold(
-      title: 'Create your account',
-      subtitle: 'Join the Construction ERP system',
+      title: l10n.t('Create your account'),
+      subtitle: l10n.t('Join the Construction ERP system'),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (invited) ...[
-              const ErrorBanner('You are accepting an invitation. Your role will be assigned.'),
+              ErrorBanner(
+                l10n.t(
+                  'You are accepting an invitation. Your role will be assigned.',
+                ),
+              ),
               const SizedBox(height: 14),
             ],
             TextFormField(
               key: const Key('register-username'),
               controller: _username,
-              decoration: const InputDecoration(labelText: 'Username'),
-              validator: (value) =>
-                  (value ?? '').trim().length >= 3 ? null : 'Username must be at least 3 characters.',
+              decoration: InputDecoration(labelText: l10n.t('Username')),
+              validator: (value) => (value ?? '').trim().length >= 3
+                  ? null
+                  : l10n.t('Username must be at least 3 characters.'),
             ),
             const SizedBox(height: 14),
             TextFormField(
@@ -187,20 +199,25 @@ class _RegisterPageState extends State<RegisterPage> {
               enabled: widget.prefilledEmail == null,
               autofillHints: const [AutofillHints.email],
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email address'),
-              validator: (value) => (value ?? '').trim().contains('@') ? null : 'Email is required.',
+              decoration: InputDecoration(labelText: l10n.t('Email address')),
+              validator: (value) => (value ?? '').trim().contains('@')
+                  ? null
+                  : l10n.t('Email is required.'),
             ),
             const SizedBox(height: 14),
             TextFormField(
               key: const Key('register-password'),
               controller: _password,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                helperText: 'Must start with an uppercase letter and be at least 6 characters.',
+              decoration: InputDecoration(
+                labelText: l10n.t('Password'),
+                helperText: l10n.t(
+                  'Must start with an uppercase letter and be at least 6 characters.',
+                ),
               ),
-              validator: (value) =>
-                  _passwordPattern.hasMatch(value ?? '') ? null : 'Password does not match the rules.',
+              validator: (value) => _passwordPattern.hasMatch(value ?? '')
+                  ? null
+                  : l10n.t('Password does not match the rules.'),
               onFieldSubmitted: (_) => _submit(),
             ),
             if (_error != null) ...[
@@ -217,11 +234,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.person_add_alt),
-              label: Text(_isSubmitting ? 'Creating account...' : 'Create account'),
+              label: Text(
+                _isSubmitting
+                    ? l10n.t('Creating account...')
+                    : l10n.t('Create account'),
+              ),
             ),
             TextButton(
               onPressed: _isSubmitting ? null : () => context.go('/login'),
-              child: const Text('Already have an account? Sign in'),
+              child: Text(l10n.t('Already have an account? Sign in')),
             ),
           ],
         ),
@@ -243,6 +264,7 @@ class _AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -252,7 +274,17 @@ class _AuthScaffold extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 children: [
-                  Image.asset('assets/images/buildpulselogo.png', width: 72, height: 72),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: AppLanguageMenuButton(
+                      key: ValueKey(l10n.language.code),
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/images/buildpulselogo.png',
+                    width: 72,
+                    height: 72,
+                  ),
                   const SizedBox(height: 16),
                   Text(title, style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 4),
@@ -273,4 +305,3 @@ class _AuthScaffold extends StatelessWidget {
     );
   }
 }
-

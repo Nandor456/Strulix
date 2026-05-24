@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
 
@@ -27,10 +31,11 @@ class _CheckinPageState extends State<CheckinPage> {
   }
 
   Future<void> _scan() async {
+    final l10n = context.l10n;
     if (widget.qrToken.isEmpty) {
       setState(() {
         _isLoading = false;
-        _error = 'Invalid QR code.';
+        _error = l10n.t('Invalid QR code.');
       });
       return;
     }
@@ -42,26 +47,87 @@ class _CheckinPageState extends State<CheckinPage> {
     });
 
     try {
-      final result = await AppScope.apiOf(context).checkin(widget.qrToken);
-      setState(() => _result = result);
+      final api = AppScope.apiOf(context);
+      final position = await _currentPosition();
+      final result = await api.checkin(
+        widget.qrToken,
+        lat: position.latitude,
+        lng: position.longitude,
+      );
+      if (mounted) setState(() => _result = result);
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Unable to record attendance.'));
+      if (mounted) setState(() => _error = _scanErrorMessage(error));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  Future<Position> _currentPosition() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw _LocationScanException(
+        translate('Turn on location services to scan attendance.'),
+      );
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      throw _LocationScanException(
+        translate('Allow location access to scan attendance.'),
+      );
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw _LocationScanException(
+        translate(
+          'Location access is blocked. Enable it in device settings to scan attendance.',
+        ),
+      );
+    }
+
+    return Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 12),
+      ),
+    );
+  }
+
+  String _scanErrorMessage(Object error) {
+    if (error is _LocationScanException) return error.message;
+    if (error is TimeoutException) {
+      return translate(
+        'Location timed out. Move somewhere with a clearer signal and try again.',
+      );
+    }
+    if (error is LocationServiceDisabledException) {
+      return translate('Turn on location services to scan attendance.');
+    }
+    if (error is PermissionDeniedException) {
+      return translate('Allow location access to scan attendance.');
+    }
+    return errorMessage(error, 'Unable to record attendance.');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final result = _result;
     final icon = _error != null
         ? Icons.cancel_outlined
         : result != null
-            ? Icons.check_circle_outline
-            : Icons.schedule;
+        ? Icons.check_circle_outline
+        : Icons.schedule;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Attendance scan')),
+      appBar: AppBar(
+        title: Text(l10n.t('Attendance scan')),
+        actions: const [AppLanguageMenuButton()],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -73,12 +139,21 @@ class _CheckinPageState extends State<CheckinPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, size: 52, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      icon,
+                      size: 52,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(height: 12),
-                    Text('Attendance scan', style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                      l10n.t('Attendance scan'),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 4),
                     Text(
-                      _isLoading ? 'Recording attendance...' : result?.workPointName ?? 'Scan result',
+                      _isLoading
+                          ? l10n.t('Recording attendance...')
+                          : result?.workPointName ?? l10n.t('Scan result'),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
@@ -90,14 +165,14 @@ class _CheckinPageState extends State<CheckinPage> {
                       FilledButton.icon(
                         onPressed: _scan,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Try again'),
+                        label: Text(l10n.t('Try again')),
                       ),
                     ] else if (result != null) ...[
                       _ResultDetails(result: result),
                       const SizedBox(height: 16),
                       FilledButton(
                         onPressed: () => context.go('/messages'),
-                        child: const Text('Done'),
+                        child: Text(l10n.t('Done')),
                       ),
                     ],
                   ],
@@ -111,6 +186,12 @@ class _CheckinPageState extends State<CheckinPage> {
   }
 }
 
+class _LocationScanException implements Exception {
+  _LocationScanException(this.message);
+
+  final String message;
+}
+
 class _ResultDetails extends StatelessWidget {
   const _ResultDetails({required this.result});
 
@@ -118,10 +199,11 @@ class _ResultDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final label = switch (result.event) {
-      'CHECK_IN' => 'Checked in',
-      'CHECK_OUT' => 'Checked out',
-      'ALREADY_COMPLETED' => 'Already completed today',
+      'CHECK_IN' => l10n.t('Checked in'),
+      'CHECK_OUT' => l10n.t('Checked out'),
+      'ALREADY_COMPLETED' => l10n.t('Already completed today'),
       _ => result.event,
     };
 
@@ -129,17 +211,30 @@ class _ResultDetails extends StatelessWidget {
       children: [
         Chip(label: Text(label)),
         const SizedBox(height: 12),
-        _DetailRow(label: 'Workpoint', value: result.workPointName),
-        _DetailRow(label: 'Date', value: formatDate(result.date)),
-        _DetailRow(label: 'Checked in', value: formatDateTime(result.checkedInAt)),
+        _DetailRow(label: l10n.t('Workpoint'), value: result.workPointName),
+        _DetailRow(label: l10n.t('Date'), value: formatDate(result.date)),
+        _DetailRow(
+          label: l10n.t('Checked in'),
+          value: formatDateTime(result.checkedInAt),
+        ),
         if (result.isCompleted) ...[
-          _DetailRow(label: 'Checked out', value: formatDateTime(result.checkedOutAt)),
-          _DetailRow(label: 'Hours', value: formatHours(result.hours)),
-          _DetailRow(label: 'Earnings', value: formatMoney(result.earnings)),
+          _DetailRow(
+            label: l10n.t('Checked out'),
+            value: formatDateTime(result.checkedOutAt),
+          ),
+          _DetailRow(label: l10n.t('Hours'), value: formatHours(result.hours)),
+          _DetailRow(
+            label: l10n.t('Earnings'),
+            value: formatMoney(result.earnings),
+          ),
         ],
         if (result.checkoutSource == 'AUTO') ...[
           const SizedBox(height: 8),
-          const ErrorBanner('This attendance was automatically closed at 22:00 and may need review.'),
+          ErrorBanner(
+            l10n.t(
+              'This attendance was automatically closed at 22:00 and may need review.',
+            ),
+          ),
         ],
       ],
     );
@@ -158,13 +253,17 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
+          Expanded(
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
           const SizedBox(width: 12),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -172,4 +271,3 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
-

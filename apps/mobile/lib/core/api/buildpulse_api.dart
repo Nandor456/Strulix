@@ -15,7 +15,9 @@ class BuildPulseApi {
   Map<String, dynamic> _responseMap(Response<dynamic> response) {
     final data = response.data;
     if (data is Map<String, dynamic>) return data;
-    if (data is Map) return data.map((key, value) => MapEntry(key.toString(), value));
+    if (data is Map) {
+      return data.map((key, value) => MapEntry(key.toString(), value));
+    }
     return <String, dynamic>{};
   }
 
@@ -34,11 +36,14 @@ class BuildPulseApi {
     return User.fromJson(user as Map<String, dynamic>);
   }
 
-  Future<void> login({required String username, required String password}) async {
-    await client.post<dynamic>('/auth/login', data: {
-      'username': username,
-      'password': password,
-    });
+  Future<void> login({
+    required String username,
+    required String password,
+  }) async {
+    await client.post<dynamic>(
+      '/auth/login',
+      data: {'username': username, 'password': password},
+    );
   }
 
   Future<void> register({
@@ -47,12 +52,15 @@ class BuildPulseApi {
     required String password,
     String? token,
   }) async {
-    await client.post<dynamic>('/auth/register', data: {
-      'username': username,
-      'email': email,
-      'password': password,
-      if (token != null && token.isNotEmpty) 'token': token,
-    });
+    await client.post<dynamic>(
+      '/auth/register',
+      data: {
+        'username': username,
+        'email': email,
+        'password': password,
+        if (token != null && token.isNotEmpty) 'token': token,
+      },
+    );
   }
 
   Future<void> logout() async {
@@ -67,7 +75,10 @@ class BuildPulseApi {
     final response = await client.get<dynamic>('/workpoints');
     final data = _responseMap(response);
     return (data['workPoints'] as List? ?? const [])
-        .map((item) => WorkPointSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              WorkPointSummary.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
@@ -75,7 +86,11 @@ class BuildPulseApi {
     final response = await client.get<dynamic>('/workpoints/me');
     final data = _responseMap(response);
     return (data['workPoints'] as List? ?? const [])
-        .map((item) => AssignedWorkPointSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) => AssignedWorkPointSummary.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
         .toList();
   }
 
@@ -93,7 +108,10 @@ class BuildPulseApi {
     );
   }
 
-  Future<WorkPointDetail> updateWorkPoint(String id, Map<String, dynamic> data) async {
+  Future<WorkPointDetail> updateWorkPoint(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     final response = await client.put<dynamic>('/workpoints/$id', data: data);
     return WorkPointDetail.fromJson(
       Map<String, dynamic>.from(_responseMap(response)['workPoint'] as Map),
@@ -108,39 +126,67 @@ class BuildPulseApi {
     final response = await client.get<dynamic>('/workers');
     final data = _responseMap(response);
     return (data['workers'] as List? ?? const [])
-        .map((item) => WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
   Future<List<WorkerSummary>> listWorkPointWorkers(String workPointId) async {
-    final response = await client.get<dynamic>('/workpoints/$workPointId/workers');
+    final response = await client.get<dynamic>(
+      '/workpoints/$workPointId/workers',
+    );
     final data = _responseMap(response);
     return (data['workers'] as List? ?? const [])
-        .map((item) => WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
-  Future<List<WorkerSummary>> assignWorker(String workPointId, String workerId) async {
+  Future<List<WorkerSummary>> assignWorker(
+    String workPointId,
+    String workerId,
+  ) async {
     final response = await client.post<dynamic>(
       '/workpoints/$workPointId/workers',
       data: {'workerId': workerId},
     );
     final data = _responseMap(response);
     return (data['workers'] as List? ?? const [])
-        .map((item) => WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
-  Future<List<WorkerSummary>> removeWorker(String workPointId, String workerId) async {
-    final response = await client.delete<dynamic>('/workpoints/$workPointId/workers/$workerId');
+  Future<List<WorkerSummary>> removeWorker(
+    String workPointId,
+    String workerId,
+  ) async {
+    final response = await client.delete<dynamic>(
+      '/workpoints/$workPointId/workers/$workerId',
+    );
     final data = _responseMap(response);
     return (data['workers'] as List? ?? const [])
-        .map((item) => WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
-  Future<WorkerSummary> updateWorker(String workerId, Map<String, dynamic> data) async {
-    final response = await client.put<dynamic>('/workers/$workerId', data: data);
+  Future<WorkerSummary> updateWorker(
+    String workerId,
+    Map<String, dynamic> data,
+  ) async {
+    final response = await client.put<dynamic>(
+      '/workers/$workerId',
+      data: data,
+    );
     return WorkerSummary.fromJson(
       Map<String, dynamic>.from(_responseMap(response)['worker'] as Map),
     );
@@ -154,11 +200,16 @@ class BuildPulseApi {
     final response = await client.get<dynamic>('/invitations');
     final data = _responseMap(response);
     return (data['invitations'] as List? ?? const [])
-        .map((item) => Invitation.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) => Invitation.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
-  Future<Invitation> createInvitation({required String email, required String role}) async {
+  Future<Invitation> createInvitation({
+    required String email,
+    required String role,
+  }) async {
     final response = await client.post<dynamic>(
       '/invitations',
       data: {'email': email, 'role': role},
@@ -175,8 +226,15 @@ class BuildPulseApi {
     );
   }
 
-  Future<ScanResult> checkin(String qrToken) async {
-    final response = await client.post<dynamic>('/attendance/checkin', data: {'qrToken': qrToken});
+  Future<ScanResult> checkin(
+    String qrToken, {
+    required double lat,
+    required double lng,
+  }) async {
+    final response = await client.post<dynamic>(
+      '/attendance/checkin',
+      data: {'qrToken': qrToken, 'lat': lat, 'lng': lng},
+    );
     return ScanResult.fromJson(_responseMap(response));
   }
 
@@ -193,7 +251,10 @@ class BuildPulseApi {
       queryParameters: queryParameters,
     );
     return _responseList(response)
-        .map((item) => AttendanceRecord.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              AttendanceRecord.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
@@ -209,14 +270,19 @@ class BuildPulseApi {
       data: {
         'workerId': workerId,
         'date': date,
-        if (checkedInAt != null && checkedInAt.isNotEmpty) 'checkedInAt': checkedInAt,
-        if (checkedOutAt != null && checkedOutAt.isNotEmpty) 'checkedOutAt': checkedOutAt,
+        if (checkedInAt != null && checkedInAt.isNotEmpty)
+          'checkedInAt': checkedInAt,
+        if (checkedOutAt != null && checkedOutAt.isNotEmpty)
+          'checkedOutAt': checkedOutAt,
       },
     );
     return AttendanceRecord.fromJson(_responseMap(response));
   }
 
-  Future<AttendanceRecord> updateCheckout(String attendanceId, String checkedOutAt) async {
+  Future<AttendanceRecord> updateCheckout(
+    String attendanceId,
+    String checkedOutAt,
+  ) async {
     final response = await client.patch<dynamic>(
       '/attendance/$attendanceId/checkout',
       data: {'checkedOutAt': checkedOutAt},
@@ -229,12 +295,16 @@ class BuildPulseApi {
   }
 
   Future<QrData> getQr(String workPointId) async {
-    final response = await client.get<dynamic>('/attendance/workpoint/$workPointId/qr');
+    final response = await client.get<dynamic>(
+      '/attendance/workpoint/$workPointId/qr',
+    );
     return QrData.fromJson(_responseMap(response));
   }
 
   Future<QrData> rotateQr(String workPointId) async {
-    final response = await client.post<dynamic>('/attendance/workpoint/$workPointId/qr/rotate');
+    final response = await client.post<dynamic>(
+      '/attendance/workpoint/$workPointId/qr/rotate',
+    );
     return QrData.fromJson(_responseMap(response));
   }
 
@@ -257,7 +327,10 @@ class BuildPulseApi {
       queryParameters: {'year': year, 'month': month},
     );
     return _responseList(response)
-        .map((item) => DailyStatRow.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              DailyStatRow.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
@@ -273,15 +346,25 @@ class BuildPulseApi {
     final response = await client.get<dynamic>('/worker-documents/me');
     final data = _responseMap(response);
     return (data['documents'] as List? ?? const [])
-        .map((item) => WorkerDocumentSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) => WorkerDocumentSummary.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
         .toList();
   }
 
-  Future<List<WorkerDocumentSummary>> listWorkerDocuments(String workerId) async {
+  Future<List<WorkerDocumentSummary>> listWorkerDocuments(
+    String workerId,
+  ) async {
     final response = await client.get<dynamic>('/workers/$workerId/documents');
     final data = _responseMap(response);
     return (data['documents'] as List? ?? const [])
-        .map((item) => WorkerDocumentSummary.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) => WorkerDocumentSummary.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
         .toList();
   }
 
@@ -306,7 +389,10 @@ class BuildPulseApi {
     await client.delete<dynamic>('/worker-documents/$documentId');
   }
 
-  Future<File> downloadWorkerDocument(WorkerDocumentSummary document, {bool download = false}) {
+  Future<File> downloadWorkerDocument(
+    WorkerDocumentSummary document, {
+    bool download = false,
+  }) {
     return client.download(
       '/worker-documents/${Uri.encodeComponent(document.id)}/file',
       queryParameters: download ? {'download': '1'} : null,
@@ -315,13 +401,18 @@ class BuildPulseApi {
   }
 
   Future<Uint8List> workerDocumentBytes(String documentId) {
-    return client.getBytes('/worker-documents/${Uri.encodeComponent(documentId)}/file');
+    return client.getBytes(
+      '/worker-documents/${Uri.encodeComponent(documentId)}/file',
+    );
   }
 
   Future<List<ChatListItem>> listChats() async {
     final response = await client.get<dynamic>('/messaging/chats');
     return _responseList(response)
-        .map((item) => ChatListItem.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) =>
+              ChatListItem.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 
@@ -333,7 +424,11 @@ class BuildPulseApi {
     return _responseMap(response)['chatId'].toString();
   }
 
-  Future<MessagesPage> getMessages(String chatId, {String? cursor, int? limit}) async {
+  Future<MessagesPage> getMessages(
+    String chatId, {
+    String? cursor,
+    int? limit,
+  }) async {
     final queryParameters = <String, dynamic>{};
     if (cursor != null) queryParameters['cursor'] = cursor;
     if (limit != null) queryParameters['limit'] = limit;
@@ -388,7 +483,9 @@ class BuildPulseApi {
   Future<List<ChatUser>> listMessagingUsers() async {
     final response = await client.get<dynamic>('/messaging/users');
     return _responseList(response)
-        .map((item) => ChatUser.fromJson(Map<String, dynamic>.from(item as Map)))
+        .map(
+          (item) => ChatUser.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
         .toList();
   }
 }

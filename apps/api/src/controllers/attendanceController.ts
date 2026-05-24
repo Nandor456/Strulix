@@ -32,10 +32,19 @@ export async function checkinController(
   res: Response,
 ): Promise<void> {
   const userId = req.auth!.userId;
-  const { qrToken } = req.body as { qrToken: string };
+  const { qrToken, lat, lng } = req.body as {
+    qrToken: string;
+    lat: number;
+    lng: number;
+  };
 
   try {
-    const result = await recordAttendance({ userId, qrToken, source: "QR" });
+    const result = await recordAttendance({
+      userId,
+      qrToken,
+      workerLocation: { lat, lng },
+      source: "QR",
+    });
     res.json(result);
   } catch (err: unknown) {
     if (typeof err === "object" && err !== null && "code" in err) {
@@ -47,6 +56,12 @@ export async function checkinController(
       if (code === "FORBIDDEN") {
         res.status(403).json({
           error: err instanceof Error ? err.message : "Forbidden",
+        });
+        return;
+      }
+      if (code === "MISSING_COORDINATES") {
+        res.status(409).json({
+          error: err instanceof Error ? err.message : "Workpoint coordinates are missing",
         });
         return;
       }

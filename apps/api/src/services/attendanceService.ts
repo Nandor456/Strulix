@@ -66,6 +66,14 @@ export type MonthlySummary = {
   hourlyWage: number | null;
 };
 
+const GEOFENCE_RADIUS_METERS = 100;
+const EARTH_RADIUS_METERS = 6_371_000;
+
+type Coordinates = {
+  lat: number;
+  lng: number;
+};
+
 function computeHours(checkedInAt: Date, checkedOutAt: Date): number {
   const ms = checkedOutAt.getTime() - checkedInAt.getTime();
   return Math.max(0, ms / (1000 * 60 * 60));
@@ -73,6 +81,24 @@ function computeHours(checkedInAt: Date, checkedOutAt: Date): number {
 
 function computeBillableHours(checkedInAt: Date, checkedOutAt: Date): number {
   return Math.ceil(computeHours(checkedInAt, checkedOutAt));
+}
+
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+export function distanceMeters(from: Coordinates, to: Coordinates): number {
+  const dLat = toRadians(to.lat - from.lat);
+  const dLng = toRadians(to.lng - from.lng);
+  const lat1 = toRadians(from.lat);
+  const lat2 = toRadians(to.lat);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return EARTH_RADIUS_METERS * c;
 }
 
 async function closeEligibleOpenAttendances(now: Date): Promise<number> {
@@ -180,6 +206,7 @@ async function buildCompletedScanResult(params: {
 export async function recordAttendance(params: {
   userId: string;
   qrToken: string;
+  workerLocation: Coordinates;
   source: "QR" | "MANUAL";
 }): Promise<ScanResult> {
   await autoCloseOpenAttendances();
@@ -189,6 +216,8 @@ export async function recordAttendance(params: {
     select: {
       id: true,
       name: true,
+      lat: true,
+      lng: true,
       workers: { where: { id: params.userId }, select: { id: true } },
     },
   });
@@ -201,6 +230,23 @@ export async function recordAttendance(params: {
 
   if (workPoint.workers.length === 0) {
     const err = new Error("You are not assigned to this workpoint");
+    (err as NodeJS.ErrnoException).code = "FORBIDDEN";
+    throw err;
+  }
+
+  if (workPoint.lat === null || workPoint.lng === null) {
+    const err = new Error("This workpoint does not have coordinates set");
+    (err as NodeJS.ErrnoException).code = "MISSING_COORDINATES";
+    throw err;
+  }
+
+  const distance = distanceMeters(params.workerLocation, {
+    lat: workPoint.lat,
+    lng: workPoint.lng,
+  });
+
+  if (distance > GEOFENCE_RADIUS_METERS) {
+    const err = new Error("You must be within 100m of this workpoint to scan attendance");
     (err as NodeJS.ErrnoException).code = "FORBIDDEN";
     throw err;
   }

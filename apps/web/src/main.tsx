@@ -8,19 +8,22 @@ import { queryClient } from './services/queryClient.ts';
 import { MessagingSocketProvider } from './providers/MessagingSocketProvider.tsx';
 import { TooltipProvider } from './components/ui/tooltip.tsx';
 import { ThemeProvider } from './providers/ThemeProvider.tsx';
+import { I18nProvider } from './providers/I18nProvider.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <StrictMode>
-      <ThemeProvider>
-        <TooltipProvider>
-          <AuthProvider>
-            <MessagingSocketProvider>
-              <App />
-            </MessagingSocketProvider>
-          </AuthProvider>
-        </TooltipProvider>
-      </ThemeProvider>
+      <I18nProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <AuthProvider>
+              <MessagingSocketProvider>
+                <App />
+              </MessagingSocketProvider>
+            </AuthProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </I18nProvider>
     </StrictMode>
   </QueryClientProvider>
 )

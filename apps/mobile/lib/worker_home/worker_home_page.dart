@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
 
@@ -45,7 +47,12 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
         _summary = results[2] as MonthlySummary;
       });
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to load your worker dashboard.'));
+      setState(
+        () => _error = errorMessage(
+          error,
+          'Failed to load your worker dashboard.',
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -53,10 +60,15 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final (year, month) = parsePeriod(_period);
     final summary = _summary;
     final hasWage = summary?.hourlyWage != null;
-    final openRecords = ((summary?.totalDays ?? 0) - (summary?.completeDays ?? 0)).clamp(0, 9999);
+    final openRecords =
+        ((summary?.totalDays ?? 0) - (summary?.completeDays ?? 0)).clamp(
+          0,
+          9999,
+        );
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -64,43 +76,55 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
         padding: const EdgeInsets.all(16),
         children: [
           SectionCard(
-            title: 'Your BuildPulse home',
-            subtitle: 'Attendance, hours, assigned workpoints, and wage-based earnings.',
+            title: l10n.t('Your BuildPulse home'),
+            subtitle: l10n.t(
+              'Attendance, hours, assigned workpoints, and wage-based earnings.',
+            ),
             trailing: IconButton.outlined(
-              tooltip: 'Refresh',
+              tooltip: l10n.t('Refresh'),
               onPressed: _load,
               icon: const Icon(Icons.refresh),
             ),
-            child: Row(
+            child: Column(
               children: [
-                IconButton.filledTonal(
-                  onPressed: () {
-                    setState(() => _period = periodAfter(_period, -1));
-                    _load();
-                  },
-                  icon: const Icon(Icons.chevron_left),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      formatMonthLabel(year, month),
-                      style: Theme.of(context).textTheme.titleMedium,
+                Row(
+                  children: [
+                    IconButton.filledTonal(
+                      onPressed: () {
+                        setState(() => _period = periodAfter(_period, -1));
+                        _load();
+                      },
+                      icon: const Icon(Icons.chevron_left),
                     ),
-                  ),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          formatMonthLabel(year, month),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ),
+                    IconButton.filledTonal(
+                      onPressed: () {
+                        setState(() => _period = periodAfter(_period, 1));
+                        _load();
+                      },
+                      icon: const Icon(Icons.chevron_right),
+                    ),
+                  ],
                 ),
-                IconButton.filledTonal(
-                  onPressed: () {
-                    setState(() => _period = periodAfter(_period, 1));
-                    _load();
-                  },
-                  icon: const Icon(Icons.chevron_right),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () => context.go('/scan'),
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: Text(l10n.t('Scan attendance')),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
           if (_isLoading)
-            const LoadingView(label: 'Loading dashboard...')
+            LoadingView(label: l10n.t('Loading dashboard...'))
           else if (_error != null)
             ErrorBanner(_error!)
           else ...[
@@ -113,39 +137,51 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
               childAspectRatio: 1.25,
               children: [
                 StatTile(
-                  label: 'Earnings',
-                  value: hasWage ? formatMoney(summary?.totalEarnings, precise: true) : 'Unavailable',
+                  label: l10n.t('Earnings'),
+                  value: hasWage
+                      ? formatMoney(summary?.totalEarnings, precise: true)
+                      : l10n.t('Unavailable'),
                   icon: Icons.payments_outlined,
-                  helper: hasWage ? 'Completed attendances' : 'Ask an admin to set your wage',
+                  helper: hasWage
+                      ? l10n.t('Completed attendances')
+                      : l10n.t('Ask an admin to set your wage'),
                 ),
                 StatTile(
-                  label: 'Hourly wage',
+                  label: l10n.t('Hourly wage'),
                   value: formatMoney(summary?.hourlyWage, precise: true),
                   icon: Icons.price_check_outlined,
-                  helper: 'Worker profile',
+                  helper: l10n.t('Worker profile'),
                 ),
                 StatTile(
-                  label: 'Hours',
+                  label: l10n.t('Hours'),
                   value: formatHours(summary?.totalHours),
                   icon: Icons.schedule,
-                  helper: '${summary?.completeDays ?? 0} complete days',
+                  helper: l10n.t('{count} complete days', {
+                    'count': '${summary?.completeDays ?? 0}',
+                  }),
                 ),
                 StatTile(
-                  label: 'Days',
+                  label: l10n.t('Days'),
                   value: '${summary?.totalDays ?? 0}',
                   icon: Icons.calendar_month_outlined,
-                  helper: '${summary?.completeDays ?? 0} complete',
+                  helper: l10n.t('{count} complete', {
+                    'count': '${summary?.completeDays ?? 0}',
+                  }),
                 ),
                 StatTile(
-                  label: 'Open',
+                  label: l10n.t('Open records'),
                   value: '$openRecords',
                   icon: Icons.warning_amber_outlined,
-                  helper: 'Missing checkout',
+                  helper: l10n.t('Missing checkout'),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _AssignedWorkpoints(workPoints: _workPoints, rows: _rows, hasWage: hasWage),
+            _AssignedWorkpoints(
+              workPoints: _workPoints,
+              rows: _rows,
+              hasWage: hasWage,
+            ),
             const SizedBox(height: 16),
             _AttendanceByWorkpoint(
               workPoints: _workPoints,
@@ -173,36 +209,52 @@ class _AssignedWorkpoints extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     if (workPoints.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.business_outlined,
-        title: 'No workpoints assigned',
-        message: 'Your assignments will show up here.',
+        title: l10n.t('No workpoints assigned'),
+        message: l10n.t('Your assignments will show up here.'),
       );
     }
 
     return SectionCard(
-      title: 'Assigned workpoints',
-      subtitle: 'Current workpoints assigned to you.',
+      title: l10n.t('Assigned workpoints'),
+      subtitle: l10n.t('Current workpoints assigned to you.'),
       child: Column(
         children: workPoints.map((workPoint) {
-          final workPointRows = rows.where((row) => row.workPoint.id == workPoint.id).toList();
-          final hours = workPointRows.fold<double>(0, (sum, row) => sum + row.hours);
-          final earnings = workPointRows.fold<double>(0, (sum, row) => sum + row.earnings);
+          final workPointRows = rows
+              .where((row) => row.workPoint.id == workPoint.id)
+              .toList();
+          final hours = workPointRows.fold<double>(
+            0,
+            (sum, row) => sum + row.hours,
+          );
+          final earnings = workPointRows.fold<double>(
+            0,
+            (sum, row) => sum + row.earnings,
+          );
           final complete = workPointRows.where((row) => row.complete).length;
           return ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const CircleAvatar(child: Icon(Icons.business_outlined)),
             title: Text(workPoint.name),
-            subtitle: Text('${workPoint.address}\nDeadline: ${formatDate(workPoint.deadline)}'),
+            subtitle: Text(
+              '${workPoint.address}\n${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
+            ),
             isThreeLine: true,
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(formatHours(hours), style: Theme.of(context).textTheme.titleSmall),
                 Text(
-                  hasWage ? formatMoney(earnings, precise: true) : '$complete complete',
+                  formatHours(hours),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Text(
+                  hasWage
+                      ? formatMoney(earnings, precise: true)
+                      : l10n.t('{count} complete', {'count': '$complete'}),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -229,6 +281,7 @@ class _AttendanceByWorkpoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final assignedIds = workPoints.map((workPoint) => workPoint.id).toSet();
     final grouped = <String, List<DailyStatRow>>{};
     for (final row in rows) {
@@ -236,80 +289,107 @@ class _AttendanceByWorkpoint extends StatelessWidget {
     }
 
     final groups = [
-      ...workPoints.map((workPoint) => (
-            id: workPoint.id,
-            name: workPoint.name,
-            current: true,
-            rows: grouped[workPoint.id] ?? <DailyStatRow>[],
-          )),
+      ...workPoints.map(
+        (workPoint) => (
+          id: workPoint.id,
+          name: workPoint.name,
+          current: true,
+          rows: grouped[workPoint.id] ?? <DailyStatRow>[],
+        ),
+      ),
       ...grouped.entries
           .where((entry) => !assignedIds.contains(entry.key))
-          .map((entry) => (
-                id: entry.key,
-                name: entry.value.first.workPoint.name,
-                current: false,
-                rows: entry.value,
-              )),
+          .map(
+            (entry) => (
+              id: entry.key,
+              name: entry.value.first.workPoint.name,
+              current: false,
+              rows: entry.value,
+            ),
+          ),
     ];
 
     if (groups.isEmpty) {
       return EmptyState(
         icon: Icons.schedule,
-        title: 'No attendance records',
-        message: 'No attendance records for $periodLabel.',
+        title: l10n.t('No attendance records'),
+        message: l10n.t('No attendance records for {periodLabel}.', {
+          'periodLabel': periodLabel,
+        }),
       );
     }
 
     return SectionCard(
-      title: 'Attendance by workpoint',
-      subtitle: 'Your own check-ins and check-outs for $periodLabel.',
+      title: l10n.t('Attendance by workpoint'),
+      subtitle: l10n.t(
+        'Your own check-ins and check-outs for {periodLabel}.',
+        {'periodLabel': periodLabel},
+      ),
       child: Column(
         children: groups.map((group) {
-          final hours = group.rows.fold<double>(0, (sum, row) => sum + row.hours);
+          final hours = group.rows.fold<double>(
+            0,
+            (sum, row) => sum + row.hours,
+          );
           return ExpansionTile(
             tilePadding: EdgeInsets.zero,
             title: Text(group.name),
-            subtitle: Text('${formatHours(hours)} · ${group.rows.length} records'),
+            subtitle: Text(
+              l10n.t('{hours} · {count} records', {
+                'hours': formatHours(hours),
+                'count': '${group.rows.length}',
+              }),
+            ),
             trailing: group.current
                 ? null
                 : Chip(
-                    label: const Text('Previous'),
+                    label: Text(l10n.t('Previous')),
                     visualDensity: VisualDensity.compact,
                     side: BorderSide.none,
-                    backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer,
                   ),
             children: group.rows.isEmpty
-                ? [ListTile(title: Text('No attendance recorded here for $periodLabel.'))]
-                : group.rows
-                    .map(
-                      (row) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(formatDate(row.date)),
-                        subtitle: Text(
-                          '${formatDateTime(row.checkedInAt)} - ${formatDateTime(row.checkedOutAt)}',
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(formatHours(row.hours)),
-                            Text(
-                              row.complete
-                                  ? hasWage
-                                      ? formatMoney(row.earnings)
-                                      : 'Unavailable'
-                                  : 'Open',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+                ? [
+                    ListTile(
+                      title: Text(
+                        l10n.t(
+                          'No attendance recorded here for {periodLabel}.',
+                          {'periodLabel': periodLabel},
                         ),
                       ),
-                    )
-                    .toList(),
+                    ),
+                  ]
+                : group.rows
+                      .map(
+                        (row) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(formatDate(row.date)),
+                          subtitle: Text(
+                            '${formatDateTime(row.checkedInAt)} - ${formatDateTime(row.checkedOutAt)}',
+                          ),
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(formatHours(row.hours)),
+                              Text(
+                                row.complete
+                                    ? hasWage
+                                          ? formatMoney(row.earnings)
+                                          : l10n.t('Unavailable')
+                                    : l10n.t('Open'),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
           );
         }).toList(),
       ),
     );
   }
 }
-

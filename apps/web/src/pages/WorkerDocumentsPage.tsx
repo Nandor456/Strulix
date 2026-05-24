@@ -3,6 +3,7 @@ import { Download, ExternalLink, FileImage, FileText } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/hooks/useI18n";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { formatDateTime, formatFileSize } from "@/lib/format";
@@ -12,10 +13,13 @@ import {
   type WorkerDocumentSummary,
 } from "@/services/api/workerDocumentApi";
 
-function getDocumentKind(document: WorkerDocumentSummary) {
-  if (document.mimeType === "application/pdf") return "PDF";
-  if (document.mimeType.startsWith("image/")) return "Image";
-  return "File";
+function getDocumentKind(
+  document: WorkerDocumentSummary,
+  t: (key: string) => string,
+) {
+  if (document.mimeType === "application/pdf") return t("PDF");
+  if (document.mimeType.startsWith("image/")) return t("Image");
+  return t("File");
 }
 
 function isImage(document: WorkerDocumentSummary) {
@@ -32,6 +36,7 @@ function DocumentIcon({ document }: { document: WorkerDocumentSummary }) {
 }
 
 export default function WorkerDocumentsPage() {
+  const { t } = useI18n();
   const { data: documents = [], isLoading, error } = useMyWorkerDocuments();
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 
@@ -48,9 +53,9 @@ export default function WorkerDocumentsPage() {
       <div className="mb-6 flex items-center gap-3">
         <FileText className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-semibold">Documents</h1>
+          <h1 className="text-3xl font-semibold">{t("Documents")}</h1>
           <p className="text-sm text-muted-foreground">
-            Preview and download documents shared with your worker profile.
+            {t("Preview and download documents shared with your worker profile.")}
           </p>
         </div>
       </div>
@@ -63,19 +68,19 @@ export default function WorkerDocumentsPage() {
 
       {error != null && !isLoading && (
         <Alert variant="destructive" className="mb-4">
-          Failed to load your documents.
+          {t("Failed to load your documents.")}
         </Alert>
       )}
 
       {!isLoading && !error && documents.length === 0 && (
-        <Alert>No documents have been shared with you yet.</Alert>
+        <Alert>{t("No documents have been shared with you yet.")}</Alert>
       )}
 
       {!isLoading && !error && documents.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_1fr]">
           <div className="rounded-md border bg-card">
             <div className="border-b px-4 py-3">
-              <h2 className="text-sm font-semibold">Your documents</h2>
+              <h2 className="text-sm font-semibold">{t("Your documents")}</h2>
             </div>
             <div className="divide-y">
               {documents.map((document) => (
@@ -99,7 +104,7 @@ export default function WorkerDocumentsPage() {
                         {document.originalName}
                       </span>
                       <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                        <Badge variant="outline">{getDocumentKind(document)}</Badge>
+                        <Badge variant="outline">{getDocumentKind(document, t)}</Badge>
                         <span>{formatFileSize(document.sizeBytes)}</span>
                       </span>
                     </span>
@@ -107,7 +112,7 @@ export default function WorkerDocumentsPage() {
                   <Button variant="ghost" size="icon" asChild>
                     <a
                       href={getWorkerDocumentFileUrl(document.id, true)}
-                      aria-label="Download document"
+                      aria-label={t("Download document")}
                     >
                       <Download className="h-4 w-4" />
                     </a>
@@ -129,7 +134,9 @@ export default function WorkerDocumentsPage() {
                       </h2>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Uploaded {formatDateTime(selectedDocument.createdAt)}
+                      {t("Uploaded {date}", {
+                        date: formatDateTime(selectedDocument.createdAt),
+                      })}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
@@ -140,13 +147,13 @@ export default function WorkerDocumentsPage() {
                         rel="noopener noreferrer"
                       >
                         <ExternalLink className="h-4 w-4" />
-                        Open
+                        {t("Open")}
                       </a>
                     </Button>
                     <Button asChild>
                       <a href={getWorkerDocumentFileUrl(selectedDocument.id, true)}>
                         <Download className="h-4 w-4" />
-                        Download
+                        {t("Download")}
                       </a>
                     </Button>
                   </div>
@@ -168,13 +175,13 @@ export default function WorkerDocumentsPage() {
                       />
                     </div>
                   ) : (
-                    <Alert>Preview is not available for this document.</Alert>
+                    <Alert>{t("Preview is not available for this document.")}</Alert>
                   )}
                 </div>
               </>
             ) : (
               <div className="p-4">
-                <Alert>Select a document to preview it.</Alert>
+                <Alert>{t("Select a document to preview it.")}</Alert>
               </div>
             )}
           </div>

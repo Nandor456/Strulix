@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
 
@@ -46,11 +47,15 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
 
   Future<void> _delete(WorkPointSummary workPoint) async {
     final api = AppScope.apiOf(context);
+    final l10n = context.l10n;
     final confirmed = await confirmAction(
       context,
-      title: 'Delete workpoint',
-      message: 'Delete ${workPoint.name}? Attendance, assignments, and the workpoint chat will be removed.',
-      confirmLabel: 'Delete',
+      title: l10n.t('Delete workpoint'),
+      message: l10n.t(
+        'Delete {name}? Attendance, assignments, and the workpoint chat will be removed.',
+        {'name': workPoint.name},
+      ),
+      confirmLabel: l10n.t('Delete'),
       destructive: true,
     );
     if (!confirmed) return;
@@ -69,6 +74,7 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
@@ -80,17 +86,22 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Workpoints', style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                      l10n.t('Workpoints'),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 4),
                     Text(
-                      'Browse job sites and manage workers, attendance, and QR tools.',
+                      l10n.t(
+                        'Browse job sites and manage workers, attendance, and QR tools.',
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
                 ),
               ),
               IconButton.filled(
-                tooltip: 'New workpoint',
+                tooltip: l10n.t('New workpoint'),
                 onPressed: () => _showForm(),
                 icon: const Icon(Icons.add),
               ),
@@ -98,14 +109,14 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
           ),
           const SizedBox(height: 16),
           if (_isLoading)
-            const LoadingView(label: 'Loading workpoints...')
+            LoadingView(label: l10n.t('Loading workpoints...'))
           else if (_error != null)
             ErrorBanner(_error!)
           else if (_workPoints.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.business_outlined,
-              title: 'No workpoints yet',
-              message: 'Create one to start assigning workers.',
+              title: l10n.t('No workpoints yet'),
+              message: l10n.t('Create one to start assigning workers.'),
             )
           else
             ..._workPoints.map(
@@ -114,7 +125,7 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
                   leading: const CircleAvatar(child: Icon(Icons.business_outlined)),
                   title: Text(workPoint.name),
                   subtitle: Text(
-                    '${workPoint.address}\nWorkers: ${workPoint.workerCount} · Attendance: ${workPoint.attendanceCount} · Deadline: ${formatDate(workPoint.deadline)}',
+                    '${workPoint.address}\n${l10n.t('Workers')}: ${workPoint.workerCount} · ${l10n.t('Attendance')}: ${workPoint.attendanceCount} · ${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
                   ),
                   isThreeLine: true,
                   onTap: () => context.go('/workpoints/${workPoint.id}'),
@@ -123,9 +134,15 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
                       if (value == 'edit') _showForm(workPoint: workPoint);
                       if (value == 'delete') _delete(workPoint);
                     },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Text(l10n.t('Edit')),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(l10n.t('Delete')),
+                      ),
                     ],
                   ),
                 ),
@@ -222,6 +239,7 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isCreate = widget.workPoint == null;
     return SafeArea(
       child: Padding(
@@ -238,42 +256,59 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(isCreate ? 'Create workpoint' : 'Edit workpoint',
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  isCreate
+                      ? l10n.t('Create workpoint')
+                      : l10n.t('Edit workpoint'),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _name,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (value) => (value ?? '').trim().isEmpty ? 'Name is required.' : null,
+                  decoration: InputDecoration(labelText: l10n.t('Name')),
+                  validator: (value) => (value ?? '').trim().isEmpty
+                      ? l10n.t('Name is required.')
+                      : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _address,
-                  decoration: const InputDecoration(
-                    labelText: 'Address',
-                    helperText: 'Coordinates are generated automatically from the address.',
+                  decoration: InputDecoration(
+                    labelText: l10n.t('Address'),
+                    helperText: l10n.t(
+                      'Coordinates are generated automatically from the address.',
+                    ),
                   ),
-                  validator: (value) => (value ?? '').trim().isEmpty ? 'Address is required.' : null,
+                  validator: (value) => (value ?? '').trim().isEmpty
+                      ? l10n.t('Address is required.')
+                      : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _description,
                   minLines: 2,
                   maxLines: 4,
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: InputDecoration(labelText: l10n.t('Description')),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: _pickDeadline,
                   icon: const Icon(Icons.calendar_month_outlined),
-                  label: Text(_deadline.isEmpty ? 'Choose deadline' : 'Deadline: ${formatDate(_deadline)}'),
+                  label: Text(
+                    _deadline.isEmpty
+                        ? l10n.t('Choose deadline')
+                        : '${l10n.t('Deadline')}: ${formatDate(_deadline)}',
+                  ),
                 ),
                 if (isCreate) ...[
                   const SizedBox(height: 12),
-                  Text('Initial workers', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    l10n.t('Initial workers'),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 8),
                   if (widget.workers.isEmpty)
-                    const Text('No workers available.')
+                    Text(l10n.t('No workers available.'))
                   else
                     Wrap(
                       spacing: 8,
@@ -310,7 +345,9 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save_outlined),
-                  label: Text(_isSaving ? 'Saving...' : 'Save'),
+                  label: Text(
+                    _isSaving ? l10n.t('Saving...') : l10n.t('Save'),
+                  ),
                 ),
               ],
             ),

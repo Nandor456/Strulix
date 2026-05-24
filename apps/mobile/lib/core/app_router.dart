@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_controller.dart';
 import '../auth/auth_pages.dart';
 import '../attendance/checkin_page.dart';
+import '../attendance/scan_page.dart';
 import '../documents/documents_page.dart';
 import '../invitations/invitations_page.dart';
 import '../messaging/messaging_page.dart';
@@ -68,6 +69,11 @@ GoRouter createAppRouter(AuthController auth) {
                 _buildPage(state, const DocumentsPage()),
           ),
           GoRoute(
+            path: '/scan',
+            pageBuilder: (context, state) =>
+                _buildPage(state, const ScanPage()),
+          ),
+          GoRoute(
             path: '/workpoints',
             pageBuilder: (context, state) =>
                 _buildPage(state, const WorkpointsPage()),
@@ -121,13 +127,15 @@ String? buildPulseRedirect({
   if (isAuthRoute) return '/';
 
   if (path == '/documents' && role != UserRole.worker) return '/';
+  if (path == '/scan' && role != UserRole.worker) return '/';
   if (path.startsWith('/workpoints') &&
       role != UserRole.admin &&
       role != UserRole.leader) {
     return '/';
   }
-  if (path == '/workers' && role != UserRole.admin && role != UserRole.leader)
+  if (path == '/workers' && role != UserRole.admin && role != UserRole.leader) {
     return '/';
+  }
   if (path == '/invitations' && role != UserRole.admin) return '/';
 
   return null;

@@ -1,27 +1,42 @@
 import 'package:intl/intl.dart';
 
-final _dateFormatter = DateFormat('dd MMM yyyy');
-final _dateTimeFormatter = DateFormat('dd MMM HH:mm');
-final _monthFormatter = DateFormat('MMMM yyyy');
-final _moneyFormatter = NumberFormat.currency(symbol: 'RON', decimalDigits: 0);
-final _preciseMoneyFormatter = NumberFormat.currency(symbol: 'RON', decimalDigits: 2);
+String _activeLocale = 'en';
+String Function(String key, [Map<String, String>? params]) _translate =
+    _defaultTranslate;
+
+String _defaultTranslate(String key, [Map<String, String>? params]) {
+  if (params == null || params.isEmpty) return key;
+  var result = key;
+  for (final entry in params.entries) {
+    result = result.replaceAll('{${entry.key}}', entry.value);
+  }
+  return result;
+}
+
+void configureFormatters({
+  required String locale,
+  required String Function(String key, [Map<String, String>? params]) translate,
+}) {
+  _activeLocale = locale;
+  _translate = translate;
+}
 
 String formatDate(String? value) {
-  if (value == null || value.isEmpty) return 'Pending';
+  if (value == null || value.isEmpty) return _translate('Pending');
   final date = DateTime.tryParse(value);
-  if (date == null) return 'Invalid date';
-  return _dateFormatter.format(date.toLocal());
+  if (date == null) return _translate('Invalid date');
+  return DateFormat('dd MMM yyyy', _activeLocale).format(date.toLocal());
 }
 
 String formatDateTime(String? value) {
-  if (value == null || value.isEmpty) return 'Open';
+  if (value == null || value.isEmpty) return _translate('Open');
   final date = DateTime.tryParse(value);
-  if (date == null) return 'Invalid date';
-  return _dateTimeFormatter.format(date.toLocal());
+  if (date == null) return _translate('Invalid date');
+  return DateFormat('dd MMM HH:mm', _activeLocale).format(date.toLocal());
 }
 
 String formatMonthLabel(int year, int month) {
-  return _monthFormatter.format(DateTime(year, month));
+  return DateFormat('MMMM yyyy', _activeLocale).format(DateTime(year, month));
 }
 
 String formatHours(num? value) {
@@ -30,8 +45,12 @@ String formatHours(num? value) {
 }
 
 String formatMoney(num? value, {bool precise = false}) {
-  if (value == null) return 'Not set';
-  return (precise ? _preciseMoneyFormatter : _moneyFormatter).format(value);
+  if (value == null) return _translate('Not set');
+  return NumberFormat.currency(
+    locale: _activeLocale,
+    symbol: 'RON',
+    decimalDigits: precise ? 2 : 0,
+  ).format(value);
 }
 
 String formatFileSize(num? value) {
@@ -82,4 +101,3 @@ String periodAfter(String period, int deltaMonths) {
   final next = DateTime(year, month + deltaMonths);
   return '${next.year}-${next.month.toString().padLeft(2, '0')}';
 }
-

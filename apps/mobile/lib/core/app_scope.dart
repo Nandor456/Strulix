@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../auth/auth_controller.dart';
 import '../messaging/messaging_controller.dart';
 import 'api/buildpulse_api.dart';
+import 'i18n.dart';
 import 'theme_controller.dart';
 
 class AppScope extends InheritedWidget {
@@ -11,6 +12,7 @@ class AppScope extends InheritedWidget {
     required this.auth,
     required this.messaging,
     required this.theme,
+    required this.language,
     required super.child,
     super.key,
   });
@@ -19,6 +21,7 @@ class AppScope extends InheritedWidget {
   final AuthController auth;
   final MessagingController messaging;
   final ThemeController theme;
+  final LanguageController language;
 
   static AppScope of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
@@ -34,12 +37,14 @@ class AppScope extends InheritedWidget {
 
   static ThemeController themeOf(BuildContext context) => of(context).theme;
 
+  static LanguageController languageOf(BuildContext context) => of(context).language;
+
   @override
   bool updateShouldNotify(AppScope oldWidget) {
     return api != oldWidget.api ||
         auth != oldWidget.auth ||
         messaging != oldWidget.messaging ||
-        theme != oldWidget.theme;
+        theme != oldWidget.theme ||
+        language != oldWidget.language;
   }
 }
-

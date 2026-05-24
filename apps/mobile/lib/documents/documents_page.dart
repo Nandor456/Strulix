@@ -3,6 +3,7 @@ import 'package:open_filex/open_filex.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
 
@@ -50,31 +51,32 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Documents', style: Theme.of(context).textTheme.headlineSmall),
+          Text(l10n.t('Documents'), style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
           Text(
-            'Preview and download documents shared with your worker profile.',
+            l10n.t('Preview and download documents shared with your worker profile.'),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           if (_isLoading)
-            const LoadingView(label: 'Loading documents...')
+            LoadingView(label: l10n.t('Loading documents...'))
           else if (_error != null)
             ErrorBanner(_error!)
           else if (_documents.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.description_outlined,
-              title: 'No documents',
-              message: 'No documents have been shared with you yet.',
+              title: l10n.t('No documents'),
+              message: l10n.t('No documents have been shared with you yet.'),
             )
           else ...[
             SectionCard(
-              title: 'Your documents',
+              title: l10n.t('Your documents'),
               child: Column(
                 children: _documents
                     .map(
@@ -85,10 +87,10 @@ class _DocumentsPageState extends State<DocumentsPage> {
                           child: Icon(document.isImage ? Icons.image_outlined : Icons.description_outlined),
                         ),
                         title: Text(document.originalName, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Text('${_kind(document)} · ${formatFileSize(document.sizeBytes)}'),
+                        subtitle: Text('${_kind(context, document)} · ${formatFileSize(document.sizeBytes)}'),
                         onTap: () => setState(() => _selected = document),
                         trailing: IconButton(
-                          tooltip: 'Open',
+                          tooltip: l10n.t('Open'),
                           onPressed: () => _open(document),
                           icon: const Icon(Icons.open_in_new),
                         ),
@@ -105,10 +107,11 @@ class _DocumentsPageState extends State<DocumentsPage> {
     );
   }
 
-  String _kind(WorkerDocumentSummary document) {
-    if (document.isPdf) return 'PDF';
-    if (document.isImage) return 'Image';
-    return 'File';
+  String _kind(BuildContext context, WorkerDocumentSummary document) {
+    final l10n = context.l10n;
+    if (document.isPdf) return l10n.t('PDF');
+    if (document.isImage) return l10n.t('Image');
+    return l10n.t('File');
   }
 }
 
@@ -120,11 +123,14 @@ class _DocumentPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SectionCard(
       title: document.originalName,
-      subtitle: 'Uploaded ${formatDateTime(document.createdAt)}',
+      subtitle: l10n.t('Uploaded {date}', {
+        'date': formatDateTime(document.createdAt),
+      }),
       trailing: IconButton.filledTonal(
-        tooltip: 'Open',
+        tooltip: l10n.t('Open'),
         onPressed: onOpen,
         icon: const Icon(Icons.open_in_new),
       ),
@@ -132,15 +138,20 @@ class _DocumentPreview extends StatelessWidget {
           ? FutureBuilder(
               future: AppScope.apiOf(context).workerDocumentBytes(document.id),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return const LoadingView(label: 'Loading preview...');
+                if (!snapshot.hasData) {
+                  return LoadingView(label: l10n.t('Loading preview...'));
+                }
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.memory(snapshot.data!, fit: BoxFit.contain),
                 );
               },
             )
-          : Text(document.isPdf ? 'Tap Open to preview this PDF.' : 'Preview is not available for this file.'),
+          : Text(
+              document.isPdf
+                  ? l10n.t('Tap Open to preview this PDF.')
+                  : l10n.t('Preview is not available for this file.'),
+            ),
     );
   }
 }
-

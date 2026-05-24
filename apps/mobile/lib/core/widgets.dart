@@ -1,15 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import 'i18n.dart';
+
 String errorMessage(Object error, [String fallback = 'Something went wrong.']) {
   if (error is DioException) {
     final data = error.response?.data;
     if (data is Map && data['error'] != null) return data['error'].toString();
     if (error.type == DioExceptionType.connectionError) {
-      return 'Network error. Please check the API connection.';
+      return translate('Network error. Please check the API connection.');
     }
   }
-  return fallback;
+  return translate(fallback);
 }
 
 class LoadingView extends StatelessWidget {
@@ -208,7 +210,10 @@ Future<bool> confirmAction(
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(translate('Cancel')),
+        ),
         FilledButton.tonal(
           style: destructive
               ? FilledButton.styleFrom(
@@ -217,7 +222,7 @@ Future<bool> confirmAction(
                 )
               : null,
           onPressed: () => Navigator.pop(context, true),
-          child: Text(confirmLabel),
+          child: Text(translate(confirmLabel)),
         ),
       ],
     ),

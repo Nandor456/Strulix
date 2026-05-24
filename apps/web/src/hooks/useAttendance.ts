@@ -22,7 +22,15 @@ export const useWorkPointQr = (workPointId: string) =>
 
 export const useCheckin = () =>
   useMutation({
-    mutationFn: (qrToken: string) => attendanceAPI.checkin(qrToken),
+    mutationFn: ({
+      lat,
+      lng,
+      qrToken,
+    }: {
+      qrToken: string;
+      lat: number;
+      lng: number;
+    }) => attendanceAPI.checkin(qrToken, { lat, lng }),
   });
 
 export const useManualMark = (workPointId: string) => {
