@@ -5,20 +5,20 @@ import morgan from "morgan";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import router from "./routes/index.js";
-import { getAllowedCorsOrigins, loadEnvironment } from "./config/env.js";
+import { createCorsOriginValidator, loadEnvironment } from "./config/env.js";
 import { prisma } from "../database/prisma.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const { nodeEnv } = loadEnvironment(import.meta.url);
-const allowedCorsOrigins = new Set(getAllowedCorsOrigins());
+const isAllowedCorsOrigin = createCorsOriginValidator();
 
 const app = express();
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedCorsOrigins.has(origin)) {
+      if (isAllowedCorsOrigin(origin)) {
         callback(null, true);
         return;
       }

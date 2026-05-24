@@ -140,3 +140,9 @@ export function getAllowedCorsOrigins() {
 
   return [...origins];
 }
+
+export function createCorsOriginValidator() {
+  const allowedOrigins = new Set(getAllowedCorsOrigins());
+
+  return (origin: string | undefined) => !origin || allowedOrigins.has(origin);
+}

@@ -10,6 +10,7 @@ import {
   getAccessTokenFromSocket,
   verifyAccessToken,
 } from "../services/authTokenService.js";
+import { createCorsOriginValidator } from "../config/env.js";
 
 interface ServerToClientEvents {
   "message:new": (message: Record<string, unknown>) => void;
@@ -39,9 +40,17 @@ interface ClientToServerEvents {
 const onlineUsers = new Map<string, Set<string>>();
 
 export function initSocketServer(httpServer: HttpServer) {
+  const isAllowedCorsOrigin = createCorsOriginValidator();
   const io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: {
-      origin: ["http://localhost:5173", "http://localhost:3000"],
+      origin(origin, callback) {
+        if (isAllowedCorsOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      },
       credentials: true,
     },
   });
