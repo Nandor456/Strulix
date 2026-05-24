@@ -16,8 +16,9 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 - Env loading: `NODE_ENV=development` loads `.env.development`; `NODE_ENV=production` loads `.env.production`; `.env` is a shared fallback if present
 - Required env: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, plus either `DATABASE_URL` or the `DB_*` variables needed to build it
 - Production should set `FRONTEND_BASE_URL`, `APP_BASE_URL`, and `CORS_ALLOWED_ORIGINS`
-- Optional env: `PORT` (default 4000), `ATTENDANCE_TIMEZONE`, SMTP vars for mail
+- Optional env: `PORT` (default 4000), `ATTENDANCE_TIMEZONE`, `AUTH_COOKIE_SAME_SITE`, SMTP vars for mail
 - CORS uses `CORS_ALLOWED_ORIGINS`/`FRONTEND_BASE_URL` and still allows localhost origins outside production
+- If the frontend calls the API from a different site in production, set `AUTH_COOKIE_SAME_SITE=none` so auth cookies can be sent cross-site
 - Refresh tokens are stored hashed in Postgres
 
 ## Errors and validation

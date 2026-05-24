@@ -11,6 +11,7 @@ const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
 const JWT_ISSUER = "buildpulse";
 const encoder = new TextEncoder();
+const VALID_SAME_SITE_VALUES = new Set(["lax", "strict", "none"]);
 
 type TokenUse = "access" | "refresh";
 
@@ -58,11 +59,29 @@ function expiresAtForTtl(ttlSeconds: number) {
   return new Date(Date.now() + ttlSeconds * 1000);
 }
 
+function getCookieSameSite(): NonNullable<CookieOptions["sameSite"]> {
+  const configuredValue = process.env.AUTH_COOKIE_SAME_SITE?.trim().toLowerCase();
+
+  if (configuredValue && VALID_SAME_SITE_VALUES.has(configuredValue)) {
+    return configuredValue as NonNullable<CookieOptions["sameSite"]>;
+  }
+
+  if (configuredValue) {
+    console.warn(
+      `Invalid AUTH_COOKIE_SAME_SITE value "${configuredValue}". Falling back to the default.`,
+    );
+  }
+
+  return process.env.NODE_ENV === "production" ? "none" : "lax";
+}
+
 function baseCookieOptions(): CookieOptions {
+  const sameSite = getCookieSameSite();
+
   return {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite,
+    secure: process.env.NODE_ENV === "production" || sameSite === "none",
     path: "/",
   };
 }
