@@ -1,8 +1,25 @@
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
 
-const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+function normalizeApiBaseUrl(configuredApiBaseUrl: string | undefined) {
+  const trimmedValue = configuredApiBaseUrl?.trim();
+  if (!trimmedValue) return "/api";
 
-export const API_BASE_URL = (configuredApiBaseUrl || "/api").replace(/\/+$/, "");
+  const normalizedValue = trimmedValue.replace(/\/+$/, "");
+  if (!ABSOLUTE_URL_PATTERN.test(normalizedValue)) {
+    return normalizedValue || "/api";
+  }
+
+  const url = new URL(normalizedValue);
+  if (!url.pathname || url.pathname === "/") {
+    url.pathname = "/api";
+  }
+
+  return url.toString().replace(/\/+$/, "");
+}
+
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+export const API_BASE_URL = normalizeApiBaseUrl(configuredApiBaseUrl);
 
 export const API_ORIGIN = ABSOLUTE_URL_PATTERN.test(API_BASE_URL)
   ? new URL(API_BASE_URL).origin
