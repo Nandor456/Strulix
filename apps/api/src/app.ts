@@ -33,15 +33,6 @@ app.use(morgan(nodeEnv === "production" ? "combined" : "tiny"));
 
 app.use("/api", router);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-app.get("/db-check", async (_req, res, next) => {
-  try {
-    // This sends a simple "1" to the DB. If it responds, the connection is alive.
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ ok: true });
-  } catch (e) {
-    next(e);
-  }
-});
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("Unhandled error:", err);
