@@ -16,7 +16,7 @@ import {
 
 const router = Router();
 
-router.use(ensureAuthenticated, ensureRole("ADMIN"));
+router.use(ensureAuthenticated, ensureRole("ADMIN", "LEADER"));
 
 router.get("/", listInvitationsController);
 router.post("/", validate(createInvitationSchema), createInvitationController);

@@ -92,7 +92,7 @@ function App() {
                         <Route
                             path="/invitations"
                             element={
-                                <RequireRoles roles={["ADMIN"]}>
+                                <RequireRoles roles={["ADMIN", "LEADER"]}>
                                     <InvitationsPage />
                                 </RequireRoles>
                             }

@@ -61,7 +61,7 @@ function getDocumentKind(document: WorkerDocumentSummary) {
 
 export default function WorkerManagementPage() {
     const { user } = useAuth();
-    const canManageWorkerAccounts = user?.role === "ADMIN";
+    const canManageWorkerAccounts = user?.role === "ADMIN" || user?.role === "LEADER"; // Only admins and leaders can manage worker accounts
     const { data: workers = [], isLoading } = useWorkers();
     const updateWorkerMutation = useUpdateWorker();
     const deleteWorkerMutation = useDeleteWorker();

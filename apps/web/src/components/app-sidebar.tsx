@@ -38,7 +38,7 @@ export function AppSidebar() {
     const { language, setLanguage, t } = useI18n();
     const isDarkMode = mode === "dark";
     const canManageWorkPoints = user?.role === "ADMIN" || user?.role === "LEADER";
-    const canManageUsers = user?.role === "ADMIN";
+    const canManageUsers = user?.role === "ADMIN" || user?.role === "LEADER";
     const canViewWorkers = user?.role === "ADMIN" || user?.role === "LEADER";
     const isWorker = user?.role === "WORKER";
     const isUsersRoute =
@@ -108,12 +108,12 @@ export function AppSidebar() {
                                 asChild
                                 isActive={location.pathname.startsWith("/messages")}
                             >
-                                    <Link to="/messages">
-                                        <MessageSquare />
-                                        <span>{t("Messages")}</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
+                                <Link to="/messages">
+                                    <MessageSquare />
+                                    <span>{t("Messages")}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                         {canManageWorkPoints && (
                             <SidebarMenuItem>
                                 <SidebarMenuButton

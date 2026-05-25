@@ -9,7 +9,6 @@
 - Env loading: Vite mode files are used normally (`.env.development`, `.env.production`); `VITE_API_PROXY_TARGET` is read in `vite.config.ts` and `VITE_API_BASE_URL` is read in browser code
 - Worker QR attendance uses `@zxing/browser` for camera scanning and the browser Geolocation API for a one-time scan location; production needs HTTPS for camera/geolocation
 - Web localization lives in `src/lib/i18n.ts` and `src/context/i18n-context.ts`; use `useI18n()` for copy/labels and `src/lib/format.ts` for locale-aware date, money, and size formatting
-- Vercel deploys from the repo root via [vercel.json](/Users/nandormezei/Documents/BuildPulse/vercel.json:1); production env values must be configured in the Vercel project because local `.env.production` files are gitignored
 
 ## Commands
 

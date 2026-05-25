@@ -30,9 +30,9 @@ import {
 
 const router = Router();
 
-const workPointAccess = [ensureAuthenticated, ensureRole("ADMIN", "LEADER")];
-const adminAccess = [ensureAuthenticated, ensureRole("ADMIN")];
-const workerAccess = [ensureAuthenticated, ensureRole("WORKER")];
+const admin_leaderAccess = [ensureRole("LEADER", "ADMIN")];
+const leader_workerAccess = [ensureRole("LEADER", "WORKER")];
+
 
 if (!fs.existsSync(WORKER_DOCUMENT_UPLOAD_DIR)) {
   fs.mkdirSync(WORKER_DOCUMENT_UPLOAD_DIR, { recursive: true });
@@ -95,20 +95,21 @@ function handleWorkerDocumentUpload(
   });
 }
 
-router.get("/workers", workPointAccess, listWorkersController);
-router.get("/workers/:workerId/documents", workPointAccess, listWorkerDocumentsController);
+router.use(ensureAuthenticated);
+router.get("/workers", admin_leaderAccess, listWorkersController);
+router.get("/workers/:workerId/documents", admin_leaderAccess, listWorkerDocumentsController);
 router.post(
   "/workers/:workerId/documents",
-  workPointAccess,
+  admin_leaderAccess,
   handleWorkerDocumentUpload,
   uploadWorkerDocumentController,
 );
-router.get("/workpoints/:id/workers", workPointAccess, listWorkPointWorkersController);
-router.post("/workpoints/:id/workers", workPointAccess, assignWorkerController);
-router.delete("/workpoints/:id/workers/:workerId", workPointAccess, removeWorkerController);
-router.put("/workers/:workerId", adminAccess, updateWorkerController);
-router.delete("/workers/:workerId", adminAccess, deleteWorkerController);
-router.get("/worker-documents/me", workerAccess, listMyWorkerDocumentsController);
+router.get("/workpoints/:id/workers", admin_leaderAccess, listWorkPointWorkersController);
+router.post("/workpoints/:id/workers", admin_leaderAccess, assignWorkerController);
+router.delete("/workpoints/:id/workers/:workerId", admin_leaderAccess, removeWorkerController);
+router.put("/workers/:workerId", admin_leaderAccess, updateWorkerController);
+router.delete("/workers/:workerId", admin_leaderAccess, deleteWorkerController);
+router.get("/worker-documents/me", leader_workerAccess, listMyWorkerDocumentsController);
 router.get(
   "/worker-documents/:documentId/file",
   ensureAuthenticated,
@@ -116,7 +117,7 @@ router.get(
 );
 router.delete(
   "/worker-documents/:documentId",
-  workPointAccess,
+  admin_leaderAccess,
   deleteWorkerDocumentController,
 );
 
