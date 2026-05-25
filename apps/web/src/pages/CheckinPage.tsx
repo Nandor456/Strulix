@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useLocation, useParams } from "react-router-dom";
-import { CheckCircle2, Clock, LogIn, MapPin, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, LogIn, MapPin, RefreshCw, XCircle } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -14,6 +14,7 @@ import {
 } from "@/services/api/attendanceApi";
 
 const inFlightScans = new Map<string, Promise<ScanResult>>();
+const MIN_PENDING_MS = 400;
 
 type ScanState =
   | { status: "ready"; qrToken?: string }
@@ -21,14 +22,28 @@ type ScanState =
   | { status: "success"; qrToken: string; result: ScanResult }
   | { status: "error"; qrToken: string; error: unknown };
 
+type LocationErrorReason =
+  | "blocked"
+  | "https"
+  | "timeout"
+  | "unavailable"
+  | "unsupported";
+
 class LocationScanError extends Error {
-  constructor(message: string) {
+  readonly reason: LocationErrorReason;
+
+  constructor(message: string, reason: LocationErrorReason) {
     super(message);
+    this.reason = reason;
     this.name = "LocationScanError";
   }
 }
 
-function getCurrentScanLocation(
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function getCurrentScanLocation(
   t: (key: string) => string,
 ): Promise<ScanLocation> {
   if (
@@ -37,7 +52,7 @@ function getCurrentScanLocation(
     window.location.hostname !== "localhost"
   ) {
     return Promise.reject(
-      new LocationScanError(t("Location access requires HTTPS.")),
+      new LocationScanError(t("Location access requires HTTPS."), "https"),
     );
   }
 
@@ -45,6 +60,7 @@ function getCurrentScanLocation(
     return Promise.reject(
       new LocationScanError(
         t("This browser cannot provide location for attendance scans."),
+        "unsupported",
       ),
     );
   }
@@ -62,8 +78,9 @@ function getCurrentScanLocation(
           reject(
             new LocationScanError(
               t(
-                "Location permission is blocked. Enable location for this site in your browser settings, then try again.",
+                "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then reload the page.",
               ),
+              "blocked",
             ),
           );
           return;
@@ -72,6 +89,7 @@ function getCurrentScanLocation(
           reject(
             new LocationScanError(
               t("Location timed out. Move somewhere with a clearer signal and try again."),
+              "timeout",
             ),
           );
           return;
@@ -79,6 +97,7 @@ function getCurrentScanLocation(
         reject(
           new LocationScanError(
             t("Unable to get your current location. Check location services and try again."),
+            "unavailable",
           ),
         );
       },
@@ -114,6 +133,10 @@ function getErrorMessage(error: unknown, t: (key: string) => string) {
   );
 }
 
+function isBlockedLocationError(error: unknown) {
+  return error instanceof LocationScanError && error.reason === "blocked";
+}
+
 export default function CheckinPage() {
   const { qrToken } = useParams<{ qrToken: string }>();
   const location = useLocation();
@@ -130,14 +153,26 @@ export default function CheckinPage() {
     latestScanIdRef.current = scanId;
     setScanState({ status: "pending", qrToken: token });
 
+    const pendingStartedAt = Date.now();
+
     void getCurrentScanLocation(t)
-      .then((scanLocation) => scanQrToken(token, scanLocation))
+      .then(async (scanLocation) => {
+        const elapsedMs = Date.now() - pendingStartedAt;
+        if (elapsedMs < MIN_PENDING_MS) {
+          await wait(MIN_PENDING_MS - elapsedMs);
+        }
+        return scanQrToken(token, scanLocation);
+      })
       .then((result) => {
         if (latestScanIdRef.current === scanId) {
           setScanState({ status: "success", qrToken: token, result });
         }
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
+        const elapsedMs = Date.now() - pendingStartedAt;
+        if (elapsedMs < MIN_PENDING_MS) {
+          await wait(MIN_PENDING_MS - elapsedMs);
+        }
         if (latestScanIdRef.current === scanId) {
           setScanState({ status: "error", qrToken: token, error });
         }
@@ -168,6 +203,9 @@ export default function CheckinPage() {
   const isReady =
     currentScanState.status === "ready" && !isAuthLoading && isAuthenticated;
   const isError = currentScanState.status === "error";
+  const isBlockedLocation =
+    currentScanState.status === "error" &&
+    isBlockedLocationError(currentScanState.error);
   const resultAlertClassName =
     result?.event === "CHECK_IN"
       ? "border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
@@ -237,15 +275,30 @@ export default function CheckinPage() {
             <Alert variant="destructive">
               {getErrorMessage(currentScanState.error, t)}
             </Alert>
+            {isBlockedLocation && (
+              <Alert>
+                {t("After changing the browser setting, reload this page and try again.")}
+              </Alert>
+            )}
             <Button
               className="w-full"
               onClick={() => {
-                if (!qrToken) return;
-                startScan(qrToken);
+                if (isBlockedLocation) {
+                  window.location.reload();
+                  return;
+                }
+
+                if (qrToken) {
+                  startScan(qrToken);
+                }
               }}
             >
-              <LogIn className="h-4 w-4" />
-              {t("Try again")}
+              {isBlockedLocation ? (
+                <RefreshCw className="h-4 w-4" />
+              ) : (
+                <LogIn className="h-4 w-4" />
+              )}
+              {isBlockedLocation ? t("Reload page") : t("Try again")}
             </Button>
           </div>
         )}

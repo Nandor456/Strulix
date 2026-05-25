@@ -24,6 +24,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Permite accesul la camera pentru a inregistra prezenta.",
     "Allow location access to scan attendance.":
       "Permite accesul la locatie pentru a inregistra prezenta.",
+    "After changing the browser setting, reload this page and try again.":
+      "Dupa ce schimbi setarea din browser, reincarca pagina si incearca din nou.",
     "Ask an admin to set your wage":
       "Cere unui administrator sa iti seteze salariul",
     "Attendance": "Prezenta",
@@ -104,8 +106,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Accesul la locatie necesita HTTPS.",
     "Location is required to record attendance at this workpoint.":
       "Locatia este necesara pentru a inregistra prezenta la acest punct de lucru.",
-    "Location permission is blocked. Enable location for this site in your browser settings, then try again.":
-      "Permisiunea pentru locatie este blocata. Activeaza locatia pentru acest site din setarile browserului, apoi incearca din nou.",
+    "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then reload the page.":
+      "Locatia este inca blocata de browser sau dispozitiv. Permite locatia pentru acest site si pentru aplicatia browserului, apoi reincarca pagina.",
     "Location required": "Locatie necesara",
     "Log out": "Deconectare",
     "Login failed": "Autentificarea a esuat",
@@ -163,6 +165,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Recording attendance...": "Se inregistreaza prezenta...",
     "Register": "Inregistrare",
     "Registration failed": "Inregistrarea a esuat",
+    "Reload page": "Reincarca pagina",
     "Enable location": "Activeaza locatia",
     "REVOKED": "Revocata",
     "Revoke invitation": "Revoca invitatia",
@@ -236,6 +239,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Engedelyezd a kamera hasznalatat a jelenlet rogzitesehez.",
     "Allow location access to scan attendance.":
       "Engedelyezd a helyhozzaferest a jelenlet rogzitesehez.",
+    "After changing the browser setting, reload this page and try again.":
+      "A bongeszo beallitasanak modositasa utan toltsd ujra az oldalt, majd probald ujra.",
     "Ask an admin to set your wage":
       "Kerj meg egy adminisztratort, hogy allitsa be a beredet",
     "Attendance": "Jelenlet",
@@ -319,8 +324,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "A helyhozzafereshez HTTPS szukseges.",
     "Location is required to record attendance at this workpoint.":
       "A jelenlet rogzitesehez helyadat szukseges ezen a munkaponton.",
-    "Location permission is blocked. Enable location for this site in your browser settings, then try again.":
-      "A helyhozzaferesi engedely blokkolva van. Engedelyezd a helyhozzaferest ehhez a webhelyhez a bongeszo beallitasaiban, majd probald ujra.",
+    "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then reload the page.":
+      "A helyadatot meg mindig blokkolja a bongeszo vagy az eszkoz. Engedelyezd a helyhozzaferest ehhez a webhelyhez es a bongeszo alkalmazashoz, majd toltsd ujra az oldalt.",
     "Location required": "Helyadat szukseges",
     "Log out": "Kijelentkezes",
     "Login failed": "A belepes sikertelen",
@@ -377,6 +382,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Recording attendance...": "Jelenlet rogzitese folyamatban...",
     "Register": "Regisztracio",
     "Registration failed": "A regisztracio sikertelen",
+    "Reload page": "Oldal ujratoltese",
     "Enable location": "Hely engedelyezese",
     "REVOKED": "Visszavonva",
     "Revoke invitation": "Meghivo visszavonasa",
