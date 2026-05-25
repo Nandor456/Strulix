@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { useI18n } from "@/hooks/useI18n";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
@@ -94,9 +93,6 @@ export default function Login() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-sm">
-        <div className="mb-4 flex justify-end">
-          <LanguageSwitcher />
-        </div>
         <div className="mb-8 flex flex-col items-center gap-2">
           <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
             <Building2 className="h-7 w-7 text-primary-foreground" />

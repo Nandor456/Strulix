@@ -35,12 +35,13 @@ class _LoginPageState extends State<LoginPage> {
       _error = null;
     });
     try {
-      await AppScope.authOf(context).login(
-        username: _username.text.trim(),
-        password: _password.text,
-      );
+      await AppScope.authOf(
+        context,
+      ).login(username: _username.text.trim(), password: _password.text);
       if (!mounted) return;
-      final destination = widget.redirectPath?.startsWith('/') == true ? widget.redirectPath! : '/';
+      final destination = widget.redirectPath?.startsWith('/') == true
+          ? widget.redirectPath!
+          : '/';
       context.go(destination);
     } catch (error) {
       setState(() => _error = errorMessage(error, 'Login failed'));
@@ -76,8 +77,9 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: true,
               autofillHints: const [AutofillHints.password],
               decoration: InputDecoration(labelText: l10n.t('Password')),
-              validator: (value) =>
-                  (value ?? '').isNotEmpty ? null : l10n.t('Password is required.'),
+              validator: (value) => (value ?? '').isNotEmpty
+                  ? null
+                  : l10n.t('Password is required.'),
               onFieldSubmitted: (_) => _submit(),
             ),
             if (_error != null) ...[
@@ -264,7 +266,6 @@ class _AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -274,12 +275,6 @@ class _AuthScaffold extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: AppLanguageMenuButton(
-                      key: ValueKey(l10n.language.code),
-                    ),
-                  ),
                   Image.asset(
                     'assets/images/buildpulselogo.png',
                     width: 72,
