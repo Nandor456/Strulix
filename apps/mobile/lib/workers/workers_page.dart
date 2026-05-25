@@ -79,35 +79,59 @@ class _WorkersPageState extends State<WorkersPage> {
         children: [
           Text('Workers', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
-          Text('Manage registered workers and their documents.', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            'Manage registered workers and their documents.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 16),
           if (_isLoading)
             const LoadingView(label: 'Loading workers...')
           else if (_error != null)
             ErrorBanner(_error!)
           else if (_workers.isEmpty)
-            const EmptyState(icon: Icons.groups_outlined, title: 'No workers registered yet')
+            const EmptyState(
+              icon: Icons.groups_outlined,
+              title: 'No workers registered yet',
+            )
           else
             ..._workers.map(
-              (worker) => Card(
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                  title: Text(worker.username),
-                  subtitle: Text(
-                    '${worker.email}\n${worker.role} · Workpoints ${worker.assignedWorkPointCount} · ${worker.hourlyWage == null ? 'No wage' : '${worker.hourlyWage!.toStringAsFixed(2)} RON/h'}',
-                  ),
-                  isThreeLine: true,
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'documents') _documents(worker);
-                      if (value == 'edit') _edit(worker);
-                      if (value == 'delete') _delete(worker);
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'documents', child: Text('Documents')),
-                      if (canManageAccounts) const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      if (canManageAccounts) const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                    ],
+              (worker) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.person_outline),
+                    ),
+                    title: Text(worker.username),
+                    subtitle: Text(
+                      '${worker.email}\n'
+                      '${worker.role} · Workpoints ${worker.assignedWorkPointCount} · '
+                      '${worker.hourlyWage == null ? 'No wage' : '${worker.hourlyWage!.toStringAsFixed(2)} RON/h'}',
+                    ),
+                    isThreeLine: true,
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'documents') _documents(worker);
+                        if (value == 'edit') _edit(worker);
+                        if (value == 'delete') _delete(worker);
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'documents',
+                          child: Text('Documents'),
+                        ),
+                        if (canManageAccounts)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit'),
+                          ),
+                        if (canManageAccounts)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -131,9 +155,13 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
   late final _username = TextEditingController(text: widget.worker.username);
   late final _email = TextEditingController(text: widget.worker.email);
   late final _wage = TextEditingController(
-    text: widget.worker.hourlyWage == null ? '' : widget.worker.hourlyWage.toString(),
+    text: widget.worker.hourlyWage == null
+        ? ''
+        : widget.worker.hourlyWage.toString(),
   );
-  late String _role = widget.worker.role == 'ADMIN' ? 'LEADER' : widget.worker.role;
+  late String _role = widget.worker.role == 'ADMIN'
+      ? 'LEADER'
+      : widget.worker.role;
   bool _isSaving = false;
   String? _error;
 
@@ -155,7 +183,9 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
         'username': _username.text.trim(),
         'email': _email.text.trim(),
         'role': _role,
-        'hourlyWage': _wage.text.trim().isEmpty ? null : double.tryParse(_wage.text.trim()),
+        'hourlyWage': _wage.text.trim().isEmpty
+            ? null
+            : double.tryParse(_wage.text.trim()),
       });
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
@@ -173,7 +203,10 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _username, decoration: const InputDecoration(labelText: 'Username')),
+            TextField(
+              controller: _username,
+              decoration: const InputDecoration(labelText: 'Username'),
+            ),
             const SizedBox(height: 10),
             TextField(
               controller: _email,
@@ -193,7 +226,9 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
             const SizedBox(height: 10),
             TextField(
               controller: _wage,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Hourly wage (RON)'),
             ),
             if (_error != null) ...[
@@ -204,8 +239,14 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        FilledButton(onPressed: _isSaving ? null : _save, child: Text(_isSaving ? 'Saving...' : 'Save')),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _isSaving ? null : _save,
+          child: Text(_isSaving ? 'Saving...' : 'Save'),
+        ),
       ],
     );
   }
@@ -238,7 +279,9 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
       _error = null;
     });
     try {
-      final documents = await AppScope.apiOf(context).listWorkerDocuments(widget.worker.id);
+      final documents = await AppScope.apiOf(
+        context,
+      ).listWorkerDocuments(widget.worker.id);
       setState(() => _documents = documents);
     } catch (error) {
       setState(() => _error = errorMessage(error, 'Failed to load documents.'));
@@ -267,7 +310,8 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
       );
       await _load();
     } catch (error) {
-      if (mounted) showSnack(context, errorMessage(error, 'Failed to upload document.'));
+      if (mounted)
+        showSnack(context, errorMessage(error, 'Failed to upload document.'));
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -302,38 +346,53 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
         child: _isLoading
             ? const LoadingView(label: 'Loading documents...')
             : _error != null
-                ? ErrorBanner(_error!)
-                : _documents.isEmpty
-                    ? const EmptyState(icon: Icons.description_outlined, title: 'No documents')
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _documents.length,
-                        itemBuilder: (context, index) {
-                          final document = _documents[index];
-                          return ListTile(
-                            leading: Icon(document.isImage ? Icons.image_outlined : Icons.description_outlined),
-                            title: Text(document.originalName),
-                            subtitle: Text('${formatFileSize(document.sizeBytes)} · ${formatDateTime(document.createdAt)}'),
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'open') _open(document);
-                                if (value == 'delete') _delete(document);
-                              },
-                              itemBuilder: (context) => const [
-                                PopupMenuItem(value: 'open', child: Text('Open')),
-                                PopupMenuItem(value: 'delete', child: Text('Delete')),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+            ? ErrorBanner(_error!)
+            : _documents.isEmpty
+            ? const EmptyState(
+                icon: Icons.description_outlined,
+                title: 'No documents',
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: _documents.length,
+                itemBuilder: (context, index) {
+                  final document = _documents[index];
+                  return ListTile(
+                    leading: Icon(
+                      document.isImage
+                          ? Icons.image_outlined
+                          : Icons.description_outlined,
+                    ),
+                    title: Text(document.originalName),
+                    subtitle: Text(
+                      '${formatFileSize(document.sizeBytes)} · ${formatDateTime(document.createdAt)}',
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'open') _open(document);
+                        if (value == 'delete') _delete(document);
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(value: 'open', child: Text('Open')),
+                        PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      ],
+                    ),
+                  );
+                },
+              ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
         FilledButton.icon(
           onPressed: _isUploading ? null : _upload,
           icon: _isUploading
-              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
               : const Icon(Icons.upload_file),
           label: Text(_isUploading ? 'Uploading...' : 'Upload'),
         ),

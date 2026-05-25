@@ -33,13 +33,18 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
     });
     final api = AppScope.apiOf(context);
     try {
-      final results = await Future.wait([api.listWorkPoints(), api.listWorkers()]);
+      final results = await Future.wait([
+        api.listWorkPoints(),
+        api.listWorkers(),
+      ]);
       setState(() {
         _workPoints = results[0] as List<WorkPointSummary>;
         _workers = results[1] as List<WorkerSummary>;
       });
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to load workpoints.'));
+      setState(
+        () => _error = errorMessage(error, 'Failed to load workpoints.'),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -67,7 +72,8 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _WorkPointFormSheet(workPoint: workPoint, workers: _workers),
+      builder: (context) =>
+          _WorkPointFormSheet(workPoint: workPoint, workers: _workers),
     );
     if (saved == true) await _load();
   }
@@ -120,30 +126,38 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
             )
           else
             ..._workPoints.map(
-              (workPoint) => Card(
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.business_outlined)),
-                  title: Text(workPoint.name),
-                  subtitle: Text(
-                    '${workPoint.address}\n${l10n.t('Workers')}: ${workPoint.workerCount} · ${l10n.t('Attendance')}: ${workPoint.attendanceCount} · ${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
-                  ),
-                  isThreeLine: true,
-                  onTap: () => context.go('/workpoints/${workPoint.id}'),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'edit') _showForm(workPoint: workPoint);
-                      if (value == 'delete') _delete(workPoint);
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Text(l10n.t('Edit')),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(l10n.t('Delete')),
-                      ),
-                    ],
+              (workPoint) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.business_outlined),
+                    ),
+                    title: Text(workPoint.name),
+                    subtitle: Text(
+                      '${workPoint.address}\n'
+                      '${l10n.t('Workers')}: ${workPoint.workerCount} · '
+                      '${l10n.t('Attendance')}: ${workPoint.attendanceCount} · '
+                      '${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
+                    ),
+                    isThreeLine: true,
+                    onTap: () => context.go('/workpoints/${workPoint.id}'),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') _showForm(workPoint: workPoint);
+                        if (value == 'delete') _delete(workPoint);
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text(l10n.t('Edit')),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(l10n.t('Delete')),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -167,8 +181,12 @@ class _WorkPointFormSheet extends StatefulWidget {
 class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.workPoint?.name ?? '');
-  late final _address = TextEditingController(text: widget.workPoint?.address ?? '');
-  late final _description = TextEditingController(text: widget.workPoint?.description ?? '');
+  late final _address = TextEditingController(
+    text: widget.workPoint?.address ?? '',
+  );
+  late final _description = TextEditingController(
+    text: widget.workPoint?.description ?? '',
+  );
   String _deadline = '';
   final Set<String> _workerIds = {};
   bool _isSaving = false;
@@ -179,7 +197,8 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
     super.initState();
     final deadline = widget.workPoint?.deadline;
     if (deadline != null) {
-      _deadline = DateTime.tryParse(deadline)?.toIso8601String().substring(0, 10) ?? '';
+      _deadline =
+          DateTime.tryParse(deadline)?.toIso8601String().substring(0, 10) ?? '';
     }
   }
 
@@ -214,8 +233,12 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
     final payload = {
       'name': _name.text.trim(),
       'address': _address.text.trim(),
-      'description': _description.text.trim().isEmpty ? null : _description.text.trim(),
-      'deadline': _deadline.isEmpty ? null : DateTime.parse('${_deadline}T00:00:00').toIso8601String(),
+      'description': _description.text.trim().isEmpty
+          ? null
+          : _description.text.trim(),
+      'deadline': _deadline.isEmpty
+          ? null
+          : DateTime.parse('${_deadline}T00:00:00').toIso8601String(),
       if (widget.workPoint == null) 'workerIds': _workerIds.toList(),
     };
 
@@ -227,7 +250,9 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
           context.go('/workpoints/${created.id}');
         }
       } else {
-        await AppScope.apiOf(context).updateWorkPoint(widget.workPoint!.id, payload);
+        await AppScope.apiOf(
+          context,
+        ).updateWorkPoint(widget.workPoint!.id, payload);
         if (mounted) Navigator.pop(context, true);
       }
     } catch (error) {
@@ -345,9 +370,7 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save_outlined),
-                  label: Text(
-                    _isSaving ? l10n.t('Saving...') : l10n.t('Save'),
-                  ),
+                  label: Text(_isSaving ? l10n.t('Saving...') : l10n.t('Save')),
                 ),
               ],
             ),

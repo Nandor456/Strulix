@@ -31,6 +31,7 @@ model User {
   workerDocuments    WorkerDocument[] @relation("WorkerDocuments")
   uploadedDocuments  WorkerDocument[] @relation("UploadedWorkerDocuments")
   refreshTokens      RefreshToken[]
+  pushDevices        PushDevice[]
 }
 
 model WorkPoint {
@@ -117,6 +118,21 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model PushDevice {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  token      String   @unique
+  platform   String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_devices")
 }
 
 // ─── Messaging ───────────────────────────────────────────────────────────────

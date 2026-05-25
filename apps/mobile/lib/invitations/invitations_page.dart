@@ -43,7 +43,9 @@ class _InvitationsPageState extends State<InvitationsPage> {
       final invitations = await AppScope.apiOf(context).listInvitations();
       setState(() => _invitations = invitations);
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to load invitations.'));
+      setState(
+        () => _error = errorMessage(error, 'Failed to load invitations.'),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -59,7 +61,8 @@ class _InvitationsPageState extends State<InvitationsPage> {
       _role = 'WORKER';
       await _load();
     } catch (error) {
-      if (mounted) showSnack(context, errorMessage(error, 'Failed to send invitation.'));
+      if (mounted)
+        showSnack(context, errorMessage(error, 'Failed to send invitation.'));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -97,7 +100,9 @@ class _InvitationsPageState extends State<InvitationsPage> {
                 TextField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(labelText: l10n.t('Email address')),
+                  decoration: InputDecoration(
+                    labelText: l10n.t('Email address'),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -113,7 +118,8 @@ class _InvitationsPageState extends State<InvitationsPage> {
                       child: Text(l10n.roleLabel('LEADER')),
                     ),
                   ],
-                  onChanged: (value) => setState(() => _role = value ?? 'WORKER'),
+                  onChanged: (value) =>
+                      setState(() => _role = value ?? 'WORKER'),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -148,7 +154,10 @@ class _InvitationsPageState extends State<InvitationsPage> {
               message: l10n.t('Use the form above to invite your first user.'),
             )
           else
-            ..._invitations.map((invitation) => _InvitationCard(invitation: invitation, onRevoke: _revoke)),
+            ..._invitations.map(
+              (invitation) =>
+                  _InvitationCard(invitation: invitation, onRevoke: _revoke),
+            ),
         ],
       ),
     );
@@ -165,27 +174,54 @@ class _InvitationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final canRevoke = invitation.status == 'pending';
+
     return Card(
+      margin: const EdgeInsets.only(bottom: 14), // space between cards
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const CircleAvatar(child: Icon(Icons.mail_outline)),
+                const SizedBox(width: 12),
+
                 Expanded(
-                  child: Text(invitation.email, style: Theme.of(context).textTheme.titleMedium),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        invitation.email,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.roleLabel(invitation.role),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
-                Chip(label: Text(l10n.invitationStatusLabel(invitation.status))),
+
+                Chip(
+                  label: Text(l10n.invitationStatusLabel(invitation.status)),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
+
+            const SizedBox(height: 16),
+
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                Chip(label: Text(l10n.roleLabel(invitation.role))),
                 Chip(
+                  avatar: const Icon(Icons.schedule, size: 16),
                   label: Text(
                     l10n.t('Sent {date}', {
                       'date': formatDateTime(invitation.createdAt),
@@ -193,6 +229,7 @@ class _InvitationCard extends StatelessWidget {
                   ),
                 ),
                 Chip(
+                  avatar: const Icon(Icons.timer_off, size: 16),
                   label: Text(
                     l10n.t('Expires {date}', {
                       'date': formatDateTime(invitation.expiresAt),
@@ -201,23 +238,34 @@ class _InvitationCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+
+            const SizedBox(height: 16),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton.icon(
                   onPressed: canRevoke
                       ? () async {
-                          await Clipboard.setData(ClipboardData(text: invitation.inviteUrl));
+                          await Clipboard.setData(
+                            ClipboardData(text: invitation.inviteUrl),
+                          );
+
                           if (context.mounted) {
-                            showSnack(context, l10n.t('Invitation link copied.'));
+                            showSnack(
+                              context,
+                              l10n.t('Invitation link copied.'),
+                            );
                           }
                         }
                       : null,
                   icon: const Icon(Icons.copy),
-                  label: Text(l10n.t('Copy link')),
+                  label: Text(l10n.t('Copy')),
                 ),
-                TextButton.icon(
+
+                const SizedBox(width: 8),
+
+                FilledButton.tonalIcon(
                   onPressed: canRevoke ? () => onRevoke(invitation) : null,
                   icon: const Icon(Icons.delete_outline),
                   label: Text(l10n.t('Revoke')),

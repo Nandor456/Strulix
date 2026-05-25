@@ -11,6 +11,7 @@ class AuthController extends ChangeNotifier {
   final BuildPulseApi _api;
   User? _user;
   bool _isLoading = true;
+  Future<void> Function()? onBeforeLogout;
 
   User? get user => _user;
 
@@ -69,9 +70,15 @@ class AuthController extends ChangeNotifier {
 
   Future<void> logout() async {
     final wasAuthenticated = _user != null;
+    final beforeLogout = wasAuthenticated ? onBeforeLogout?.call() : null;
     _user = null;
     if (wasAuthenticated) {
       notifyListeners();
+    }
+    try {
+      await beforeLogout;
+    } catch (_) {
+      // Logging out should still complete if best-effort cleanup fails.
     }
     await _api.logout();
   }

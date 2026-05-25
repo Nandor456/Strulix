@@ -163,7 +163,7 @@ class _CheckinPageState extends State<CheckinPage> {
                       ErrorBanner(_error!),
                       const SizedBox(height: 12),
                       FilledButton.icon(
-                        onPressed: _scan,
+                        onPressed: () => context.go('/scan'),
                         icon: const Icon(Icons.refresh),
                         label: Text(l10n.t('Try again')),
                       ),

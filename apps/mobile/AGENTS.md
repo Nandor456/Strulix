@@ -3,7 +3,7 @@
 ## Overview
 
 - Framework: Flutter app using Material 3
-- Entry: `lib/main.dart` creates `ApiClient`, `BuildPulseApi`, `AuthController`, `MessagingController`, `ThemeController`, and `LanguageController`, then injects them through `AppScope`
+- Entry: `lib/main.dart` creates `ApiClient`, `BuildPulseApi`, `AuthController`, `MessagingController`, `PushNotificationsController`, `ThemeController`, and `LanguageController`, then injects app state through `AppScope`
 - Routing: `go_router` in `lib/core/app_router.dart`
 - Feature folders under `lib/`: `auth`, `attendance`, `documents`, `invitations`, `messaging`, `worker_home`, `workers`, `workpoints`
 - Shared app infrastructure lives under `lib/core/`
@@ -16,6 +16,7 @@
 - Android emulators should usually use `http://10.0.2.2:4000/api` in `.env.dev.android`
 - `ApiClient` uses Dio with persisted cookies, automatically attempts `/auth/refresh` on one unauthorized response, and clears cookies if refresh fails
 - Relative `/uploads/...` URLs are resolved against the API origin in `lib/core/app_config.dart`
+- Message push notifications use Firebase Cloud Messaging on iOS/Android; add platform Firebase config files before production builds
 - Worker QR attendance uses `mobile_scanner` for camera scanning and `geolocator` for a one-time current location sent with `/attendance/checkin`; do not add background location tracking
 
 ## Commands

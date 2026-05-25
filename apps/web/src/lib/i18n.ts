@@ -100,6 +100,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Light theme": "Tema deschisa",
     "Location timed out. Move somewhere with a clearer signal and try again.":
       "Locatia a expirat. Mergi intr-un loc cu semnal mai bun si incearca din nou.",
+    "Are you sure you want to log out?":
+      "Esti sigur ca vrei sa te deconectezi?",
     "Log out": "Deconectare",
     "Login failed": "Autentificarea a esuat",
     "Messages": "Mesaje",
@@ -307,6 +309,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Light theme": "Vilagos tema",
     "Location timed out. Move somewhere with a clearer signal and try again.":
       "A helymeghatarozas idotullepessel leallt. Menj jobb jelu helyre, es probald ujra.",
+    "Are you sure you want to log out?":
+      "Biztosan ki szeretnel jelentkezni?",
     "Log out": "Kijelentkezes",
     "Login failed": "A belepes sikertelen",
     "Messages": "Uzenetek",

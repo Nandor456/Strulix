@@ -10,6 +10,7 @@ import 'core/app_scope.dart';
 import 'core/i18n.dart';
 import 'core/theme_controller.dart';
 import 'messaging/messaging_controller.dart';
+import 'messaging/push_notifications_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,12 @@ Future<void> main() async {
   final auth = AuthController(api);
   await auth.bootstrap();
   final messaging = MessagingController(api, auth);
+  final pushNotifications = PushNotificationsController(
+    api: api,
+    auth: auth,
+    messaging: messaging,
+  );
+  await pushNotifications.initialize();
   final theme = ThemeController();
   final language = LanguageController();
 
@@ -31,15 +38,20 @@ Future<void> main() async {
       messaging: messaging,
       theme: theme,
       language: language,
-      child: BuildPulseApp(auth: auth),
+      child: BuildPulseApp(auth: auth, pushNotifications: pushNotifications),
     ),
   );
 }
 
 class BuildPulseApp extends StatefulWidget {
-  const BuildPulseApp({required this.auth, super.key});
+  const BuildPulseApp({
+    required this.auth,
+    required this.pushNotifications,
+    super.key,
+  });
 
   final AuthController auth;
+  final PushNotificationsController pushNotifications;
 
   @override
   State<BuildPulseApp> createState() => _BuildPulseAppState();
@@ -47,6 +59,22 @@ class BuildPulseApp extends StatefulWidget {
 
 class _BuildPulseAppState extends State<BuildPulseApp> {
   late final _router = createAppRouter(widget.auth);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.pushNotifications.onOpenChat = _openChat;
+  }
+
+  @override
+  void dispose() {
+    widget.pushNotifications.onOpenChat = null;
+    super.dispose();
+  }
+
+  void _openChat(String chatId) {
+    _router.go('/messages?chatId=${Uri.encodeComponent(chatId)}');
+  }
 
   @override
   Widget build(BuildContext context) {

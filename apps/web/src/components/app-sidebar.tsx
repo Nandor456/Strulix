@@ -343,7 +343,10 @@ export function AppSidebar() {
                                 <DropdownMenuSeparator />
 
                                 <DropdownMenuItem
-                                    onSelect={() => void logout()}
+                                    onSelect={() => {
+                                        if (!window.confirm(t("Are you sure you want to log out?"))) return;
+                                        void logout();
+                                    }}
                                     className="text-destructive focus:text-destructive"
                                 >
                                     <LogOut className="h-4 w-4" />

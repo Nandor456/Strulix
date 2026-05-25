@@ -162,6 +162,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Email is required.': 'Email is required.',
     'Expires {date}': 'Expires {date}',
     'Failed to load invitations.': 'Failed to load invitations.',
+    'Failed to open attachment.': 'Failed to open attachment.',
     'Failed to load workpoints.': 'Failed to load workpoints.',
     'Failed to load your documents.': 'Failed to load your documents.',
     'Failed to load your worker dashboard.':
@@ -191,6 +192,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Location access is blocked. Enable it in device settings to scan attendance.',
     'Location timed out. Move somewhere with a clearer signal and try again.':
         'Location timed out. Move somewhere with a clearer signal and try again.',
+    'Are you sure you want to log out?': 'Are you sure you want to log out?',
     'Light theme': 'Light theme',
     'Login failed': 'Login failed',
     'Log out': 'Log out',
@@ -353,6 +355,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Expires {date}': 'Expira la {date}',
     'Failed to load invitations.':
         'Invitatiile nu au putut fi incarcate.',
+    'Failed to open attachment.':
+        'Atasamentul nu a putut fi deschis.',
     'Failed to load workpoints.':
         'Punctele de lucru nu au putut fi incarcate.',
     'Failed to load your documents.':
@@ -387,6 +391,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Accesul la locatie este blocat. Activeaza-l din setarile dispozitivului pentru a inregistra prezenta.',
     'Location timed out. Move somewhere with a clearer signal and try again.':
         'Locatia a expirat. Mergi intr-un loc cu semnal mai bun si incearca din nou.',
+    'Are you sure you want to log out?':
+        'Esti sigur ca vrei sa te deconectezi?',
     'Light theme': 'Tema deschisa',
     'Login failed': 'Autentificarea a esuat',
     'Log out': 'Deconectare',
@@ -549,6 +555,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Expires {date}': 'Lejar ekkor: {date}',
     'Failed to load invitations.':
         'A meghivok betoltese nem sikerult.',
+    'Failed to open attachment.':
+        'A csatolmany megnyitasa nem sikerult.',
     'Failed to load workpoints.':
         'A munkapontok betoltese nem sikerult.',
     'Failed to load your documents.':
@@ -583,6 +591,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'A helyhozzaferes le van tiltva. Engedelyezd a keszulek beallitasainal a jelenlet rogzitesehez.',
     'Location timed out. Move somewhere with a clearer signal and try again.':
         'A helymeghatarozas idotullepessel leallt. Menj jobb jelu helyre, es probald ujra.',
+    'Are you sure you want to log out?':
+        'Biztosan ki szeretnel jelentkezni?',
     'Light theme': 'Vilagos tema',
     'Login failed': 'A belepes sikertelen',
     'Log out': 'Kijelentkezes',

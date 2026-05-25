@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_controller.dart';
 import 'app_scope.dart';
 import 'i18n.dart';
+import 'widgets.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({required this.location, required this.child, super.key});
@@ -127,6 +128,13 @@ class AppShell extends StatelessWidget {
                 title: Text(l10n.t('Log out')),
                 onTap: () async {
                   Navigator.pop(context);
+                  final confirmed = await confirmAction(
+                    context,
+                    title: l10n.t('Log out'),
+                    message: l10n.t('Are you sure you want to log out?'),
+                    confirmLabel: 'Log out',
+                  );
+                  if (!confirmed) return;
                   AppScope.messagingOf(context).disconnect();
                   await auth.logout();
                   if (context.mounted) context.go('/login');

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:open_filex/open_filex.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
@@ -10,7 +10,9 @@ import '../core/models.dart';
 import '../core/widgets.dart';
 
 class MessagingPage extends StatefulWidget {
-  const MessagingPage({super.key});
+  const MessagingPage({this.initialChatId, super.key});
+
+  final String? initialChatId;
 
   @override
   State<MessagingPage> createState() => _MessagingPageState();
@@ -26,13 +28,31 @@ class _MessagingPageState extends State<MessagingPage> {
       final messaging = AppScope.messagingOf(context);
       await messaging.connect();
       await messaging.loadChats();
+      await _selectInitialChat();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant MessagingPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialChatId != oldWidget.initialChatId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _selectInitialChat());
+    }
   }
 
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectInitialChat() async {
+    final chatId = widget.initialChatId;
+    if (!mounted || chatId == null || chatId.isEmpty) return;
+
+    final messaging = AppScope.messagingOf(context);
+    if (messaging.activeChatId == chatId) return;
+    await messaging.selectChat(chatId);
   }
 
   @override
@@ -243,6 +263,23 @@ class _ThreadViewState extends State<_ThreadView> {
     AppScope.messagingOf(context).sendTyping(widget.chat.id, false);
   }
 
+  Future<void> _openAttachment(Message message) async {
+    final attachmentUrl = message.attachmentUrl;
+    if (attachmentUrl == null) return;
+
+    try {
+      final file = await AppScope.apiOf(context).downloadMessageAttachment(
+        attachmentUrl: attachmentUrl,
+        filename: message.attachmentName ?? 'attachment',
+      );
+      await OpenFilex.open(file.path);
+    } catch (error) {
+      if (mounted) {
+        showSnack(context, errorMessage(error, 'Failed to open attachment.'));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final messaging = AppScope.messagingOf(context);
@@ -291,6 +328,7 @@ class _ThreadViewState extends State<_ThreadView> {
                           message: message,
                           isSelf: message.senderId == currentUserId,
                           onReply: () => setState(() => _replyTo = message),
+                          onOpenAttachment: () => _openAttachment(message),
                         );
                       },
                     ),
@@ -370,11 +408,13 @@ class _MessageBubble extends StatelessWidget {
     required this.message,
     required this.isSelf,
     required this.onReply,
+    required this.onOpenAttachment,
   });
 
   final Message message;
   final bool isSelf;
   final VoidCallback onReply;
+  final VoidCallback onOpenAttachment;
 
   @override
   Widget build(BuildContext context) {
@@ -428,9 +468,7 @@ class _MessageBubble extends StatelessWidget {
               if (attachmentUrl != null) ...[
                 const SizedBox(height: 8),
                 TextButton.icon(
-                  onPressed: () => launchUrl(
-                    Uri.parse(AppScope.apiOf(context).fileUrl(attachmentUrl)),
-                  ),
+                  onPressed: onOpenAttachment,
                   icon: const Icon(Icons.attachment),
                   label: Text(message.attachmentName ?? 'Open attachment'),
                 ),

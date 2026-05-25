@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "340732583705",
+    "project_id": "carlina-a639b",
+    "storage_bucket": "carlina-a639b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340732583705:android:ee6f93715199ea05036f88",
+        "android_client_info": {
+          "package_name": "com.buildpulse.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALlZz-SG87fLtxdOLajlKzdUnlRfp8P8o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

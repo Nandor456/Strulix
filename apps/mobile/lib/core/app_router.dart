@@ -60,8 +60,10 @@ GoRouter createAppRouter(AuthController auth) {
           ),
           GoRoute(
             path: '/messages',
-            pageBuilder: (context, state) =>
-                _buildPage(state, const MessagingPage()),
+            pageBuilder: (context, state) => _buildPage(
+              state,
+              MessagingPage(initialChatId: state.uri.queryParameters['chatId']),
+            ),
           ),
           GoRoute(
             path: '/documents',

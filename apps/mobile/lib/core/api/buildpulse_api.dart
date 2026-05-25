@@ -480,6 +480,27 @@ class BuildPulseApi {
     return UploadedAttachment.fromJson(_responseMap(response));
   }
 
+  Future<File> downloadMessageAttachment({
+    required String attachmentUrl,
+    required String filename,
+  }) {
+    return client.download(attachmentUrl, filename: filename);
+  }
+
+  Future<void> registerPushDevice({
+    required String token,
+    required String platform,
+  }) async {
+    await client.post<dynamic>(
+      '/push/devices',
+      data: {'token': token, 'platform': platform},
+    );
+  }
+
+  Future<void> unregisterPushDevice(String token) async {
+    await client.delete<dynamic>('/push/devices', data: {'token': token});
+  }
+
   Future<List<ChatUser>> listMessagingUsers() async {
     final response = await client.get<dynamic>('/messaging/users');
     return _responseList(response)

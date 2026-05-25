@@ -63,7 +63,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
       });
       await _loadAttendance();
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to load this workpoint.'));
+      setState(
+        () => _error = errorMessage(error, 'Failed to load this workpoint.'),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -72,10 +74,13 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
   Future<void> _loadAttendance() async {
     setState(() => _isAttendanceLoading = true);
     try {
-      final rows = await AppScope.apiOf(context).listAttendance(widget.id, from: _from, to: _to);
+      final rows = await AppScope.apiOf(
+        context,
+      ).listAttendance(widget.id, from: _from, to: _to);
       setState(() => _attendance = rows);
     } catch (error) {
-      if (mounted) showSnack(context, errorMessage(error, 'Failed to load attendance.'));
+      if (mounted)
+        showSnack(context, errorMessage(error, 'Failed to load attendance.'));
     } finally {
       if (mounted) setState(() => _isAttendanceLoading = false);
     }
@@ -84,7 +89,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
   Future<void> _assignWorker() async {
     final api = AppScope.apiOf(context);
     final assignedIds = _assignedWorkers.map((worker) => worker.id).toSet();
-    final available = _workers.where((worker) => !assignedIds.contains(worker.id)).toList();
+    final available = _workers
+        .where((worker) => !assignedIds.contains(worker.id))
+        .toList();
     if (available.isEmpty) {
       showSnack(context, 'No workers available to assign.');
       return;
@@ -140,7 +147,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     if (qr == null || workPoint == null) return;
     final bytes = base64Decode(qr.qrPng.split(',').last);
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/${workPoint.name.replaceAll(RegExp(r'[^\w.\-]+'), '-')}-qr.png');
+    final file = File(
+      '${dir.path}/${workPoint.name.replaceAll(RegExp(r'[^\w.\-]+'), '-')}-qr.png',
+    );
     await file.writeAsBytes(bytes);
     await OpenFilex.open(file.path);
   }
@@ -150,16 +159,21 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     if (workPoint == null) return;
     setState(() => _isExporting = true);
     try {
-      final safeName = workPoint.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+      final safeName = workPoint.name.toLowerCase().replaceAll(
+        RegExp(r'[^a-z0-9]+'),
+        '-',
+      );
       final file = await AppScope.apiOf(context).exportAttendance(
         workPointId: widget.id,
         from: _from,
         to: _to,
-        filename: 'attendance-${safeName.isEmpty ? widget.id : safeName}-$_from-to-$_to.xlsx',
+        filename:
+            'attendance-${safeName.isEmpty ? widget.id : safeName}-$_from-to-$_to.xlsx',
       );
       await OpenFilex.open(file.path);
     } catch (error) {
-      if (mounted) showSnack(context, errorMessage(error, 'Failed to export attendance.'));
+      if (mounted)
+        showSnack(context, errorMessage(error, 'Failed to export attendance.'));
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -182,7 +196,10 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text('Workpoint details', style: Theme.of(context).textTheme.headlineSmall),
+                child: Text(
+                  'Workpoint details',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
               ),
             ],
           ),
@@ -192,7 +209,10 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
           else if (_error != null)
             ErrorBanner(_error!)
           else if (workPoint == null)
-            const EmptyState(icon: Icons.business_outlined, title: 'Workpoint not found')
+            const EmptyState(
+              icon: Icons.business_outlined,
+              title: 'Workpoint not found',
+            )
           else ...[
             _Overview(workPoint: workPoint),
             const SizedBox(height: 12),
@@ -209,7 +229,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
                 final qr = _qr;
                 if (qr == null) return;
                 await Clipboard.setData(
-                  ClipboardData(text: '${AppConfig.apiOrigin}/checkin/${qr.qrToken}'),
+                  ClipboardData(
+                    text: '${AppConfig.apiOrigin}/checkin/${qr.qrToken}',
+                  ),
                 );
                 if (context.mounted) showSnack(context, 'QR link copied.');
               },
@@ -250,7 +272,10 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     }
     final saved = await showDialog<bool>(
       context: context,
-      builder: (context) => _ManualAttendanceDialog(workers: _assignedWorkers, workPointId: widget.id),
+      builder: (context) => _ManualAttendanceDialog(
+        workers: _assignedWorkers,
+        workPointId: widget.id,
+      ),
     );
     if (saved == true) await _loadAttendance();
   }
@@ -336,7 +361,9 @@ class _WorkersSection extends StatelessWidget {
                   .map(
                     (worker) => ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                      leading: const CircleAvatar(
+                        child: Icon(Icons.person_outline),
+                      ),
                       title: Text(worker.username),
                       subtitle: Text(worker.email),
                       trailing: Row(
@@ -344,7 +371,9 @@ class _WorkersSection extends StatelessWidget {
                         children: [
                           Chip(
                             label: Text(
-                              worker.hourlyWage == null ? 'No wage' : '${worker.hourlyWage!.toStringAsFixed(2)} RON/h',
+                              worker.hourlyWage == null
+                                  ? 'No wage'
+                                  : '${worker.hourlyWage!.toStringAsFixed(2)} RON/h',
                             ),
                           ),
                           IconButton(
@@ -396,7 +425,9 @@ class _QrSection extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Image.memory(base64Decode(data.qrPng.split(',').last)),
+                    child: Image.memory(
+                      base64Decode(data.qrPng.split(',').last),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -404,9 +435,21 @@ class _QrSection extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    OutlinedButton.icon(onPressed: onCopy, icon: const Icon(Icons.copy), label: const Text('Copy link')),
-                    OutlinedButton.icon(onPressed: onSave, icon: const Icon(Icons.download), label: const Text('Open QR')),
-                    OutlinedButton.icon(onPressed: onRotate, icon: const Icon(Icons.sync), label: const Text('Rotate')),
+                    OutlinedButton.icon(
+                      onPressed: onCopy,
+                      icon: const Icon(Icons.copy),
+                      label: const Text('Copy link'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: onSave,
+                      icon: const Icon(Icons.download),
+                      label: const Text('Open QR'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: onRotate,
+                      icon: const Icon(Icons.sync),
+                      label: const Text('Rotate'),
+                    ),
                   ],
                 ),
               ],
@@ -452,59 +495,77 @@ class _AttendanceSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(child: _DateButton(label: 'From', value: from, onChanged: onFromChanged)),
-              const SizedBox(width: 8),
-              Expanded(child: _DateButton(label: 'To', value: to, onChanged: onToChanged)),
-            ],
-          ),
-          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilledButton.tonalIcon(
-                onPressed: onManual,
-                icon: const Icon(Icons.add),
-                label: const Text('Manual'),
+              SizedBox(
+                width: 220,
+                child: _DateButton(
+                  label: 'From',
+                  value: from,
+                  onChanged: onFromChanged,
+                ),
               ),
-              FilledButton.tonalIcon(
-                onPressed: isExporting ? null : onExport,
-                icon: isExporting
-                    ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.table_view_outlined),
-                label: Text(isExporting ? 'Exporting...' : 'Export'),
+              SizedBox(
+                width: 220,
+                child: _DateButton(
+                  label: 'To',
+                  value: to,
+                  onChanged: onToChanged,
+                ),
               ),
             ],
           ),
+
           const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: onManual,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Manual entry'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: isExporting ? null : onExport,
+                  icon: isExporting
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.table_view_outlined),
+                  label: Text(isExporting ? 'Exporting...' : 'Export'),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
           if (isLoading)
             const LoadingView(label: 'Loading attendance...')
           else if (records.isEmpty)
-            const Text('No attendance records for this period.')
+            const _EmptyAttendanceState()
           else
-            ...records.map(
-              (record) => Card(
-                child: ListTile(
-                  title: Text(record.worker.username),
-                  subtitle: Text(
-                    '${formatDate(record.date)} · ${record.source}\n${formatDateTime(record.checkedInAt)} - ${formatDateTime(record.checkedOutAt)}',
-                  ),
-                  isThreeLine: true,
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'checkout') onCheckout(record);
-                      if (value == 'delete') onDelete(record);
-                    },
-                    itemBuilder: (context) => [
-                      if (record.checkedOutAt == null || record.checkoutSource == 'AUTO')
-                        const PopupMenuItem(value: 'checkout', child: Text('Set checkout')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                    ],
-                  ),
-                ),
-              ),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: records.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final record = records[index];
+
+                return _AttendanceRecordCard(
+                  record: record,
+                  onCheckout: () => onCheckout(record),
+                  onDelete: () => onDelete(record),
+                );
+              },
             ),
         ],
       ),
@@ -512,8 +573,332 @@ class _AttendanceSection extends StatelessWidget {
   }
 }
 
+class _AttendanceRecordCard extends StatelessWidget {
+  const _AttendanceRecordCard({
+    required this.record,
+    required this.onCheckout,
+    required this.onDelete,
+  });
+
+  final AttendanceRecord record;
+  final VoidCallback onCheckout;
+  final VoidCallback onDelete;
+
+  bool get canSetCheckout {
+    return record.checkedOutAt == null || record.checkoutSource == 'AUTO';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasCheckedOut = record.checkedOutAt != null;
+
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withOpacity(0.7),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  foregroundColor: theme.colorScheme.onPrimaryContainer,
+                  child: Text(
+                    record.worker.username.isNotEmpty
+                        ? record.worker.username[0].toUpperCase()
+                        : '?',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        record.worker.username,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        formatDate(record.date),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                _AttendanceStatusBadge(
+                  label: hasCheckedOut ? 'Completed' : 'Active',
+                  isCompleted: hasCheckedOut,
+                ),
+
+                PopupMenuButton<String>(
+                  tooltip: 'Actions',
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    if (value == 'checkout') onCheckout();
+                    if (value == 'delete') onDelete();
+                  },
+                  itemBuilder: (context) => [
+                    if (canSetCheckout)
+                      const PopupMenuItem(
+                        value: 'checkout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, size: 20),
+                            SizedBox(width: 8),
+                            Text('Set checkout'),
+                          ],
+                        ),
+                      ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, size: 20),
+                          SizedBox(width: 8),
+                          Text('Delete'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 14),
+
+            Divider(
+              height: 1,
+              color: theme.colorScheme.outlineVariant.withOpacity(0.7),
+            ),
+
+            const SizedBox(height: 12),
+
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InfoChip(icon: Icons.fingerprint, label: record.source),
+                if (record.checkoutSource != null)
+                  _InfoChip(
+                    icon: Icons.logout,
+                    label: 'Checkout: ${record.checkoutSource}',
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            _TimeRow(
+              icon: Icons.login,
+              label: 'Checked in',
+              value: formatDateTime(record.checkedInAt),
+            ),
+
+            const SizedBox(height: 8),
+
+            _TimeRow(
+              icon: Icons.logout,
+              label: 'Checked out',
+              value: record.checkedOutAt == null
+                  ? 'Not checked out yet'
+                  : formatDateTime(record.checkedOutAt),
+              muted: record.checkedOutAt == null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AttendanceStatusBadge extends StatelessWidget {
+  const _AttendanceStatusBadge({
+    required this.label,
+    required this.isCompleted,
+  });
+
+  final String label;
+  final bool isCompleted;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final background = isCompleted
+        ? theme.colorScheme.secondaryContainer
+        : theme.colorScheme.primaryContainer;
+
+    final foreground = isCompleted
+        ? theme.colorScheme.onSecondaryContainer
+        : theme.colorScheme.onPrimaryContainer;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: foreground,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(label, style: theme.textTheme.labelMedium),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimeRow extends StatelessWidget {
+  const _TimeRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.muted = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: muted
+              ? theme.colorScheme.outline
+              : theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 95,
+          child: Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: muted
+                  ? theme.colorScheme.outline
+                  : theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptyAttendanceState extends StatelessWidget {
+  const _EmptyAttendanceState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.event_busy_outlined,
+            size: 36,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No attendance records',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'There are no records for the selected period.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DateButton extends StatelessWidget {
-  const _DateButton({required this.label, required this.value, required this.onChanged});
+  const _DateButton({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
 
   final String label;
   final String value;
@@ -529,7 +914,8 @@ class _DateButton extends StatelessWidget {
           lastDate: DateTime(2100),
           initialDate: DateTime.tryParse(value) ?? DateTime.now(),
         );
-        if (picked != null) onChanged(picked.toIso8601String().substring(0, 10));
+        if (picked != null)
+          onChanged(picked.toIso8601String().substring(0, 10));
       },
       icon: const Icon(Icons.calendar_month_outlined),
       label: Text('$label: ${formatDate(value)}'),
@@ -538,13 +924,17 @@ class _DateButton extends StatelessWidget {
 }
 
 class _ManualAttendanceDialog extends StatefulWidget {
-  const _ManualAttendanceDialog({required this.workers, required this.workPointId});
+  const _ManualAttendanceDialog({
+    required this.workers,
+    required this.workPointId,
+  });
 
   final List<WorkerSummary> workers;
   final String workPointId;
 
   @override
-  State<_ManualAttendanceDialog> createState() => _ManualAttendanceDialogState();
+  State<_ManualAttendanceDialog> createState() =>
+      _ManualAttendanceDialogState();
 }
 
 class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
@@ -562,11 +952,14 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
         workerId: _workerId,
         date: _date.toIso8601String().substring(0, 10),
         checkedInAt: _combine(_date, _inTime).toIso8601String(),
-        checkedOutAt: _outTime == null ? null : _combine(_date, _outTime!).toIso8601String(),
+        checkedOutAt: _outTime == null
+            ? null
+            : _combine(_date, _outTime!).toIso8601String(),
       );
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
-      if (mounted) showSnack(context, errorMessage(error, 'Failed to add attendance.'));
+      if (mounted)
+        showSnack(context, errorMessage(error, 'Failed to add attendance.'));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -584,33 +977,60 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
               initialValue: _workerId,
               decoration: const InputDecoration(labelText: 'Worker'),
               items: widget.workers
-                  .map((worker) => DropdownMenuItem(value: worker.id, child: Text(worker.username)))
+                  .map(
+                    (worker) => DropdownMenuItem(
+                      value: worker.id,
+                      child: Text(worker.username),
+                    ),
+                  )
                   .toList(),
-              onChanged: (value) => setState(() => _workerId = value ?? _workerId),
+              onChanged: (value) =>
+                  setState(() => _workerId = value ?? _workerId),
             ),
             const SizedBox(height: 10),
-            _DialogDateButton(label: 'Date', value: formatDate(_date.toIso8601String()), onTap: () async {
-              final value = await showDatePicker(
-                context: context,
-                firstDate: DateTime(2020),
-                lastDate: DateTime(2100),
-                initialDate: _date,
-              );
-              if (value != null) setState(() => _date = value);
-            }),
-            _DialogDateButton(label: 'Check in', value: _inTime.format(context), onTap: () async {
-              final value = await showTimePicker(context: context, initialTime: _inTime);
-              if (value != null) setState(() => _inTime = value);
-            }),
-            _DialogDateButton(label: 'Check out', value: _outTime?.format(context) ?? 'Open', onTap: () async {
-              final value = await showTimePicker(context: context, initialTime: _outTime ?? TimeOfDay.now());
-              if (value != null) setState(() => _outTime = value);
-            }),
+            _DialogDateButton(
+              label: 'Date',
+              value: formatDate(_date.toIso8601String()),
+              onTap: () async {
+                final value = await showDatePicker(
+                  context: context,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2100),
+                  initialDate: _date,
+                );
+                if (value != null) setState(() => _date = value);
+              },
+            ),
+            _DialogDateButton(
+              label: 'Check in',
+              value: _inTime.format(context),
+              onTap: () async {
+                final value = await showTimePicker(
+                  context: context,
+                  initialTime: _inTime,
+                );
+                if (value != null) setState(() => _inTime = value);
+              },
+            ),
+            _DialogDateButton(
+              label: 'Check out',
+              value: _outTime?.format(context) ?? 'Open',
+              onTap: () async {
+                final value = await showTimePicker(
+                  context: context,
+                  initialTime: _outTime ?? TimeOfDay.now(),
+                );
+                if (value != null) setState(() => _outTime = value);
+              },
+            ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
           child: Text(_isSaving ? 'Saving...' : 'Add'),
@@ -630,16 +1050,21 @@ class _CheckoutDialog extends StatefulWidget {
 }
 
 class _CheckoutDialogState extends State<_CheckoutDialog> {
-  late DateTime _dateTime = DateTime.tryParse(widget.record.checkedOutAt ?? '')?.toLocal() ?? DateTime.now();
+  late DateTime _dateTime =
+      DateTime.tryParse(widget.record.checkedOutAt ?? '')?.toLocal() ??
+      DateTime.now();
   bool _isSaving = false;
 
   Future<void> _save() async {
     setState(() => _isSaving = true);
     try {
-      await AppScope.apiOf(context).updateCheckout(widget.record.id, _dateTime.toUtc().toIso8601String());
+      await AppScope.apiOf(
+        context,
+      ).updateCheckout(widget.record.id, _dateTime.toUtc().toIso8601String());
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
-      if (mounted) showSnack(context, errorMessage(error, 'Failed to set checkout.'));
+      if (mounted)
+        showSnack(context, errorMessage(error, 'Failed to set checkout.'));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -652,35 +1077,72 @@ class _CheckoutDialogState extends State<_CheckoutDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _DialogDateButton(label: 'Date', value: formatDate(_dateTime.toIso8601String()), onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2100),
-              initialDate: _dateTime,
-            );
-            if (date != null) {
-              setState(() => _dateTime = DateTime(date.year, date.month, date.day, _dateTime.hour, _dateTime.minute));
-            }
-          }),
-          _DialogDateButton(label: 'Time', value: TimeOfDay.fromDateTime(_dateTime).format(context), onTap: () async {
-            final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_dateTime));
-            if (time != null) {
-              setState(() => _dateTime = DateTime(_dateTime.year, _dateTime.month, _dateTime.day, time.hour, time.minute));
-            }
-          }),
+          _DialogDateButton(
+            label: 'Date',
+            value: formatDate(_dateTime.toIso8601String()),
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+                initialDate: _dateTime,
+              );
+              if (date != null) {
+                setState(
+                  () => _dateTime = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    _dateTime.hour,
+                    _dateTime.minute,
+                  ),
+                );
+              }
+            },
+          ),
+          _DialogDateButton(
+            label: 'Time',
+            value: TimeOfDay.fromDateTime(_dateTime).format(context),
+            onTap: () async {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.fromDateTime(_dateTime),
+              );
+              if (time != null) {
+                setState(
+                  () => _dateTime = DateTime(
+                    _dateTime.year,
+                    _dateTime.month,
+                    _dateTime.day,
+                    time.hour,
+                    time.minute,
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        FilledButton(onPressed: _isSaving ? null : _save, child: Text(_isSaving ? 'Saving...' : 'Save')),
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _isSaving ? null : _save,
+          child: Text(_isSaving ? 'Saving...' : 'Save'),
+        ),
       ],
     );
   }
 }
 
 class _DialogDateButton extends StatelessWidget {
-  const _DialogDateButton({required this.label, required this.value, required this.onTap});
+  const _DialogDateButton({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
 
   final String label;
   final String value;
