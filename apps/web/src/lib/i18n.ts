@@ -100,6 +100,13 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Light theme": "Tema deschisa",
     "Location timed out. Move somewhere with a clearer signal and try again.":
       "Locatia a expirat. Mergi intr-un loc cu semnal mai bun si incearca din nou.",
+    "Location access requires HTTPS.":
+      "Accesul la locatie necesita HTTPS.",
+    "Location is required to record attendance at this workpoint.":
+      "Locatia este necesara pentru a inregistra prezenta la acest punct de lucru.",
+    "Location permission is blocked. Enable location for this site in your browser settings, then try again.":
+      "Permisiunea pentru locatie este blocata. Activeaza locatia pentru acest site din setarile browserului, apoi incearca din nou.",
+    "Location required": "Locatie necesara",
     "Log out": "Deconectare",
     "Login failed": "Autentificarea a esuat",
     "Messages": "Mesaje",
@@ -156,6 +163,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Recording attendance...": "Se inregistreaza prezenta...",
     "Register": "Inregistrare",
     "Registration failed": "Inregistrarea a esuat",
+    "Enable location": "Activeaza locatia",
     "REVOKED": "Revocata",
     "Revoke invitation": "Revoca invitatia",
     "Role": "Rol",
@@ -307,6 +315,13 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Light theme": "Vilagos tema",
     "Location timed out. Move somewhere with a clearer signal and try again.":
       "A helymeghatarozas idotullepessel leallt. Menj jobb jelu helyre, es probald ujra.",
+    "Location access requires HTTPS.":
+      "A helyhozzafereshez HTTPS szukseges.",
+    "Location is required to record attendance at this workpoint.":
+      "A jelenlet rogzitesehez helyadat szukseges ezen a munkaponton.",
+    "Location permission is blocked. Enable location for this site in your browser settings, then try again.":
+      "A helyhozzaferesi engedely blokkolva van. Engedelyezd a helyhozzaferest ehhez a webhelyhez a bongeszo beallitasaiban, majd probald ujra.",
+    "Location required": "Helyadat szukseges",
     "Log out": "Kijelentkezes",
     "Login failed": "A belepes sikertelen",
     "Messages": "Uzenetek",
@@ -362,6 +377,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Recording attendance...": "Jelenlet rogzitese folyamatban...",
     "Register": "Regisztracio",
     "Registration failed": "A regisztracio sikertelen",
+    "Enable location": "Hely engedelyezese",
     "REVOKED": "Visszavonva",
     "Revoke invitation": "Meghivo visszavonasa",
     "Role": "Szerepkor",

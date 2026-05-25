@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useLocation, useParams } from "react-router-dom";
-import { CheckCircle2, Clock, LogIn, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, LogIn, MapPin, XCircle } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,9 +16,10 @@ import {
 const inFlightScans = new Map<string, Promise<ScanResult>>();
 
 type ScanState =
-  | { status: "pending" }
-  | { status: "success"; result: ScanResult }
-  | { status: "error"; error: unknown };
+  | { status: "ready"; qrToken?: string }
+  | { status: "pending"; qrToken: string }
+  | { status: "success"; qrToken: string; result: ScanResult }
+  | { status: "error"; qrToken: string; error: unknown };
 
 class LocationScanError extends Error {
   constructor(message: string) {
@@ -30,6 +31,16 @@ class LocationScanError extends Error {
 function getCurrentScanLocation(
   t: (key: string) => string,
 ): Promise<ScanLocation> {
+  if (
+    typeof window !== "undefined" &&
+    !window.isSecureContext &&
+    window.location.hostname !== "localhost"
+  ) {
+    return Promise.reject(
+      new LocationScanError(t("Location access requires HTTPS.")),
+    );
+  }
+
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     return Promise.reject(
       new LocationScanError(
@@ -48,7 +59,13 @@ function getCurrentScanLocation(
       },
       (error) => {
         if (error.code === 1) {
-          reject(new LocationScanError(t("Allow location access to scan attendance.")));
+          reject(
+            new LocationScanError(
+              t(
+                "Location permission is blocked. Enable location for this site in your browser settings, then try again.",
+              ),
+            ),
+          );
           return;
         }
         if (error.code === 3) {
@@ -102,34 +119,30 @@ export default function CheckinPage() {
   const location = useLocation();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { t } = useI18n();
-  const [scanState, setScanState] = useState<ScanState>({ status: "pending" });
+  const [scanState, setScanState] = useState<ScanState>({
+    status: "ready",
+    qrToken,
+  });
   const latestScanIdRef = useRef(0);
 
   const startScan = useCallback((token: string) => {
     const scanId = latestScanIdRef.current + 1;
     latestScanIdRef.current = scanId;
-    setScanState({ status: "pending" });
+    setScanState({ status: "pending", qrToken: token });
 
     void getCurrentScanLocation(t)
       .then((scanLocation) => scanQrToken(token, scanLocation))
       .then((result) => {
         if (latestScanIdRef.current === scanId) {
-          setScanState({ status: "success", result });
+          setScanState({ status: "success", qrToken: token, result });
         }
       })
       .catch((error: unknown) => {
         if (latestScanIdRef.current === scanId) {
-          setScanState({ status: "error", error });
+          setScanState({ status: "error", qrToken: token, error });
         }
       });
   }, [t]);
-
-  useEffect(() => {
-    if (isAuthLoading || !isAuthenticated || !qrToken) return;
-
-    const timeoutId = window.setTimeout(() => startScan(qrToken), 0);
-    return () => window.clearTimeout(timeoutId);
-  }, [isAuthLoading, isAuthenticated, qrToken, startScan]);
 
   if (!isAuthLoading && !isAuthenticated) {
     const redirect = encodeURIComponent(location.pathname);
@@ -146,10 +159,15 @@ export default function CheckinPage() {
     );
   }
 
-  const result = scanState.status === "success" ? scanState.result : null;
+  const currentScanState: ScanState =
+    scanState.qrToken === qrToken ? scanState : { status: "ready", qrToken };
+  const result =
+    currentScanState.status === "success" ? currentScanState.result : null;
   const completedResult = result && result.event !== "CHECK_IN" ? result : null;
-  const isPending = scanState.status === "pending" || isAuthLoading;
-  const isError = scanState.status === "error";
+  const isPending = currentScanState.status === "pending" || isAuthLoading;
+  const isReady =
+    currentScanState.status === "ready" && !isAuthLoading && isAuthenticated;
+  const isError = currentScanState.status === "error";
   const resultAlertClassName =
     result?.event === "CHECK_IN"
       ? "border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
@@ -183,10 +201,30 @@ export default function CheckinPage() {
                 ? t("Recording attendance...")
                 : result
                   ? result.workPointName
-                  : t("Preparing scan")}
+                  : isReady
+                    ? t("Location required")
+                    : t("Preparing scan")}
             </p>
           </div>
         </div>
+
+        {isReady && (
+          <div className="space-y-4">
+            <Alert>
+              {t("Location is required to record attendance at this workpoint.")}
+            </Alert>
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (!qrToken) return;
+                startScan(qrToken);
+              }}
+            >
+              <MapPin className="h-4 w-4" />
+              {t("Enable location")}
+            </Button>
+          </div>
+        )}
 
         {isPending && (
           <div className="flex justify-center py-8">
@@ -196,7 +234,9 @@ export default function CheckinPage() {
 
         {isError && (
           <div className="space-y-4">
-            <Alert variant="destructive">{getErrorMessage(scanState.error, t)}</Alert>
+            <Alert variant="destructive">
+              {getErrorMessage(currentScanState.error, t)}
+            </Alert>
             <Button
               className="w-full"
               onClick={() => {
