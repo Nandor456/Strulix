@@ -1,4 +1,4 @@
-import { useEffect, useRef, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { FileText, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/types/messaging";
@@ -9,6 +9,7 @@ interface MessageBubbleProps {
   isSelf: boolean;
   showSender: boolean;
   onReply?: (message: Message) => void;
+  isReplyTarget?: boolean;
 }
 
 function formatTime(iso: string) {
@@ -23,7 +24,13 @@ function isInteractiveTarget(target: EventTarget | null) {
     Boolean(target.closest("a, button, input, textarea, select, summary, [role='button']"));
 }
 
-export function MessageBubble({ message, isSelf, showSender, onReply }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  isSelf,
+  showSender,
+  onReply,
+  isReplyTarget = false,
+}: MessageBubbleProps) {
   const isImage =
     message.attachmentType?.startsWith("image/") ||
     (message.attachmentUrl &&
@@ -31,9 +38,11 @@ export function MessageBubble({ message, isSelf, showSender, onReply }: MessageB
   const attachmentUrl = message.attachmentUrl
     ? resolveApiUrl(message.attachmentUrl)
     : null;
+  const [isPressing, setIsPressing] = useState(false);
   const longPressTimerRef = useRef<number | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggeredRef = useRef(false);
+  const isActiveReply = isPressing || isReplyTarget;
 
   function clearLongPress() {
     if (longPressTimerRef.current !== null) {
@@ -54,6 +63,7 @@ export function MessageBubble({ message, isSelf, showSender, onReply }: MessageB
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if (isInteractiveTarget(event.target)) return;
 
+    setIsPressing(true);
     longPressTriggeredRef.current = false;
     clearLongPress();
     pointerStartRef.current = { x: event.clientX, y: event.clientY };
@@ -73,11 +83,13 @@ export function MessageBubble({ message, isSelf, showSender, onReply }: MessageB
 
     if (movedX > LONG_PRESS_MOVE_PX || movedY > LONG_PRESS_MOVE_PX) {
       clearLongPress();
+      setIsPressing(false);
     }
   }
 
   function handlePointerEnd() {
     clearLongPress();
+    setIsPressing(false);
   }
 
   function handleContextMenu(event: MouseEvent<HTMLDivElement>) {
@@ -120,50 +132,58 @@ export function MessageBubble({ message, isSelf, showSender, onReply }: MessageB
             onPointerCancel={handlePointerEnd}
             onContextMenu={handleContextMenu}
             className={cn(
-              "relative rounded-2xl px-3.5 py-2 leading-snug",
-              isSelf
-                ? "rounded-tr-sm bg-gradient-to-br from-primary to-teal-500 text-primary-foreground"
-                : "rounded-tl-sm border border-border bg-card text-foreground",
+              "relative transition-transform duration-150",
+              isActiveReply && "scale-[1.03]",
               message.pending && "opacity-60"
             )}
           >
-            {/* Attachment */}
-            {attachmentUrl && (
-              <div className="mb-1">
-                {isImage ? (
-                  <a href={attachmentUrl} target="_blank" rel="noopener noreferrer">
-                    <img
-                      src={attachmentUrl}
-                      alt={message.attachmentName ?? "attachment"}
-                      className="max-h-64 max-w-full rounded-lg object-contain"
-                    />
-                  </a>
-                ) : (
-                  <a
-                    href={attachmentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg p-2 transition-colors",
-                      isSelf
-                        ? "bg-white/20 hover:bg-white/30"
-                        : "bg-muted hover:bg-muted/80"
-                    )}
-                  >
-                    <FileText className="h-4 w-4 shrink-0" />
-                    <span className="min-w-0 truncate text-xs font-medium">
-                      {message.attachmentName ?? "File"}
-                    </span>
-                    <Download className="ml-auto h-3.5 w-3.5 shrink-0" />
-                  </a>
-                )}
-              </div>
-            )}
+            <div
+              className={cn(
+                "relative rounded-2xl px-3.5 py-2 leading-snug",
+                isSelf
+                  ? "rounded-tr-sm bg-gradient-to-br from-primary to-teal-500 text-primary-foreground"
+                  : "rounded-tl-sm border border-border bg-card text-foreground",
+                isActiveReply && "message-bubble-shake"
+              )}
+            >
+              {/* Attachment */}
+              {attachmentUrl && (
+                <div className="mb-1">
+                  {isImage ? (
+                    <a href={attachmentUrl} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={attachmentUrl}
+                        alt={message.attachmentName ?? "attachment"}
+                        className="max-h-64 max-w-full rounded-lg object-contain"
+                      />
+                    </a>
+                  ) : (
+                    <a
+                      href={attachmentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg p-2 transition-colors",
+                        isSelf
+                          ? "bg-white/20 hover:bg-white/30"
+                          : "bg-muted hover:bg-muted/80"
+                      )}
+                    >
+                      <FileText className="h-4 w-4 shrink-0" />
+                      <span className="min-w-0 truncate text-xs font-medium">
+                        {message.attachmentName ?? "File"}
+                      </span>
+                      <Download className="ml-auto h-3.5 w-3.5 shrink-0" />
+                    </a>
+                  )}
+                </div>
+              )}
 
-            {/* Body */}
-            {message.body && (
-              <p className="whitespace-pre-wrap break-words text-sm">{message.body}</p>
-            )}
+              {/* Body */}
+              {message.body && (
+                <p className="whitespace-pre-wrap break-words text-sm">{message.body}</p>
+              )}
+            </div>
           </div>
 
           {/* Timestamp — beside the bubble, only visible on hover */}

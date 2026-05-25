@@ -23,6 +23,7 @@ export type ScanResult =
       checkedInAt: string
       date: string
       event: 'CHECK_IN'
+      workPointId: string
       workPointName: string
     }
   | {
@@ -33,6 +34,7 @@ export type ScanResult =
       earnings: number | null
       event: 'CHECK_OUT' | 'ALREADY_COMPLETED'
       hours: number
+      workPointId: string
       workPointName: string
     }
 

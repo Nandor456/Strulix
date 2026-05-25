@@ -154,6 +154,7 @@ Server -> client:
 - `message:new` (MessagePayload)
 - `message:read` `{ chatId, userId, lastReadAt }`
 - `chat:bumped` `{ chatId, lastMessageAt }`
+- `attendance:changed` `{ workPointId, workerId?, attendanceId?, changedAt }`
 - `presence:online` `{ userId }`
 - `presence:offline` `{ userId }`
 - `typing` `{ chatId, userId, isTyping }`

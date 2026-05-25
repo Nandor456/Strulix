@@ -147,6 +147,7 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
                   isSelf={isSelf}
                   showSender={showSender}
                   onReply={setReplyTo}
+                  isReplyTarget={replyTo?.id === msg.id}
                 />
               );
             })}
