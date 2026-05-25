@@ -8,6 +8,7 @@ import {
   markChatRead,
   listAllUsers,
 } from "../services/messagingService.js";
+import { emitChatChanged } from "../realtime/socketServer.js";
 
 export async function listChatsController(
   req: AuthenticatedRequest,
@@ -49,6 +50,11 @@ export async function createDirectChatController(
     const userId = req.auth!.userId;
     const { userId: otherUserId } = req.body as { userId: string };
     const result = await findOrCreateDirectChat(userId, otherUserId);
+    if (result.isNew) {
+      void emitChatChanged(result.id).catch((err) => {
+        console.error("emitChatChanged error:", err);
+      });
+    }
     res.status(result.isNew ? 201 : 200).json({ chatId: result.id });
   } catch (err) {
     next(err);

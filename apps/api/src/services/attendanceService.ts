@@ -32,11 +32,18 @@ export type AttendanceSummary = {
 };
 
 export type ScanResult =
-  | { event: "CHECK_IN"; workPointName: string; date: Date; checkedInAt: Date }
+  | {
+      event: "CHECK_IN";
+      workPointId: string;
+      workPointName: string;
+      date: Date;
+      checkedInAt: Date;
+    }
   | CompletedScanResult;
 
 export type CompletedScanResult = {
   event: "CHECK_OUT" | "ALREADY_COMPLETED";
+  workPointId: string;
   workPointName: string;
   date: Date;
   checkedInAt: Date;
@@ -175,6 +182,7 @@ export function startAttendanceAutoCloseJob(): NodeJS.Timeout {
 async function buildCompletedScanResult(params: {
   userId: string;
   event: CompletedScanResult["event"];
+  workPointId: string;
   workPointName: string;
   date: Date;
   checkedInAt: Date;
@@ -193,6 +201,7 @@ async function buildCompletedScanResult(params: {
 
   return {
     event: params.event,
+    workPointId: params.workPointId,
     workPointName: params.workPointName,
     date: params.date,
     checkedInAt: params.checkedInAt,
@@ -281,6 +290,7 @@ export async function recordAttendance(params: {
     });
     return {
       event: "CHECK_IN",
+      workPointId: workPoint.id,
       workPointName: workPoint.name,
       date,
       checkedInAt: record.checkedInAt,
@@ -291,6 +301,7 @@ export async function recordAttendance(params: {
     return buildCompletedScanResult({
       userId: params.userId,
       event: "ALREADY_COMPLETED",
+      workPointId: workPoint.id,
       workPointName: workPoint.name,
       date,
       checkedInAt: existing.checkedInAt,
@@ -309,6 +320,7 @@ export async function recordAttendance(params: {
   return buildCompletedScanResult({
     userId: params.userId,
     event: "CHECK_OUT",
+    workPointId: workPoint.id,
     workPointName: workPoint.name,
     date,
     checkedInAt: existing.checkedInAt,
@@ -442,8 +454,36 @@ export async function setCheckoutTime(
   });
 }
 
-export async function removeAttendance(id: string): Promise<void> {
-  await prisma.attendance.delete({ where: { id } });
+export async function removeAttendance(
+  id: string,
+): Promise<{ id: string; workPointId: string; workerId: string }> {
+  return prisma.attendance.delete({
+    where: { id },
+    select: { id: true, workPointId: true, workerId: true },
+  });
+}
+
+export async function getAttendanceObserverUserIds(
+  workPointId: string,
+  workerId?: string,
+): Promise<string[]> {
+  const [operators, workPoint] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: { in: ["ADMIN", "LEADER"] } },
+      select: { id: true },
+    }),
+    prisma.workPoint.findUnique({
+      where: { id: workPointId },
+      select: { workers: { select: { id: true } } },
+    }),
+  ]);
+
+  const ids = new Set<string>();
+  operators.forEach((operator) => ids.add(operator.id));
+  workPoint?.workers.forEach((worker) => ids.add(worker.id));
+  if (workerId) ids.add(workerId);
+
+  return Array.from(ids);
 }
 
 export async function getQrForWorkPoint(params: {

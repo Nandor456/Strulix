@@ -9,6 +9,19 @@ import {
   removeWorkerFromWorkPoint,
   updateWorker,
 } from "../services/workerService.js";
+import { getWorkPointChatId } from "../services/messagingService.js";
+import { emitChatChanged } from "../realtime/socketServer.js";
+
+function notifyWorkPointChatChanged(workPointId: string, extraUserIds: string[] = []) {
+  void (async () => {
+    try {
+      const chatId = await getWorkPointChatId(workPointId);
+      if (chatId) await emitChatChanged(chatId, extraUserIds);
+    } catch (error) {
+      console.error("notifyWorkPointChatChanged error:", error);
+    }
+  })();
+}
 
 async function ensureWorkPointExists(workPointId: string) {
   return prisma.workPoint.findUnique({
@@ -72,6 +85,7 @@ export async function assignWorkerController(
     }
 
     await assignWorkerToWorkPoint(id, workerId, req.auth!.userId);
+    notifyWorkPointChatChanged(id);
     const workers = await listWorkersForWorkPoint(id);
     res.status(200).json({ workers });
   } catch (error) {
@@ -94,6 +108,7 @@ export async function removeWorkerController(
     }
 
     await removeWorkerFromWorkPoint(id, workerId);
+    notifyWorkPointChatChanged(id, [workerId]);
     const workers = await listWorkersForWorkPoint(id);
     res.status(200).json({ workers });
   } catch (error) {

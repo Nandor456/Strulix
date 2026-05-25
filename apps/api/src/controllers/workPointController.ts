@@ -10,6 +10,8 @@ import {
   type UpdateWorkPointInput,
   type WorkPointInput,
 } from "../services/workPointService.js";
+import { getWorkPointChatId } from "../services/messagingService.js";
+import { emitChatChanged } from "../realtime/socketServer.js";
 
 function statusForError(error: unknown) {
   if (!(error instanceof Error)) return 500;
@@ -19,6 +21,17 @@ function statusForError(error: unknown) {
 
 function messageForError(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function notifyWorkPointChatChanged(workPointId: string) {
+  void (async () => {
+    try {
+      const chatId = await getWorkPointChatId(workPointId);
+      if (chatId) await emitChatChanged(chatId);
+    } catch (error) {
+      console.error("notifyWorkPointChatChanged error:", error);
+    }
+  })();
 }
 
 export async function listWorkPointsController(
@@ -78,6 +91,7 @@ export async function createWorkPointController(
       req.body as WorkPointInput,
       req.auth!.userId,
     );
+    notifyWorkPointChatChanged(workPoint.id);
     res.status(201).json({ workPoint });
   } catch (error) {
     res.status(statusForError(error)).json({

@@ -10,9 +10,37 @@ import {
   getQrForWorkPoint,
   rotateQrToken,
   getAttendanceSummary,
+  getAttendanceObserverUserIds,
   getMyDailyStats,
   getMyMonthlySummary,
 } from "../services/attendanceService.js";
+import { emitAttendanceChanged } from "../realtime/socketServer.js";
+
+function notifyAttendanceChanged(params: {
+  workPointId: string;
+  workerId?: string;
+  attendanceId?: string;
+}) {
+  void (async () => {
+    try {
+      const userIds = await getAttendanceObserverUserIds(
+        params.workPointId,
+        params.workerId,
+      );
+      emitAttendanceChanged(
+        {
+          workPointId: params.workPointId,
+          workerId: params.workerId,
+          attendanceId: params.attendanceId,
+          changedAt: new Date().toISOString(),
+        },
+        userIds,
+      );
+    } catch (err) {
+      console.error("notifyAttendanceChanged error:", err);
+    }
+  })();
+}
 
 function getFrontendBaseUrl(req: AuthenticatedRequest): string {
   return (
@@ -45,6 +73,12 @@ export async function checkinController(
       workerLocation: { lat, lng },
       source: "QR",
     });
+    if (result.event !== "ALREADY_COMPLETED") {
+      notifyAttendanceChanged({
+        workPointId: result.workPointId,
+        workerId: userId,
+      });
+    }
     res.json(result);
   } catch (err: unknown) {
     if (typeof err === "object" && err !== null && "code" in err) {
@@ -117,6 +151,11 @@ export async function manualMarkController(
       checkedInAt,
       checkedOutAt,
     });
+    notifyAttendanceChanged({
+      workPointId: record.workPointId,
+      workerId: record.workerId,
+      attendanceId: record.id,
+    });
     res.status(201).json(record);
   } catch (err: unknown) {
     if (
@@ -151,6 +190,11 @@ export async function updateCheckoutController(
 
   try {
     const record = await setCheckoutTime(id, new Date(checkedOutAtStr));
+    notifyAttendanceChanged({
+      workPointId: record.workPointId,
+      workerId: record.workerId,
+      attendanceId: record.id,
+    });
     res.json(record);
   } catch (err: unknown) {
     if (typeof err === "object" && err !== null && "code" in err) {
@@ -175,7 +219,12 @@ export async function deleteAttendanceController(
 ): Promise<void> {
   const { id } = req.params;
   try {
-    await removeAttendance(id);
+    const record = await removeAttendance(id);
+    notifyAttendanceChanged({
+      workPointId: record.workPointId,
+      workerId: record.workerId,
+      attendanceId: record.id,
+    });
     res.json({ message: "Deleted" });
   } catch (err) {
     console.error("deleteAttendanceController error:", err);

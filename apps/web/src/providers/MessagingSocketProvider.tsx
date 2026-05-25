@@ -12,7 +12,7 @@ const EMPTY_ONLINE_USERS = new Set<string>();
 
 export function MessagingSocketProvider({ children }: { children: ReactNode }) {
     const qc = useQueryClient();
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, user } = useAuth();
     const [socket] = useState<Socket>(() =>
         io(API_ORIGIN, {
             autoConnect: false,
@@ -134,6 +134,28 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
             });
         };
 
+        const handleChatChanged = () => {
+            void qc.invalidateQueries({ queryKey: QUERY_KEYS.messaging.chats });
+        };
+
+        const handleAttendanceChanged = ({
+            workPointId,
+            workerId,
+        }: {
+            workPointId: string;
+            workerId?: string;
+            attendanceId?: string;
+            changedAt: string;
+        }) => {
+            void qc.invalidateQueries({ queryKey: QUERY_KEYS.attendance.byWorkPoint(workPointId) });
+            void qc.invalidateQueries({ queryKey: QUERY_KEYS.workPoints.detail(workPointId) });
+            void qc.invalidateQueries({ queryKey: QUERY_KEYS.workPoints.all });
+
+            if (!workerId || workerId === user?.id) {
+                void qc.invalidateQueries({ queryKey: ["attendance", "me"] });
+            }
+        };
+
         socket.on("connect", handleConnect);
         socket.on("disconnect", handleDisconnect);
         socket.on("connect_error", handleConnectError);
@@ -141,6 +163,8 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
         socket.on("presence:offline", handlePresenceOffline);
         socket.on("message:new", handleNewMessage);
         socket.on("chat:bumped", handleChatBumped);
+        socket.on("chat:changed", handleChatChanged);
+        socket.on("attendance:changed", handleAttendanceChanged);
         socket.connect();
 
         return () => {
@@ -151,8 +175,10 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
             socket.off("presence:offline", handlePresenceOffline);
             socket.off("message:new", handleNewMessage);
             socket.off("chat:bumped", handleChatBumped);
+            socket.off("chat:changed", handleChatChanged);
+            socket.off("attendance:changed", handleAttendanceChanged);
         };
-    }, [isAuthenticated, isLoading, qc, socket]);
+    }, [isAuthenticated, isLoading, qc, socket, user?.id]);
 
     const value = useMemo(
         () => ({

@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useLocation, useParams } from "react-router-dom";
-import { CheckCircle2, Clock, LogIn, MapPin, RefreshCw, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, MapPin, QrCode, XCircle } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -43,6 +43,17 @@ function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+async function getGeolocationPermissionState(): Promise<PermissionState | null> {
+  if (typeof navigator === "undefined" || !navigator.permissions) return null;
+
+  try {
+    const permission = await navigator.permissions.query({ name: "geolocation" });
+    return permission.state;
+  } catch {
+    return null;
+  }
+}
+
 async function getCurrentScanLocation(
   t: (key: string) => string,
 ): Promise<ScanLocation> {
@@ -78,7 +89,7 @@ async function getCurrentScanLocation(
           reject(
             new LocationScanError(
               t(
-                "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then reload the page.",
+                "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then scan the QR code again.",
               ),
               "blocked",
             ),
@@ -133,10 +144,6 @@ function getErrorMessage(error: unknown, t: (key: string) => string) {
   );
 }
 
-function isBlockedLocationError(error: unknown) {
-  return error instanceof LocationScanError && error.reason === "blocked";
-}
-
 export default function CheckinPage() {
   const { qrToken } = useParams<{ qrToken: string }>();
   const location = useLocation();
@@ -147,6 +154,7 @@ export default function CheckinPage() {
     qrToken,
   });
   const latestScanIdRef = useRef(0);
+  const autoStartedQrTokenRef = useRef<string | null>(null);
 
   const startScan = useCallback((token: string) => {
     const scanId = latestScanIdRef.current + 1;
@@ -179,6 +187,32 @@ export default function CheckinPage() {
       });
   }, [t]);
 
+  useEffect(() => {
+    if (isAuthLoading || !isAuthenticated || !qrToken) return;
+    if (autoStartedQrTokenRef.current === qrToken) return;
+    if (scanState.qrToken === qrToken && scanState.status !== "ready") return;
+
+    let didCancel = false;
+
+    void getGeolocationPermissionState().then((permissionState) => {
+      if (didCancel || permissionState !== "granted") return;
+
+      autoStartedQrTokenRef.current = qrToken;
+      startScan(qrToken);
+    });
+
+    return () => {
+      didCancel = true;
+    };
+  }, [
+    isAuthLoading,
+    isAuthenticated,
+    qrToken,
+    scanState.qrToken,
+    scanState.status,
+    startScan,
+  ]);
+
   if (!isAuthLoading && !isAuthenticated) {
     const redirect = encodeURIComponent(location.pathname);
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
@@ -203,9 +237,6 @@ export default function CheckinPage() {
   const isReady =
     currentScanState.status === "ready" && !isAuthLoading && isAuthenticated;
   const isError = currentScanState.status === "error";
-  const isBlockedLocation =
-    currentScanState.status === "error" &&
-    isBlockedLocationError(currentScanState.error);
   const resultAlertClassName =
     result?.event === "CHECK_IN"
       ? "border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
@@ -249,7 +280,7 @@ export default function CheckinPage() {
         {isReady && (
           <div className="space-y-4">
             <Alert>
-              {t("Location is required to record attendance at this workpoint.")}
+              {t("Use your current location to record attendance at this workpoint.")}
             </Alert>
             <Button
               className="w-full"
@@ -259,7 +290,7 @@ export default function CheckinPage() {
               }}
             >
               <MapPin className="h-4 w-4" />
-              {t("Enable location")}
+              {t("Record attendance")}
             </Button>
           </div>
         )}
@@ -275,30 +306,11 @@ export default function CheckinPage() {
             <Alert variant="destructive">
               {getErrorMessage(currentScanState.error, t)}
             </Alert>
-            {isBlockedLocation && (
-              <Alert>
-                {t("After changing the browser setting, reload this page and try again.")}
-              </Alert>
-            )}
-            <Button
-              className="w-full"
-              onClick={() => {
-                if (isBlockedLocation) {
-                  window.location.reload();
-                  return;
-                }
-
-                if (qrToken) {
-                  startScan(qrToken);
-                }
-              }}
-            >
-              {isBlockedLocation ? (
-                <RefreshCw className="h-4 w-4" />
-              ) : (
-                <LogIn className="h-4 w-4" />
-              )}
-              {isBlockedLocation ? t("Reload page") : t("Try again")}
+            <Button asChild className="w-full">
+              <RouterLink to="/scan">
+                <QrCode className="h-4 w-4" />
+                {t("Try again")}
+              </RouterLink>
             </Button>
           </div>
         )}

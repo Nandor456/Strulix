@@ -22,12 +22,14 @@ export interface QrData {
 export type ScanResult =
   | {
       event: "CHECK_IN";
+      workPointId: string;
       workPointName: string;
       date: string;
       checkedInAt: string;
     }
   | {
       event: "CHECK_OUT" | "ALREADY_COMPLETED";
+      workPointId: string;
       workPointName: string;
       date: string;
       checkedInAt: string;

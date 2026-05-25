@@ -261,6 +261,17 @@ export async function getOrCreateWorkPointChat(
   return chat.id;
 }
 
+export async function getWorkPointChatId(
+  workPointId: string,
+): Promise<string | null> {
+  const chat = await prisma.chat.findUnique({
+    where: { workPointId },
+    select: { id: true },
+  });
+
+  return chat?.id ?? null;
+}
+
 export async function addParticipantToChat(
   chatId: string,
   userId: string

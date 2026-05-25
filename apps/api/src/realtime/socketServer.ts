@@ -16,6 +16,13 @@ interface ServerToClientEvents {
   "message:new": (message: Record<string, unknown>) => void;
   "message:read": (data: { chatId: string; userId: string; lastReadAt: string }) => void;
   "chat:bumped": (data: { chatId: string; lastMessageAt: string }) => void;
+  "chat:changed": (data: { chatId: string }) => void;
+  "attendance:changed": (data: {
+    workPointId: string;
+    workerId?: string;
+    attendanceId?: string;
+    changedAt: string;
+  }) => void;
   "presence:online": (data: { userId: string }) => void;
   "presence:offline": (data: { userId: string }) => void;
   typing: (data: { chatId: string; userId: string; isTyping: boolean }) => void;
@@ -38,6 +45,9 @@ interface ClientToServerEvents {
 
 // In-memory presence: userId → Set of socketIds
 const onlineUsers = new Map<string, Set<string>>();
+let ioInstance:
+  | SocketIOServer<ClientToServerEvents, ServerToClientEvents>
+  | null = null;
 
 export function initSocketServer(httpServer: HttpServer) {
   const isAllowedCorsOrigin = createCorsOriginValidator();
@@ -54,6 +64,7 @@ export function initSocketServer(httpServer: HttpServer) {
       credentials: true,
     },
   });
+  ioInstance = io;
 
   // Auth gate
   io.use(async (socket, next) => {
@@ -175,4 +186,40 @@ export function initSocketServer(httpServer: HttpServer) {
 
 export function isUserOnline(userId: string): boolean {
   return (onlineUsers.get(userId)?.size ?? 0) > 0;
+}
+
+export async function emitChatChanged(
+  chatId: string,
+  extraUserIds: string[] = [],
+): Promise<void> {
+  if (!ioInstance) return;
+
+  const participantIds = await getChatParticipantIds(chatId);
+  for (const userId of participantIds) {
+    ioInstance.in(`user:${userId}`).socketsJoin(`chat:${chatId}`);
+    ioInstance.to(`user:${userId}`).emit("chat:changed", { chatId });
+  }
+
+  for (const userId of extraUserIds) {
+    if (participantIds.includes(userId)) continue;
+    ioInstance.in(`user:${userId}`).socketsLeave(`chat:${chatId}`);
+    ioInstance.to(`user:${userId}`).emit("chat:changed", { chatId });
+  }
+}
+
+export function emitAttendanceChanged(
+  payload: {
+    workPointId: string;
+    workerId?: string;
+    attendanceId?: string;
+    changedAt: string;
+  },
+  userIds: string[],
+): void {
+  if (!ioInstance) return;
+
+  const uniqueUserIds = Array.from(new Set(userIds));
+  for (const userId of uniqueUserIds) {
+    ioInstance.to(`user:${userId}`).emit("attendance:changed", payload);
+  }
 }

@@ -24,8 +24,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Permite accesul la camera pentru a inregistra prezenta.",
     "Allow location access to scan attendance.":
       "Permite accesul la locatie pentru a inregistra prezenta.",
-    "After changing the browser setting, reload this page and try again.":
-      "Dupa ce schimbi setarea din browser, reincarca pagina si incearca din nou.",
     "Ask an admin to set your wage":
       "Cere unui administrator sa iti seteze salariul",
     "Attendance": "Prezenta",
@@ -106,8 +104,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Accesul la locatie necesita HTTPS.",
     "Location is required to record attendance at this workpoint.":
       "Locatia este necesara pentru a inregistra prezenta la acest punct de lucru.",
-    "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then reload the page.":
-      "Locatia este inca blocata de browser sau dispozitiv. Permite locatia pentru acest site si pentru aplicatia browserului, apoi reincarca pagina.",
+    "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then scan the QR code again.":
+      "Locatia este inca blocata de browser sau dispozitiv. Permite locatia pentru acest site si pentru aplicatia browserului, apoi scaneaza din nou codul QR.",
     "Location required": "Locatie necesara",
     "Log out": "Deconectare",
     "Login failed": "Autentificarea a esuat",
@@ -162,10 +160,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Previzualizeaza si descarca documentele distribuite profilului tau de muncitor.",
     "Preview is not available for this document.":
       "Previzualizarea nu este disponibila pentru acest document.",
+    "Record attendance": "Inregistreaza prezenta",
     "Recording attendance...": "Se inregistreaza prezenta...",
     "Register": "Inregistrare",
     "Registration failed": "Inregistrarea a esuat",
-    "Reload page": "Reincarca pagina",
     "Enable location": "Activeaza locatia",
     "REVOKED": "Revocata",
     "Revoke invitation": "Revoca invitatia",
@@ -196,6 +194,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Track your assigned workpoints, attendance, hours, and wage-based earnings for {periodLabel}.":
       "Urmareste punctele de lucru alocate, prezenta, orele si castigurile bazate pe salariu pentru {periodLabel}.",
     "Try again": "Incearca din nou",
+    "Use your current location to record attendance at this workpoint.":
+      "Foloseste locatia curenta pentru a inregistra prezenta la acest punct de lucru.",
     "Unable to get your current location. Check location services and try again.":
       "Nu s-a putut obtine locatia ta curenta. Verifica serviciile de localizare si incearca din nou.",
     "Unable to record attendance.":
@@ -239,8 +239,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Engedelyezd a kamera hasznalatat a jelenlet rogzitesehez.",
     "Allow location access to scan attendance.":
       "Engedelyezd a helyhozzaferest a jelenlet rogzitesehez.",
-    "After changing the browser setting, reload this page and try again.":
-      "A bongeszo beallitasanak modositasa utan toltsd ujra az oldalt, majd probald ujra.",
     "Ask an admin to set your wage":
       "Kerj meg egy adminisztratort, hogy allitsa be a beredet",
     "Attendance": "Jelenlet",
@@ -324,8 +322,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "A helyhozzafereshez HTTPS szukseges.",
     "Location is required to record attendance at this workpoint.":
       "A jelenlet rogzitesehez helyadat szukseges ezen a munkaponton.",
-    "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then reload the page.":
-      "A helyadatot meg mindig blokkolja a bongeszo vagy az eszkoz. Engedelyezd a helyhozzaferest ehhez a webhelyhez es a bongeszo alkalmazashoz, majd toltsd ujra az oldalt.",
+    "Location is still blocked by the browser or device. Allow location for this site and for the browser app, then scan the QR code again.":
+      "A helyadatot meg mindig blokkolja a bongeszo vagy az eszkoz. Engedelyezd a helyhozzaferest ehhez a webhelyhez es a bongeszo alkalmazashoz, majd szkenneld be ujra a QR-kodot.",
     "Location required": "Helyadat szukseges",
     "Log out": "Kijelentkezes",
     "Login failed": "A belepes sikertelen",
@@ -379,10 +377,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Tekintsd meg es toltsd le a dolgozoi profilodhoz megosztott dokumentumokat.",
     "Preview is not available for this document.":
       "Ehhez a dokumentumhoz nem erheto el elonezet.",
+    "Record attendance": "Jelenlet rogzitese",
     "Recording attendance...": "Jelenlet rogzitese folyamatban...",
     "Register": "Regisztracio",
     "Registration failed": "A regisztracio sikertelen",
-    "Reload page": "Oldal ujratoltese",
     "Enable location": "Hely engedelyezese",
     "REVOKED": "Visszavonva",
     "Revoke invitation": "Meghivo visszavonasa",
@@ -413,6 +411,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Track your assigned workpoints, attendance, hours, and wage-based earnings for {periodLabel}.":
       "Kovetesre a hozzad rendelt munkapontok, a jelenlet, az orak es a beralapu keresetek ehhez: {periodLabel}.",
     "Try again": "Probald ujra",
+    "Use your current location to record attendance at this workpoint.":
+      "Hasznald az aktualis helyzetedet a jelenlet rogzitesehez ezen a munkaponton.",
     "Unable to get your current location. Check location services and try again.":
       "Nem sikerult meghatarozni a jelenlegi helyzetedet. Ellenorizd a helymeghatarozast, es probald ujra.",
     "Unable to record attendance.":
