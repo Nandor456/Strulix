@@ -9,8 +9,8 @@ import { MessagingSocketProvider } from './providers/MessagingSocketProvider.tsx
 import { TooltipProvider } from './components/ui/tooltip.tsx';
 import { ThemeProvider } from './providers/ThemeProvider.tsx';
 import { I18nProvider } from './providers/I18nProvider.tsx';
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <StrictMode>
