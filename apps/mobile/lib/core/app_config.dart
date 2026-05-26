@@ -26,10 +26,7 @@ class AppConfig {
 
   static String get apiOrigin {
     final uri = apiBaseUri;
-    return uri
-        .replace(path: '', query: '', fragment: '')
-        .toString()
-        .replaceFirst(RegExp(r'/$'), '');
+    return '${uri.scheme}://${uri.authority}';
   }
 
   static String resolveApiUrl(String path) {

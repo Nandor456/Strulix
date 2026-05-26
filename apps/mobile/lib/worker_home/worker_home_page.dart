@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/attendance_math.dart';
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
 import '../core/i18n.dart';
@@ -63,7 +64,8 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
     final l10n = context.l10n;
     final (year, month) = parsePeriod(_period);
     final summary = _summary;
-    final hasWage = summary?.hourlyWage != null;
+    final hourlyWage = summary?.hourlyWage;
+    final hasWage = hourlyWage != null;
     final openRecords =
         ((summary?.totalDays ?? 0) - (summary?.completeDays ?? 0)).clamp(
           0,
@@ -139,7 +141,13 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
                 StatTile(
                   label: l10n.t('Earnings'),
                   value: hasWage
-                      ? formatMoney(summary?.totalEarnings, precise: true)
+                      ? formatMoney(
+                          earningsForHours(
+                            summary?.totalHours ?? 0,
+                            hourlyWage,
+                          ),
+                          precise: true,
+                        )
                       : l10n.t('Unavailable'),
                   icon: Icons.payments_outlined,
                   helper: hasWage
@@ -181,12 +189,14 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
               workPoints: _workPoints,
               rows: _rows,
               hasWage: hasWage,
+              hourlyWage: hourlyWage,
             ),
             const SizedBox(height: 16),
             _AttendanceByWorkpoint(
               workPoints: _workPoints,
               rows: _rows,
               hasWage: hasWage,
+              hourlyWage: hourlyWage,
               periodLabel: formatMonthLabel(year, month),
             ),
           ],
@@ -201,11 +211,13 @@ class _AssignedWorkpoints extends StatelessWidget {
     required this.workPoints,
     required this.rows,
     required this.hasWage,
+    required this.hourlyWage,
   });
 
   final List<AssignedWorkPointSummary> workPoints;
   final List<DailyStatRow> rows;
   final bool hasWage;
+  final double? hourlyWage;
 
   @override
   Widget build(BuildContext context) {
@@ -230,10 +242,7 @@ class _AssignedWorkpoints extends StatelessWidget {
             0,
             (sum, row) => sum + row.hours,
           );
-          final earnings = workPointRows.fold<double>(
-            0,
-            (sum, row) => sum + row.earnings,
-          );
+          final earnings = earningsForHours(hours, hourlyWage);
           final complete = workPointRows.where((row) => row.complete).length;
           return ListTile(
             contentPadding: EdgeInsets.zero,
@@ -271,12 +280,14 @@ class _AttendanceByWorkpoint extends StatelessWidget {
     required this.workPoints,
     required this.rows,
     required this.hasWage,
+    required this.hourlyWage,
     required this.periodLabel,
   });
 
   final List<AssignedWorkPointSummary> workPoints;
   final List<DailyStatRow> rows;
   final bool hasWage;
+  final double? hourlyWage;
   final String periodLabel;
 
   @override
@@ -321,10 +332,9 @@ class _AttendanceByWorkpoint extends StatelessWidget {
 
     return SectionCard(
       title: l10n.t('Attendance by workpoint'),
-      subtitle: l10n.t(
-        'Your own check-ins and check-outs for {periodLabel}.',
-        {'periodLabel': periodLabel},
-      ),
+      subtitle: l10n.t('Your own check-ins and check-outs for {periodLabel}.', {
+        'periodLabel': periodLabel,
+      }),
       child: Column(
         children: groups.map((group) {
           final hours = group.rows.fold<double>(
@@ -377,7 +387,13 @@ class _AttendanceByWorkpoint extends StatelessWidget {
                               Text(
                                 row.complete
                                     ? hasWage
-                                          ? formatMoney(row.earnings)
+                                          ? formatMoney(
+                                              earningsForHours(
+                                                row.hours,
+                                                hourlyWage,
+                                              ),
+                                              precise: true,
+                                            )
                                           : l10n.t('Unavailable')
                                     : l10n.t('Open'),
                                 style: Theme.of(context).textTheme.bodySmall,

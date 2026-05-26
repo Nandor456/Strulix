@@ -9,6 +9,7 @@ import {
   listAttendanceController,
   manualMarkController,
   deleteAttendanceController,
+  updateAttendanceTimesController,
   updateCheckoutController,
   getQrController,
   rotateQrController,
@@ -21,6 +22,7 @@ import {
   listAttendanceSchema,
   manualMarkSchema,
   deleteAttendanceSchema,
+  updateAttendanceTimesSchema,
   updateCheckoutSchema,
   qrSchema,
   exportSchema,
@@ -38,10 +40,12 @@ router.get("/me/monthly", ensureAuthenticated, validate(myStatsSchema), getMyMon
 
 // Workpoint operators
 const workPointAccess = [ensureAuthenticated, ensureRole("ADMIN", "LEADER")];
+const adminAccess = [ensureAuthenticated, ensureRole("ADMIN")];
 
 router.get("/workpoint/:id", workPointAccess, validate(listAttendanceSchema), listAttendanceController);
 router.post("/workpoint/:id/manual", workPointAccess, validate(manualMarkSchema), manualMarkController);
-router.patch("/:id/checkout", workPointAccess, validate(updateCheckoutSchema), updateCheckoutController);
+router.patch("/:id/checkout", adminAccess, validate(updateCheckoutSchema), updateCheckoutController);
+router.patch("/:id/times", adminAccess, validate(updateAttendanceTimesSchema), updateAttendanceTimesController);
 router.delete("/:id", workPointAccess, validate(deleteAttendanceSchema), deleteAttendanceController);
 router.get("/workpoint/:id/qr", workPointAccess, validate(qrSchema), getQrController);
 router.post("/workpoint/:id/qr/rotate", workPointAccess, validate(qrSchema), rotateQrController);

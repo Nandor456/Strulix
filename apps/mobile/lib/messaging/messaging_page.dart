@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:open_filex/open_filex.dart';
 
 import '../core/app_scope.dart';
@@ -148,7 +150,7 @@ class _ChatTile extends StatelessWidget {
         subtitle: Text(
           last == null
               ? 'No messages yet'
-              : last.attachmentName != null && last.body.isEmpty
+              : _isAttachmentOnlyLastMessage(last)
               ? 'Attachment: ${last.attachmentName}'
               : '${last.senderUsername}: ${last.body}',
           maxLines: 1,
@@ -264,20 +266,84 @@ class _ThreadViewState extends State<_ThreadView> {
   }
 
   Future<void> _openAttachment(Message message) async {
-    final attachmentUrl = message.attachmentUrl;
-    if (attachmentUrl == null) return;
-
+    final attachmentUrl = message.attachmentUrl?.trim();
+    if (attachmentUrl == null) {
+      debugPrint('[attachments] abort: message has no attachmentUrl');
+      return;
+    }
+    if (!_isMessageAttachmentUrl(attachmentUrl)) {
+      debugPrint('[attachments] abort: invalid attachmentUrl=$attachmentUrl');
+      showSnack(context, 'Attachment link is invalid.');
+      return;
+    }
+    final api = AppScope.apiOf(context);
+    final filename = _attachmentFilename(message);
+    final shouldPreviewText = _shouldPreviewTextAttachment(message);
+    final mimeType = _mimeTypeForOpen(message);
+    final uti = _utiForOpen(message);
     try {
-      final file = await AppScope.apiOf(context).downloadMessageAttachment(
+      final file = await api.downloadMessageAttachment(
         attachmentUrl: attachmentUrl,
-        filename: message.attachmentName ?? 'attachment',
+        filename: filename,
       );
-      await OpenFilex.open(file.path);
-    } catch (error) {
+      final exists = await file.exists();
+      final size = exists ? await file.length() : null;
+
+      if (shouldPreviewText) {
+        final contents = await file.readAsString(
+          encoding: const Utf8Codec(allowMalformed: true),
+        );
+        if (!mounted) return;
+        await _showTextAttachmentPreview(message, contents);
+        return;
+      }
+
+      final openError = await _openFile(
+        file.path,
+        mimeType: mimeType,
+        uti: uti,
+      );
+      if (openError == null) {
+        debugPrint('[attachments] open complete');
+        return;
+      }
+
+      if (mounted) {
+        showSnack(context, openError);
+      }
+    } catch (error, stackTrace) {
+      debugPrint('[attachments] open failed error=$error');
+      debugPrint('[attachments] open failed stack=$stackTrace');
       if (mounted) {
         showSnack(context, errorMessage(error, 'Failed to open attachment.'));
       }
     }
+  }
+
+  Future<void> _showTextAttachmentPreview(
+    Message message,
+    String contents,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          message.attachmentName ?? 'Attachment',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(child: SelectableText(contents)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -342,7 +408,7 @@ class _ThreadViewState extends State<_ThreadView> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Replying to ${_replyTo!.senderUsername}: ${_replyTo!.body.isEmpty ? _replyTo!.attachmentName ?? 'Attachment' : _replyTo!.body}',
+                        'Replying to ${_replyTo!.senderUsername}: ${_messageSummary(_replyTo!)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -403,7 +469,7 @@ class _ThreadViewState extends State<_ThreadView> {
   }
 }
 
-class _MessageBubble extends StatelessWidget {
+class _MessageBubble extends StatefulWidget {
   const _MessageBubble({
     required this.message,
     required this.isSelf,
@@ -417,69 +483,216 @@ class _MessageBubble extends StatelessWidget {
   final VoidCallback onOpenAttachment;
 
   @override
+  State<_MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<_MessageBubble> {
+  static const _replyThreshold = 56.0;
+  static const _maxDragOffset = 84.0;
+  static const _flingVelocityThreshold = 650.0;
+
+  double _dragOffset = 0;
+  bool _isDragging = false;
+  bool _replyArmed = false;
+
+  void _handleDragStart(DragStartDetails details) {
+    setState(() => _isDragging = true);
+  }
+
+  void _handleDragUpdate(DragUpdateDetails details) {
+    final delta = details.primaryDelta ?? 0;
+    final nextOffset = (_dragOffset + delta).clamp(0.0, _maxDragOffset);
+    final nextArmed = nextOffset >= _replyThreshold;
+    if (nextArmed && !_replyArmed) {
+      HapticFeedback.selectionClick();
+    }
+    setState(() {
+      _dragOffset = nextOffset;
+      _replyArmed = nextArmed;
+    });
+  }
+
+  void _handleDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    final shouldReply =
+        _dragOffset >= _replyThreshold ||
+        (velocity > _flingVelocityThreshold && _dragOffset > 16);
+    _resetDrag();
+    if (shouldReply) widget.onReply();
+  }
+
+  void _resetDrag() {
+    setState(() {
+      _dragOffset = 0;
+      _isDragging = false;
+      _replyArmed = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final iconOpacity = (_dragOffset / _replyThreshold).clamp(0.0, 1.0);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.centerLeft,
+      children: [
+        Positioned(
+          left: 18,
+          child: Opacity(
+            opacity: iconOpacity,
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: colors.primary.withValues(alpha: 0.12),
+              child: Icon(Icons.reply, size: 18, color: colors.primary),
+            ),
+          ),
+        ),
+        TweenAnimationBuilder<double>(
+          duration: _isDragging
+              ? Duration.zero
+              : const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          tween: Tween<double>(begin: 0, end: _dragOffset),
+          builder: (context, offset, child) {
+            return Transform.translate(offset: Offset(offset, 0), child: child);
+          },
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onLongPress: widget.onReply,
+            onHorizontalDragStart: _handleDragStart,
+            onHorizontalDragUpdate: _handleDragUpdate,
+            onHorizontalDragEnd: _handleDragEnd,
+            onHorizontalDragCancel: _resetDrag,
+            child: Align(
+              alignment: widget.isSelf
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: _BubbleContents(
+                message: widget.message,
+                isSelf: widget.isSelf,
+                onOpenAttachment: widget.onOpenAttachment,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BubbleContents extends StatelessWidget {
+  const _BubbleContents({
+    required this.message,
+    required this.isSelf,
+    required this.onOpenAttachment,
+  });
+
+  final Message message;
+  final bool isSelf;
+  final VoidCallback onOpenAttachment;
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final attachmentUrl = message.attachmentUrl;
-    final body = message.body.isEmpty && message.attachmentName != null
-        ? message.attachmentName!
-        : message.body;
-    return Align(
-      alignment: isSelf ? Alignment.centerRight : Alignment.centerLeft,
-      child: GestureDetector(
-        onLongPress: onReply,
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-          ),
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isSelf
-                ? colors.primaryContainer
-                : colors.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isSelf)
-                Text(
-                  message.senderUsername,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              if (message.replyTo != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colors.surface.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${message.replyTo!.senderUsername}: ${message.replyTo!.body}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-              if (body.isNotEmpty) SelectableText(body),
-              if (attachmentUrl != null) ...[
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: onOpenAttachment,
-                  icon: const Icon(Icons.attachment),
-                  label: Text(message.attachmentName ?? 'Open attachment'),
-                ),
-              ],
-              const SizedBox(height: 4),
-              Text(
-                formatDateTime(message.createdAt),
-                style: Theme.of(context).textTheme.labelSmall,
+    final attachmentName = message.attachmentName?.trim();
+    final body = message.body.trim();
+    final isDuplicateAttachmentName =
+        attachmentUrl != null &&
+        attachmentName != null &&
+        body == attachmentName;
+    final shouldShowBody = body.isNotEmpty && !isDuplicateAttachmentName;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isSelf
+            ? colors.primaryContainer
+            : colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isSelf)
+            Text(
+              message.senderUsername,
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          if (message.replyTo != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colors.surface.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
+              child: Text(
+                '${message.replyTo!.senderUsername}: ${_replySummary(message.replyTo!)}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          if (shouldShowBody) SelectableText(body),
+          if (attachmentUrl != null) ...[
+            if (shouldShowBody) const SizedBox(height: 8),
+            _AttachmentButton(
+              label: message.attachmentName ?? 'Open attachment',
+              onPressed: onOpenAttachment,
+            ),
+          ],
+          const SizedBox(height: 4),
+          Text(
+            formatDateTime(message.createdAt),
+            style: Theme.of(context).textTheme.labelSmall,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttachmentButton extends StatelessWidget {
+  const _AttachmentButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.48),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colors.outlineVariant),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.insert_drive_file_outlined,
+              size: 20,
+              color: colors.primary,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+          ],
         ),
       ),
     );
@@ -593,4 +806,126 @@ String _initials(String name) {
       .join()
       .toUpperCase()
       .substring(0, parts.length == 1 ? 1 : 2);
+}
+
+String _messageSummary(Message message) {
+  final body = message.body.trim();
+  final attachmentName = message.attachmentName?.trim();
+  if (body.isNotEmpty && body != attachmentName) return body;
+  return attachmentName?.isNotEmpty == true ? attachmentName! : 'Attachment';
+}
+
+bool _isAttachmentOnlyLastMessage(LastMessage message) {
+  final body = message.body.trim();
+  final attachmentName = message.attachmentName?.trim();
+  return attachmentName != null && (body.isEmpty || body == attachmentName);
+}
+
+String _replySummary(ReplyTo reply) {
+  final body = reply.body.trim();
+  return body.isEmpty ? 'Attachment' : body;
+}
+
+bool _isMessageAttachmentUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final path = uri.hasScheme ? uri.path : url;
+  return path.startsWith('/uploads/messaging/');
+}
+
+String _attachmentFilename(Message message) {
+  final name = message.attachmentName?.trim();
+  if (name != null && name.isNotEmpty) return name;
+
+  final extension = _extensionForMimeType(message.attachmentType);
+  return 'attachment$extension';
+}
+
+String _extensionForMimeType(String? mimeType) {
+  switch (mimeType) {
+    case 'application/pdf':
+      return '.pdf';
+    case 'application/msword':
+      return '.doc';
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      return '.docx';
+    case 'application/vnd.ms-excel':
+      return '.xls';
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return '.xlsx';
+    case 'application/vnd.ms-powerpoint':
+      return '.ppt';
+    case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+      return '.pptx';
+    case 'image/jpeg':
+      return '.jpg';
+    case 'image/png':
+      return '.png';
+    case 'text/plain':
+      return '.txt';
+    case 'text/csv':
+      return '.csv';
+    case 'application/zip':
+      return '.zip';
+    default:
+      return '';
+  }
+}
+
+String? _mimeTypeForOpen(Message message) {
+  final mimeType = message.attachmentType?.trim();
+  final name = message.attachmentName?.trim().toLowerCase();
+  if (mimeType == 'text/markdown' || name?.endsWith('.md') == true) {
+    return 'text/plain';
+  }
+  return mimeType?.isEmpty == true ? null : mimeType;
+}
+
+String? _utiForOpen(Message message) {
+  final mimeType = message.attachmentType?.trim();
+  final name = message.attachmentName?.trim().toLowerCase();
+  if (mimeType == 'text/markdown' || name?.endsWith('.md') == true) {
+    return 'public.plain-text';
+  }
+  return null;
+}
+
+bool _shouldPreviewTextAttachment(Message message) {
+  final mimeType = message.attachmentType?.trim();
+  final name = message.attachmentName?.trim().toLowerCase();
+  return mimeType?.startsWith('text/') == true ||
+      mimeType == 'application/json' ||
+      name?.endsWith('.md') == true ||
+      name?.endsWith('.json') == true ||
+      name?.endsWith('.csv') == true ||
+      name?.endsWith('.txt') == true;
+}
+
+Future<String?> _openFile(String path, {String? mimeType, String? uti}) async {
+  debugPrint('[attachments] OpenFilex.open path=$path type=$mimeType uti=$uti');
+  final result = await OpenFilex.open(path, type: mimeType, uti: uti);
+  debugPrint(
+    '[attachments] OpenFilex result type=${result.type} '
+    'message=${result.message}',
+  );
+  if (result.type == ResultType.done) return null;
+
+  if (mimeType != '*/*') {
+    debugPrint('[attachments] OpenFilex fallback path=$path type=*/* uti=$uti');
+    final fallback = await OpenFilex.open(path, type: '*/*', uti: uti);
+    debugPrint(
+      '[attachments] OpenFilex fallback result type=${fallback.type} '
+      'message=${fallback.message}',
+    );
+    if (fallback.type == ResultType.done) return null;
+    return _openResultMessage(fallback);
+  }
+
+  return _openResultMessage(result);
+}
+
+String _openResultMessage(OpenResult result) {
+  final message = result.message.trim();
+  if (message.isNotEmpty && message != 'done') return message;
+  return 'No app found to open this attachment.';
 }

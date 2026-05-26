@@ -8,6 +8,7 @@ import {
   Download,
   FileSpreadsheet,
   MapPin,
+  Pencil,
   Plus,
   QrCode,
   RotateCcw,
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -55,10 +57,11 @@ import {
   useDeleteAttendance,
   useManualMark,
   useRotateQrToken,
-  useUpdateCheckout,
+  useUpdateAttendanceTimes,
   useWorkPointAttendance,
   useWorkPointQr,
 } from "@/hooks/useAttendance";
+import { useAuth } from "@/hooks/useAuth";
 import { useWorkPoint } from "@/hooks/useWorkPoints";
 import {
   useAssignWorker,
@@ -118,6 +121,8 @@ function downloadDataUrl(dataUrl: string, filename: string) {
 export default function WorkpointDetailPage() {
   const navigate = useNavigate();
   const { id: workPointId } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
 
   const currentPeriod = getCurrentPeriod();
   const currentBounds = getMonthBounds(currentPeriod);
@@ -140,7 +145,7 @@ export default function WorkpointDetailPage() {
   const { data: attendance = [], isLoading: isAttendanceLoading } =
     useWorkPointAttendance(workPointId ?? "", attendanceParams);
   const manualMark = useManualMark(workPointId ?? "");
-  const updateCheckout = useUpdateCheckout(workPointId ?? "");
+  const updateAttendanceTimes = useUpdateAttendanceTimes(workPointId ?? "");
   const deleteAttendance = useDeleteAttendance(workPointId ?? "");
   const { data: qr, isLoading: isQrLoading } = useWorkPointQr(workPointId ?? "");
   const rotateQr = useRotateQrToken(workPointId ?? "");
@@ -150,9 +155,13 @@ export default function WorkpointDetailPage() {
   const [manualCheckedInAt, setManualCheckedInAt] = useState(`${getTodayInputValue()}T08:00`);
   const [manualCheckedOutAt, setManualCheckedOutAt] = useState("");
   const [manualError, setManualError] = useState<string | null>(null);
+  const [isManualAttendanceOpen, setIsManualAttendanceOpen] = useState(false);
   const [assignWorkerId, setAssignWorkerId] = useState("");
-  const [checkoutRecord, setCheckoutRecord] = useState<AttendanceRecord | null>(null);
-  const [checkoutValue, setCheckoutValue] = useState("");
+  const [attendanceTimeRecord, setAttendanceTimeRecord] =
+    useState<AttendanceRecord | null>(null);
+  const [attendanceCheckedInValue, setAttendanceCheckedInValue] = useState("");
+  const [attendanceCheckedOutValue, setAttendanceCheckedOutValue] = useState("");
+  const [attendanceTimeError, setAttendanceTimeError] = useState<string | null>(null);
   const [copiedQr, setCopiedQr] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -167,6 +176,15 @@ export default function WorkpointDetailPage() {
     await removeWorker.mutateAsync(workerId);
   }
 
+  function resetManualAttendanceForm() {
+    const today = getTodayInputValue();
+    setManualWorkerId("");
+    setManualDate(today);
+    setManualCheckedInAt(`${today}T08:00`);
+    setManualCheckedOutAt("");
+    setManualError(null);
+  }
+
   async function handleManualAttendance(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!workPointId || !manualWorkerId || !manualDate) return;
@@ -179,10 +197,8 @@ export default function WorkpointDetailPage() {
         checkedInAt: localDateTimeToIso(manualCheckedInAt),
         checkedOutAt: localDateTimeToIso(manualCheckedOutAt),
       });
-      setManualWorkerId("");
-      setManualDate(getTodayInputValue());
-      setManualCheckedInAt(`${getTodayInputValue()}T08:00`);
-      setManualCheckedOutAt("");
+      resetManualAttendanceForm();
+      setIsManualAttendanceOpen(false);
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -191,14 +207,39 @@ export default function WorkpointDetailPage() {
     }
   }
 
-  async function handleCheckoutSave() {
-    if (!checkoutRecord || !checkoutValue) return;
-    await updateCheckout.mutateAsync({
-      id: checkoutRecord.id,
-      checkedOutAt: new Date(checkoutValue).toISOString(),
-    });
-    setCheckoutRecord(null);
-    setCheckoutValue("");
+  function openAttendanceTimeDialog(record: AttendanceRecord) {
+    setAttendanceTimeRecord(record);
+    setAttendanceCheckedInValue(getDateTimeInputValue(record.checkedInAt));
+    setAttendanceCheckedOutValue(getDateTimeInputValue(record.checkedOutAt));
+    setAttendanceTimeError(null);
+  }
+
+  function closeAttendanceTimeDialog() {
+    setAttendanceTimeRecord(null);
+    setAttendanceCheckedInValue("");
+    setAttendanceCheckedOutValue("");
+    setAttendanceTimeError(null);
+  }
+
+  async function handleAttendanceTimesSave() {
+    if (!attendanceTimeRecord || !attendanceCheckedInValue) return;
+    setAttendanceTimeError(null);
+
+    try {
+      await updateAttendanceTimes.mutateAsync({
+        id: attendanceTimeRecord.id,
+        checkedInAt: new Date(attendanceCheckedInValue).toISOString(),
+        checkedOutAt: attendanceCheckedOutValue
+          ? new Date(attendanceCheckedOutValue).toISOString()
+          : null,
+      });
+      closeAttendanceTimeDialog();
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        "Failed to update attendance hours";
+      setAttendanceTimeError(message);
+    }
   }
 
   async function handleDeleteAttendance(record: AttendanceRecord) {
@@ -467,71 +508,18 @@ export default function WorkpointDetailPage() {
                   {isExporting ? <Spinner size={16} /> : <FileSpreadsheet className="h-4 w-4" />}
                   Export
                 </Button>
-              </div>
-            </div>
-
-            <form
-              onSubmit={(event) => void handleManualAttendance(event)}
-              className="mb-4 grid gap-3 rounded-md border bg-muted/30 p-3 md:grid-cols-2 xl:grid-cols-5"
-            >
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="manual-worker">Worker</Label>
-                <Select value={manualWorkerId} onValueChange={setManualWorkerId}>
-                  <SelectTrigger id="manual-worker">
-                    <SelectValue placeholder="Choose worker" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {assignedWorkers.map((worker) => (
-                      <SelectItem key={worker.id} value={worker.id}>
-                        {worker.username}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="manual-date">Date</Label>
-                <Input
-                  id="manual-date"
-                  type="date"
-                  value={manualDate}
-                  onChange={(event) => setManualDate(event.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="manual-in">Check in</Label>
-                <Input
-                  id="manual-in"
-                  type="datetime-local"
-                  value={manualCheckedInAt}
-                  onChange={(event) => setManualCheckedInAt(event.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="manual-out">Check out</Label>
-                <Input
-                  id="manual-out"
-                  type="datetime-local"
-                  value={manualCheckedOutAt}
-                  onChange={(event) => setManualCheckedOutAt(event.target.value)}
-                />
-              </div>
-              <div className="flex items-end">
                 <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={!manualWorkerId || manualMark.isPending}
+                  onClick={() => {
+                    setManualError(null);
+                    setIsManualAttendanceOpen(true);
+                  }}
+                  disabled={assignedWorkers.length === 0}
                 >
-                  {manualMark.isPending ? <Spinner size={16} /> : <Plus className="h-4 w-4" />}
-                  Add
+                  <Plus className="h-4 w-4" />
+                  Manual mark
                 </Button>
               </div>
-              {manualError && (
-                <Alert variant="destructive" className="md:col-span-2 xl:col-span-5">
-                  {manualError}
-                </Alert>
-              )}
-            </form>
+            </div>
 
             {isAttendanceLoading ? (
               <div className="flex justify-center py-8">
@@ -595,28 +583,19 @@ export default function WorkpointDetailPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-1">
-                              {(!record.checkedOutAt ||
-                                record.checkoutSource === "AUTO") && (
+                              {isAdmin && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => {
-                                        setCheckoutRecord(record);
-                                        setCheckoutValue(
-                                          getDateTimeInputValue(
-                                            record.checkedOutAt ??
-                                              new Date().toISOString(),
-                                          ),
-                                        );
-                                      }}
-                                      aria-label="Set checkout"
+                                      onClick={() => openAttendanceTimeDialog(record)}
+                                      aria-label="Edit attendance hours"
                                     >
-                                      <Check className="h-4 w-4" />
+                                      <Pencil className="h-4 w-4" />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>Set checkout</TooltipContent>
+                                  <TooltipContent>Edit hours</TooltipContent>
                                 </Tooltip>
                               )}
                               <Tooltip>
@@ -647,43 +626,138 @@ export default function WorkpointDetailPage() {
       )}
 
       <Dialog
-        open={checkoutRecord !== null}
+        open={isManualAttendanceOpen}
+        onOpenChange={(open) => {
+          setIsManualAttendanceOpen(open);
+          if (!open) {
+            resetManualAttendanceForm();
+          }
+        }}
+      >
+        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Manual attendance</DialogTitle>
+            <DialogDescription>
+              Add a check-in and optional check-out for an assigned worker.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(event) => void handleManualAttendance(event)} className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <Label htmlFor="manual-worker">Worker</Label>
+                <Select value={manualWorkerId} onValueChange={setManualWorkerId}>
+                  <SelectTrigger id="manual-worker">
+                    <SelectValue placeholder="Choose worker" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignedWorkers.map((worker) => (
+                      <SelectItem key={worker.id} value={worker.id}>
+                        {worker.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="manual-date">Date</Label>
+                <Input
+                  id="manual-date"
+                  type="date"
+                  value={manualDate}
+                  onChange={(event) => setManualDate(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="manual-in">Check in</Label>
+                <Input
+                  id="manual-in"
+                  type="datetime-local"
+                  value={manualCheckedInAt}
+                  onChange={(event) => setManualCheckedInAt(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <Label htmlFor="manual-out">Check out</Label>
+                <Input
+                  id="manual-out"
+                  type="datetime-local"
+                  value={manualCheckedOutAt}
+                  onChange={(event) => setManualCheckedOutAt(event.target.value)}
+                />
+              </div>
+            </div>
+            {manualError && <Alert variant="destructive">{manualError}</Alert>}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  resetManualAttendanceForm();
+                  setIsManualAttendanceOpen(false);
+                }}
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!manualWorkerId || manualMark.isPending}>
+                {manualMark.isPending ? <Spinner size={16} /> : <Plus className="h-4 w-4" />}
+                Add
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={attendanceTimeRecord !== null}
         onOpenChange={(open) => {
           if (!open) {
-            setCheckoutRecord(null);
-            setCheckoutValue("");
+            closeAttendanceTimeDialog();
           }
         }}
       >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Set checkout</DialogTitle>
+            <DialogTitle>Edit attendance hours</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="checkout-at">Check-out time</Label>
+            <Label htmlFor="attendance-checkin-at">Check-in time</Label>
             <Input
-              id="checkout-at"
+              id="attendance-checkin-at"
               type="datetime-local"
-              value={checkoutValue}
-              onChange={(event) => setCheckoutValue(event.target.value)}
+              value={attendanceCheckedInValue}
+              onChange={(event) => setAttendanceCheckedInValue(event.target.value)}
             />
           </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="attendance-checkout-at">Check-out time</Label>
+            <Input
+              id="attendance-checkout-at"
+              type="datetime-local"
+              value={attendanceCheckedOutValue}
+              onChange={(event) => setAttendanceCheckedOutValue(event.target.value)}
+            />
+          </div>
+          {attendanceTimeError && (
+            <Alert variant="destructive">{attendanceTimeError}</Alert>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setCheckoutRecord(null);
-                setCheckoutValue("");
-              }}
+              onClick={closeAttendanceTimeDialog}
             >
               <X className="h-4 w-4" />
               Cancel
             </Button>
             <Button
-              onClick={() => void handleCheckoutSave()}
-              disabled={!checkoutValue || updateCheckout.isPending}
+              onClick={() => void handleAttendanceTimesSave()}
+              disabled={!attendanceCheckedInValue || updateAttendanceTimes.isPending}
             >
-              {updateCheckout.isPending ? <Spinner size={16} /> : <Check className="h-4 w-4" />}
+              {updateAttendanceTimes.isPending ? (
+                <Spinner size={16} />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
               Save
             </Button>
           </DialogFooter>

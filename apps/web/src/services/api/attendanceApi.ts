@@ -111,6 +111,14 @@ export const attendanceAPI = {
     return res.data;
   },
 
+  async updateTimes(
+    id: string,
+    input: { checkedInAt: string; checkedOutAt: string | null },
+  ): Promise<AttendanceRecord> {
+    const res = await api.patch<AttendanceRecord>(`/attendance/${id}/times`, input);
+    return res.data;
+  },
+
   async delete(id: string): Promise<void> {
     await api.delete(`/attendance/${id}`);
   },

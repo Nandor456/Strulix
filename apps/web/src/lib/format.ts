@@ -48,7 +48,10 @@ export function formatMonthLabel(year: number, month: number) {
 
 export function formatHours(value: number | null | undefined) {
   if (value === null || value === undefined) return "0h";
-  return `${Math.ceil(value)}h`;
+  const quarterHours = Math.round(value * 4) / 4;
+  return `${new Intl.NumberFormat(activeLocale, {
+    maximumFractionDigits: 2,
+  }).format(quarterHours)}h`;
 }
 
 export function formatMoney(

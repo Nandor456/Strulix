@@ -68,6 +68,26 @@ export const useUpdateCheckout = (workPointId: string) => {
   });
 };
 
+export const useUpdateAttendanceTimes = (workPointId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      checkedInAt,
+      checkedOutAt,
+    }: {
+      id: string;
+      checkedInAt: string;
+      checkedOutAt: string | null;
+    }) => attendanceAPI.updateTimes(id, { checkedInAt, checkedOutAt }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.attendance.byWorkPoint(workPointId),
+      });
+    },
+  });
+};
+
 export const useDeleteAttendance = (workPointId: string) => {
   const queryClient = useQueryClient();
   return useMutation({

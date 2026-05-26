@@ -82,7 +82,7 @@ type Coordinates = {
   lng: number;
 };
 
-function computeBillableHours(checkedInAt: Date, checkedOutAt: Date): number {
+export function computeBillableHours(checkedInAt: Date, checkedOutAt: Date): number {
   const ms = Math.max(0, checkedOutAt.getTime() - checkedInAt.getTime());
   return Math.round(ms / QUARTER_HOUR_MS) / 4;
 }
@@ -449,6 +449,64 @@ export async function setCheckoutTime(
       worker: { select: { id: true, username: true, email: true } },
     },
   });
+}
+
+export async function updateAttendanceTimes(params: {
+  attendanceId: string;
+  checkedInAt: Date;
+  checkedOutAt: Date | null;
+}): Promise<AttendanceRecord> {
+  const record = await prisma.attendance.findUnique({
+    where: { id: params.attendanceId },
+    select: { id: true },
+  });
+
+  if (!record) {
+    const err = new Error("Attendance record not found");
+    (err as NodeJS.ErrnoException).code = "NOT_FOUND";
+    throw err;
+  }
+
+  if (params.checkedOutAt && params.checkedOutAt <= params.checkedInAt) {
+    const err = new Error("Check-out time must be after check-in time");
+    (err as NodeJS.ErrnoException).code = "INVALID";
+    throw err;
+  }
+
+  try {
+    return await prisma.attendance.update({
+      where: { id: params.attendanceId },
+      data: {
+        date: dateInZone(params.checkedInAt),
+        checkedInAt: params.checkedInAt,
+        checkedOutAt: params.checkedOutAt ?? null,
+        checkoutSource: params.checkedOutAt ? "MANUAL" : null,
+      },
+      select: {
+        id: true,
+        workerId: true,
+        workPointId: true,
+        date: true,
+        checkedInAt: true,
+        checkedOutAt: true,
+        checkoutSource: true,
+        source: true,
+        worker: { select: { id: true, username: true, email: true } },
+      },
+    });
+  } catch (err: unknown) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "P2002"
+    ) {
+      const conflict = new Error("Attendance already exists for this day");
+      (conflict as NodeJS.ErrnoException).code = "DUPLICATE";
+      throw conflict;
+    }
+    throw err;
+  }
 }
 
 export async function removeAttendance(

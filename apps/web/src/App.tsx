@@ -28,7 +28,7 @@ function Home() {
     }
 
     return <RequireRoles roles={["ADMIN", "LEADER"]}>
-        <WorkpointDetailPage />
+        <WorkpointPage />
     </RequireRoles>;
 }
 

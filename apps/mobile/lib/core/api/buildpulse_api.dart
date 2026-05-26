@@ -484,7 +484,10 @@ class BuildPulseApi {
     required String attachmentUrl,
     required String filename,
   }) {
-    return client.download(attachmentUrl, filename: filename);
+    return client.download(
+      _messageAttachmentPath(attachmentUrl),
+      filename: filename,
+    );
   }
 
   Future<void> registerPushDevice({
@@ -509,4 +512,14 @@ class BuildPulseApi {
         )
         .toList();
   }
+}
+
+String _messageAttachmentPath(String attachmentUrl) {
+  final uri = Uri.tryParse(attachmentUrl.trim());
+  final rawPath = uri?.path ?? '';
+  final path = rawPath.startsWith('/') ? rawPath : '/$rawPath';
+  if (!path.startsWith('/uploads/messaging/')) {
+    throw ArgumentError('Invalid message attachment URL.');
+  }
+  return path;
 }

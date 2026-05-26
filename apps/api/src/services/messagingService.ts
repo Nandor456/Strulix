@@ -1,5 +1,6 @@
 import { prisma } from "../../database/prisma.js";
 import type { ChatType } from "../../database/generated/prisma/enums.js";
+import { normalizeMessageAttachmentUrl } from "../utils/messagingAttachments.js";
 
 export type MessagePayload = {
   id: string;
@@ -193,6 +194,7 @@ export async function createMessage(
     clientNonce?: string;
   } = {}
 ): Promise<MessagePayload> {
+  const attachmentUrl = normalizeMessageAttachmentUrl(opts.attachmentUrl);
   const participant = await prisma.chatParticipant.findUnique({
     where: { chatId_userId: { chatId, userId: senderId } },
   });
@@ -205,7 +207,7 @@ export async function createMessage(
         senderId,
         body,
         replyToId: opts.replyToId,
-        attachmentUrl: opts.attachmentUrl,
+        attachmentUrl,
         attachmentName: opts.attachmentName,
         attachmentType: opts.attachmentType,
       },

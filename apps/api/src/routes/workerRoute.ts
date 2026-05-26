@@ -31,7 +31,7 @@ import {
 const router = Router();
 
 const admin_leaderAccess = [ensureRole("LEADER", "ADMIN")];
-const leader_workerAccess = [ensureRole("LEADER", "WORKER")];
+const admin_leader_workerAccess = [ensureRole("ADMIN", "LEADER", "WORKER")];
 
 
 if (!fs.existsSync(WORKER_DOCUMENT_UPLOAD_DIR)) {
@@ -109,7 +109,7 @@ router.post("/workpoints/:id/workers", admin_leaderAccess, assignWorkerControlle
 router.delete("/workpoints/:id/workers/:workerId", admin_leaderAccess, removeWorkerController);
 router.put("/workers/:workerId", admin_leaderAccess, updateWorkerController);
 router.delete("/workers/:workerId", admin_leaderAccess, deleteWorkerController);
-router.get("/worker-documents/me", leader_workerAccess, listMyWorkerDocumentsController);
+router.get("/worker-documents/me", admin_leader_workerAccess, listMyWorkerDocumentsController);
 router.get(
   "/worker-documents/:documentId/file",
   ensureAuthenticated,

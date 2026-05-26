@@ -7,12 +7,14 @@ import {
   manualMark,
   removeAttendance,
   setCheckoutTime,
+  updateAttendanceTimes,
   getQrForWorkPoint,
   rotateQrToken,
   getAttendanceSummary,
   getAttendanceObserverUserIds,
   getMyDailyStats,
   getMyMonthlySummary,
+  computeBillableHours,
 } from "../services/attendanceService.js";
 import { emitAttendanceChanged } from "../realtime/socketServer.js";
 
@@ -214,6 +216,52 @@ export async function updateCheckoutController(
   }
 }
 
+export async function updateAttendanceTimesController(
+  req: AuthenticatedRequest<{ id: string }>,
+  res: Response,
+): Promise<void> {
+  const { id } = req.params;
+  const {
+    checkedInAt: checkedInAtStr,
+    checkedOutAt: checkedOutAtStr,
+  } = req.body as {
+    checkedInAt: string;
+    checkedOutAt: string | null;
+  };
+
+  try {
+    const record = await updateAttendanceTimes({
+      attendanceId: id,
+      checkedInAt: new Date(checkedInAtStr),
+      checkedOutAt: checkedOutAtStr ? new Date(checkedOutAtStr) : null,
+    });
+    notifyAttendanceChanged({
+      workPointId: record.workPointId,
+      workerId: record.workerId,
+      attendanceId: record.id,
+    });
+    res.json(record);
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "code" in err) {
+      const code = (err as { code: string }).code;
+      if (code === "NOT_FOUND") {
+        res.status(404).json({ error: "Attendance record not found" });
+        return;
+      }
+      if (code === "INVALID") {
+        res.status(400).json({ error: err instanceof Error ? err.message : "Invalid" });
+        return;
+      }
+      if (code === "DUPLICATE") {
+        res.status(409).json({ error: "Attendance already exists for this day" });
+        return;
+      }
+    }
+    console.error("updateAttendanceTimesController error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 export async function deleteAttendanceController(
   req: AuthenticatedRequest<{ id: string }>,
   res: Response,
@@ -358,13 +406,11 @@ export async function exportAttendanceController(
     const formatDate = (d: Date) =>
       new Date(d).toLocaleDateString("ro-RO", { timeZone: "UTC" });
     const formatDateTime = (d: Date) => new Date(d).toLocaleString("ro-RO");
-    const formatHours = (h: number) => Math.ceil(h);
 
     for (const r of records) {
       const hours =
         r.checkedOutAt != null
-          ? (new Date(r.checkedOutAt).getTime() - new Date(r.checkedInAt).getTime()) /
-            (1000 * 60 * 60)
+          ? computeBillableHours(r.checkedInAt, r.checkedOutAt)
           : null;
       sheet1.addRow({
         date: formatDate(r.date),
@@ -374,7 +420,7 @@ export async function exportAttendanceController(
         checkoutSource: r.checkoutSource ?? "—",
         checkedInAt: formatDateTime(r.checkedInAt),
         checkedOutAt: r.checkedOutAt ? formatDateTime(r.checkedOutAt) : "—",
-        hours: hours != null ? formatHours(hours) : "incomplete",
+        hours: hours ?? "incomplete",
       });
     }
 
@@ -417,7 +463,7 @@ export async function exportAttendanceController(
         email: s.email,
         totalDays: s.totalDays,
         completeDays: s.completeDays,
-        totalHours: Math.ceil(s.totalHours),
+        totalHours: s.totalHours,
         totalEarnings: s.totalEarnings != null ? s.totalEarnings.toFixed(2) : "—",
         firstDate: s.firstDate ? formatDate(s.firstDate) : "—",
         lastDate: s.lastDate ? formatDate(s.lastDate) : "—",

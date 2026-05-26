@@ -1,3 +1,5 @@
+import 'attendance_math.dart';
+
 typedef JsonMap = Map<String, dynamic>;
 
 String _string(dynamic value, [String fallback = '']) => value?.toString() ?? fallback;
@@ -29,7 +31,9 @@ bool _bool(dynamic value, [bool fallback = false]) {
 
 JsonMap _map(dynamic value) {
   if (value is Map<String, dynamic>) return value;
-  if (value is Map) return value.map((key, value) => MapEntry(key.toString(), value));
+  if (value is Map) {
+    return value.map((key, value) => MapEntry(key.toString(), value));
+  }
   return <String, dynamic>{};
 }
 
@@ -357,8 +361,7 @@ class AttendanceRecord {
     final end = DateTime.tryParse(checkedOutAt ?? '');
     final start = DateTime.tryParse(checkedInAt);
     if (start == null || end == null) return null;
-    final value = end.difference(start).inMinutes / 60;
-    return value < 0 ? 0 : value;
+    return billableHoursBetween(start, end);
   }
 }
 

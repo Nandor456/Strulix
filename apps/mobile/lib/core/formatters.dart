@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import 'attendance_math.dart';
+
 String _activeLocale = 'en';
 String Function(String key, [Map<String, String>? params]) _translate =
     _defaultTranslate;
@@ -41,7 +43,8 @@ String formatMonthLabel(int year, int month) {
 
 String formatHours(num? value) {
   if (value == null) return '0h';
-  return '${value.ceil()}h';
+  final hours = roundToQuarterHours(value);
+  return '${NumberFormat.decimalPattern(_activeLocale).format(hours)}h';
 }
 
 String formatMoney(num? value, {bool precise = false}) {

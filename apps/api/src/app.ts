@@ -32,7 +32,10 @@ app.use(express.json());
 app.use(morgan(nodeEnv === "production" ? "combined" : "tiny"));
 
 app.use("/api", router);
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use(
+  "/uploads/messaging",
+  express.static(path.join(__dirname, "../uploads/messaging")),
+);
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("Unhandled error:", err);

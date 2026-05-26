@@ -79,8 +79,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
       ).listAttendance(widget.id, from: _from, to: _to);
       setState(() => _attendance = rows);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, errorMessage(error, 'Failed to load attendance.'));
+      }
     } finally {
       if (mounted) setState(() => _isAttendanceLoading = false);
     }
@@ -172,8 +173,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
       );
       await OpenFilex.open(file.path);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, errorMessage(error, 'Failed to export attendance.'));
+      }
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -556,7 +558,7 @@ class _AttendanceSection extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: records.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final record = records[index];
 
@@ -592,14 +594,15 @@ class _AttendanceRecordCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasCheckedOut = record.checkedOutAt != null;
+    final hours = record.hours;
 
     return Card(
       elevation: 0,
-      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.7),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
       child: Padding(
@@ -689,7 +692,7 @@ class _AttendanceRecordCard extends StatelessWidget {
 
             Divider(
               height: 1,
-              color: theme.colorScheme.outlineVariant.withOpacity(0.7),
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
             ),
 
             const SizedBox(height: 12),
@@ -699,11 +702,11 @@ class _AttendanceRecordCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 _InfoChip(icon: Icons.fingerprint, label: record.source),
-                if (record.checkoutSource != null)
-                  _InfoChip(
-                    icon: Icons.logout,
-                    label: 'Checkout: ${record.checkoutSource}',
-                  ),
+                _InfoChip(
+                  icon: Icons.schedule,
+                  label:
+                      'Hours: ${hours == null ? 'Open' : formatHours(hours)}',
+                ),
               ],
             ),
 
@@ -861,7 +864,9 @@ class _EmptyAttendanceState extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.45),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.45,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
@@ -914,8 +919,9 @@ class _DateButton extends StatelessWidget {
           lastDate: DateTime(2100),
           initialDate: DateTime.tryParse(value) ?? DateTime.now(),
         );
-        if (picked != null)
+        if (picked != null) {
           onChanged(picked.toIso8601String().substring(0, 10));
+        }
       },
       icon: const Icon(Icons.calendar_month_outlined),
       label: Text('$label: ${formatDate(value)}'),
@@ -958,8 +964,9 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
       );
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, errorMessage(error, 'Failed to add attendance.'));
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -1063,8 +1070,9 @@ class _CheckoutDialogState extends State<_CheckoutDialog> {
       ).updateCheckout(widget.record.id, _dateTime.toUtc().toIso8601String());
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, errorMessage(error, 'Failed to set checkout.'));
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

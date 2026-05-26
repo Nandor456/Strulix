@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --exec 'node --loader ts-node/esm --no-warnings' src/index.ts",
+    "test": "NODE_ENV=test DATABASE_URL=postgresql://buildpulse:buildpulse@localhost:5432/buildpulse_test JWT_ACCESS_SECRET=test-access-secret JWT_REFRESH_SECRET=test-refresh-secret node --loader ts-node/esm test/messagingAttachments.test.ts",
     "build": "npm run clean && tsc",
     "start": "NODE_ENV=production node dist/src/index.js",
     "prisma:studio": "cd database && npx prisma studio --config ./prisma.config.ts",

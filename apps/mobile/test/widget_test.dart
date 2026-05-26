@@ -65,7 +65,7 @@ void main() {
   });
 
   test('formatters and user model mirror web behavior', () {
-    expect(formatHours(1.1), '2h');
+    expect(formatHours(2.75), '2.75h');
     expect(formatMoney(null), 'Not set');
 
     final user = User.fromJson({

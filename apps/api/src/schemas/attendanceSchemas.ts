@@ -41,6 +41,14 @@ export const updateCheckoutSchema = z.object({
   }),
 });
 
+export const updateAttendanceTimesSchema = z.object({
+  params: z.object({ id: uuidSchema }),
+  body: z.object({
+    checkedInAt: z.string().datetime("Must be a valid ISO datetime"),
+    checkedOutAt: z.string().datetime("Must be a valid ISO datetime").nullable(),
+  }),
+});
+
 export const qrSchema = z.object({
   params: z.object({ id: uuidSchema }),
 });
