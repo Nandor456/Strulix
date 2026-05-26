@@ -6,7 +6,6 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import { Building2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -126,7 +125,11 @@ export default function Register() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-2">
           <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
-            <Building2 className="h-7 w-7 text-primary-foreground" />
+            <img
+              src="/buildpulselogo.png"
+              alt="BuildPulse logo"
+              className="h-6 w-auto"
+            />
           </div>
           <h1 className="text-center text-xl font-bold">{t("Create your account")}</h1>
           <p className="text-center text-sm text-muted-foreground">
