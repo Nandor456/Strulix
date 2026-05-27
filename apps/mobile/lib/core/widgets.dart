@@ -6,7 +6,40 @@ import 'i18n.dart';
 String errorMessage(Object error, [String fallback = 'Something went wrong.']) {
   if (error is DioException) {
     final data = error.response?.data;
-    if (data is Map && data['error'] != null) return data['error'].toString();
+    if (data is Map) {
+      final errorText = data['error'];
+      if (errorText != null) return translate(errorText.toString());
+
+      final errors = data['errors'];
+      if (errors is Map) {
+        final formErrors = errors['formErrors'];
+        if (formErrors is List) {
+          final firstFormError = formErrors.whereType<Object?>().firstWhere(
+            (message) =>
+                message != null && message.toString().trim().isNotEmpty,
+            orElse: () => null,
+          );
+          if (firstFormError != null)
+            return translate(firstFormError.toString());
+        }
+
+        final fieldErrors = errors['fieldErrors'];
+        if (fieldErrors is Map) {
+          for (final messages in fieldErrors.values) {
+            if (messages is List) {
+              final firstFieldError = messages.whereType<Object?>().firstWhere(
+                (message) =>
+                    message != null && message.toString().trim().isNotEmpty,
+                orElse: () => null,
+              );
+              if (firstFieldError != null) {
+                return translate(firstFieldError.toString());
+              }
+            }
+          }
+        }
+      }
+    }
     if (error.type == DioExceptionType.connectionError) {
       return translate('Network error. Please check the API connection.');
     }
@@ -133,10 +166,16 @@ class SectionCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title!, style: Theme.of(context).textTheme.titleMedium),
+                          Text(
+                            title!,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                           if (subtitle != null) ...[
                             const SizedBox(height: 2),
-                            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                            Text(
+                              subtitle,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ],
                         ],
                       ),
@@ -183,7 +222,10 @@ class StatTile extends StatelessWidget {
               child: Icon(icon, size: 18),
             ),
             const SizedBox(height: 12),
-            Text(label.toUpperCase(), style: Theme.of(context).textTheme.labelSmall),
+            Text(
+              label.toUpperCase(),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
             const SizedBox(height: 4),
             Text(value, style: Theme.of(context).textTheme.titleLarge),
             if (helper != null) ...[
@@ -218,7 +260,9 @@ Future<bool> confirmAction(
           style: destructive
               ? FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                  foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                  foregroundColor: Theme.of(
+                    context,
+                  ).colorScheme.onErrorContainer,
                 )
               : null,
           onPressed: () => Navigator.pop(context, true),

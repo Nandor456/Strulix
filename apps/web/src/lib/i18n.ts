@@ -80,6 +80,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Email is locked to the invited address.":
       "Emailul este blocat la adresa din invitatie.",
     "Email is required.": "Emailul este obligatoriu.",
+    "Please enter a valid email address.":
+      "Te rugam sa introduci o adresa de email valida.",
+    "Email must be at most 254 characters.":
+      "Emailul poate avea cel mult 254 de caractere.",
     "EXPIRED": "Expirata",
     "Expires": "Expira",
     "Failed to load invitations.": "Invitatiile nu au putut fi incarcate.",
@@ -156,6 +160,13 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Password": "Parola",
     "Password must start with an uppercase letter and be at least 6 characters.":
       "Parola trebuie sa inceapa cu o litera mare si sa aiba cel putin 6 caractere.",
+    "Password must start with an uppercase letter.":
+      "Parola trebuie sa inceapa cu o litera mare.",
+    "Password must be at least 6 characters.":
+      "Parola trebuie sa aiba cel putin 6 caractere.",
+    "Password must be at most 100 characters.":
+      "Parola poate avea cel mult 100 de caractere.",
+    "Password is required.": "Parola este obligatorie.",
     "PDF": "PDF",
     "Pending": "In asteptare",
     "Place the attendance QR code inside the frame.":
@@ -177,6 +188,17 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Recording attendance...": "Se inregistreaza prezenta...",
     "Register": "Inregistrare",
     "Registration failed": "Inregistrarea a esuat",
+    "Username already taken": "Numele de utilizator este deja folosit.",
+    "Username must be at most 50 characters.":
+      "Numele de utilizator poate avea cel mult 50 de caractere.",
+    "An invitation token is required to register":
+      "Este necesar un token de invitatie pentru inregistrare.",
+    "Invitation is invalid, expired, or does not match this email":
+      "Invitatia este invalida, expirata sau nu se potriveste cu acest email.",
+    "Invitation token cannot be empty.":
+      "Tokenul de invitatie nu poate fi gol.",
+    "Invitation token is too long.":
+      "Tokenul de invitatie este prea lung.",
     "Enable location": "Activeaza locatia",
     "REVOKED": "Revocata",
     "Revoke invitation": "Revoca invitatia",
@@ -344,15 +366,27 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Failed to load leave requests.":
       "Cererile de concediu nu au putut fi incarcate.",
     "You cannot select past dates.": "Nu poti selecta date din trecut.",
+    "End date cannot be before start date":
+      "Data de sfarsit nu poate fi inaintea datei de inceput.",
     "This period overlaps with an existing request.":
       "Aceasta perioada se suprapune cu o cerere existenta.",
     "Please select a start and end date.":
       "Te rugam sa selectezi o data de inceput si una de sfarsit.",
     "Please choose a leave type.": "Te rugam sa alegi un tip de concediu.",
     "Leave request submitted.": "Cererea de concediu a fost trimisa.",
+    "User not found": "Utilizatorul nu a fost gasit.",
+    "Admins cannot create leave requests":
+      "Administratorii nu pot crea cereri de concediu.",
+    "Only admins and leaders can review requests":
+      "Doar administratorii si sefii de echipa pot revizui cererile.",
     "Failed to submit leave request.":
       "Cererea de concediu nu a putut fi trimisa.",
     "Leave request approved.": "Cererea de concediu a fost aprobata.",
+    "Leave request not found": "Cererea de concediu nu a fost gasita.",
+    "You cannot review your own leave request":
+      "Nu iti poti revizui propria cerere de concediu.",
+    "Only pending requests can be reviewed":
+      "Doar cererile in asteptare pot fi revizuite.",
     "Failed to approve leave request.":
       "Cererea de concediu nu a putut fi aprobata.",
     "Leave request rejected.": "Cererea de concediu a fost respinsa.",
@@ -360,6 +394,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Cererea de concediu nu a putut fi respinsa.",
     "Cancel this pending request?": "Anulezi aceasta cerere in asteptare?",
     "Leave request canceled.": "Cererea de concediu a fost anulata.",
+    "You can only cancel your own requests":
+      "Poti anula doar propriile tale cereri.",
+    "Only pending requests can be canceled":
+      "Doar cererile in asteptare pot fi anulate.",
     "Failed to cancel leave request.":
       "Cererea de concediu nu a putut fi anulata.",
     "Approved leave is highlighted on the calendar.":
@@ -476,6 +514,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Email is locked to the invited address.":
       "Az email cim a meghivott cimre van rogzitve.",
     "Email is required.": "Az email cim kotelezo.",
+    "Please enter a valid email address.":
+      "Adj meg egy ervenyes email cimet.",
+    "Email must be at most 254 characters.":
+      "Az email cim legfeljebb 254 karakter lehet.",
     "EXPIRED": "Lejart",
     "Expires": "Lejar",
     "Failed to load invitations.":
@@ -553,6 +595,13 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Password": "Jelszo",
     "Password must start with an uppercase letter and be at least 6 characters.":
       "A jelszonak nagybetuvel kell kezdodnie, es legalabb 6 karakteresnek kell lennie.",
+    "Password must start with an uppercase letter.":
+      "A jelszonak nagybetuvel kell kezdodnie.",
+    "Password must be at least 6 characters.":
+      "A jelszonak legalabb 6 karakteresnek kell lennie.",
+    "Password must be at most 100 characters.":
+      "A jelszo legfeljebb 100 karakter lehet.",
+    "Password is required.": "A jelszo kotelezo.",
     "PDF": "PDF",
     "Pending": "Fuggoben",
     "Place the attendance QR code inside the frame.":
@@ -574,6 +623,17 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Recording attendance...": "Jelenlet rogzitese folyamatban...",
     "Register": "Regisztracio",
     "Registration failed": "A regisztracio sikertelen",
+    "Username already taken": "Ez a felhasznalonev mar foglalt.",
+    "Username must be at most 50 characters.":
+      "A felhasznalonev legfeljebb 50 karakter lehet.",
+    "An invitation token is required to register":
+      "A regisztraciohoz meghivo token szukseges.",
+    "Invitation is invalid, expired, or does not match this email":
+      "A meghivo ervenytelen, lejart, vagy nem ehhez az email cimhez tartozik.",
+    "Invitation token cannot be empty.":
+      "A meghivo token nem lehet ures.",
+    "Invitation token is too long.":
+      "A meghivo token tul hosszu.",
     "Enable location": "Hely engedelyezese",
     "REVOKED": "Visszavonva",
     "Revoke invitation": "Meghivo visszavonasa",
@@ -741,15 +801,27 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Failed to load leave requests.":
       "A szabadsagkerelmek betoltese nem sikerult.",
     "You cannot select past dates.": "Nem valaszthatsz multbeli datumokat.",
+    "End date cannot be before start date":
+      "A befejezo datum nem lehet korabban, mint a kezdo datum.",
     "This period overlaps with an existing request.":
       "Ez az idoszak atfedi egy letezo kerelmet.",
     "Please select a start and end date.":
       "Kerlek valassz kezdo- es vegdatumot.",
     "Please choose a leave type.": "Kerlek valassz szabadsagtipust.",
     "Leave request submitted.": "Szabadsagkerelmet elkuldtuk.",
+    "User not found": "A felhasznalo nem talalhato.",
+    "Admins cannot create leave requests":
+      "Az adminisztratorok nem hozhatnak letre szabadsagkereseket.",
+    "Only admins and leaders can review requests":
+      "Csak adminisztratorok es csapatvezetok biralhatnak el kerelmeket.",
     "Failed to submit leave request.":
       "A szabadsagkeres elkuldese nem sikerult.",
     "Leave request approved.": "A szabadsagkeres jovahagyva.",
+    "Leave request not found": "A szabadsagkeres nem talalhato.",
+    "You cannot review your own leave request":
+      "Nem biralhatod el a sajat szabadsagkerelmedet.",
+    "Only pending requests can be reviewed":
+      "Csak fuggoben levo kerelmek biralhatok el.",
     "Failed to approve leave request.":
       "A szabadsagkeres jovahagyasa nem sikerult.",
     "Leave request rejected.": "A szabadsagkeres elutasitva.",
@@ -757,6 +829,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "A szabadsagkeres elutasitasa nem sikerult.",
     "Cancel this pending request?": "Toroljuk ezt a fuggoben levo kerelmet?",
     "Leave request canceled.": "A szabadsagkeres torolve.",
+    "You can only cancel your own requests":
+      "Csak a sajat kerelmeidet torolheted.",
+    "Only pending requests can be canceled":
+      "Csak a fuggoben levo kerelmek torolhetok.",
     "Failed to cancel leave request.":
       "A szabadsagkeres torlese nem sikerult.",
     "Approved leave is highlighted on the calendar.":

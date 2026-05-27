@@ -9,6 +9,7 @@ import { LeaveTypeSelector } from "@/components/leave/LeaveTypeSelector";
 import { SelectedRangeSummary } from "@/components/leave/SelectedRangeSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/hooks/useI18n";
+import { translateApiErrorFromUnknown } from "@/lib/apiErrors";
 import {
   useAllLeaveRequests,
   useApproveLeaveRequest,
@@ -22,17 +23,7 @@ import {
   selectedRangeOverlapsRequest,
   todayDateKey,
 } from "@/lib/leaveDates";
-import type {
-  LeaveRequest,
-  LeaveRequestType,
-} from "@/services/api/leaveRequestApi";
-
-function apiErrorMessage(error: unknown, fallback: string) {
-  return (
-    (error as { response?: { data?: { error?: string } } })?.response?.data
-      ?.error ?? fallback
-  );
-}
+import type { LeaveRequest, LeaveRequestType } from "@/services/api/leaveRequestApi";
 
 export default function LeaveCalendarPage() {
   const { user } = useAuth();
@@ -160,7 +151,7 @@ export default function LeaveCalendarPage() {
       resetSelection();
     } catch (error) {
       toast({
-        title: apiErrorMessage(error, t("Failed to submit leave request.")),
+        title: translateApiErrorFromUnknown(error, t("Failed to submit leave request."), t),
         variant: "error",
       });
     }
@@ -172,7 +163,7 @@ export default function LeaveCalendarPage() {
       toast({ title: t("Leave request approved."), variant: "success" });
     } catch (error) {
       toast({
-        title: apiErrorMessage(error, t("Failed to approve leave request.")),
+        title: translateApiErrorFromUnknown(error, t("Failed to approve leave request."), t),
         variant: "error",
       });
     }
@@ -184,7 +175,7 @@ export default function LeaveCalendarPage() {
       toast({ title: t("Leave request rejected."), variant: "success" });
     } catch (error) {
       toast({
-        title: apiErrorMessage(error, t("Failed to reject leave request.")),
+        title: translateApiErrorFromUnknown(error, t("Failed to reject leave request."), t),
         variant: "error",
       });
     }
@@ -197,7 +188,7 @@ export default function LeaveCalendarPage() {
       toast({ title: t("Leave request canceled."), variant: "success" });
     } catch (error) {
       toast({
-        title: apiErrorMessage(error, t("Failed to cancel leave request.")),
+        title: translateApiErrorFromUnknown(error, t("Failed to cancel leave request."), t),
         variant: "error",
       });
     }

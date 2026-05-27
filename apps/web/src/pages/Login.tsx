@@ -9,32 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { useI18n } from "@/hooks/useI18n";
+import { translateApiErrorMessage } from "@/lib/apiErrors";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
-
-type ValidationErrorPayload = {
-  formErrors?: string[];
-  fieldErrors?: Record<string, string[] | undefined>;
-};
-
+import buildPulseLogo from "@/assets/buildpulselogo.png";
 type LoginResponse =
   | { id: string; username: string }
-  | { error?: string; errors?: ValidationErrorPayload };
-
-const getErrorMessageFromResponse = (
-  data: LoginResponse,
-  fallback: string
-) => {
-  if ("id" in data) {
-    return fallback;
-  }
-
-  const firstFieldError = Object.values(data.errors?.fieldErrors ?? {})
-    .flat()
-    .find((message): message is string => Boolean(message));
-
-  return data.error ?? data.errors?.formErrors?.[0] ?? firstFieldError ?? fallback;
-};
+  | { error?: string; errors?: { formErrors?: string[]; fieldErrors?: Record<string, string[] | undefined> } };
 
 export default function Login() {
   const navigate = useNavigate();
@@ -77,8 +58,8 @@ export default function Login() {
     } catch (error) {
       if (error instanceof AxiosError) {
         const data = error.response?.data as LoginResponse | undefined;
-        if (data) {
-          setError(getErrorMessageFromResponse(data, t("Login failed")));
+        if (data && !("id" in data)) {
+          setError(translateApiErrorMessage(data, t("Login failed"), t));
           return;
         }
       }
@@ -93,13 +74,11 @@ export default function Login() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2">
-          <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
-            <img
-              src="/buildpulselogo.png"
-              alt={t("BuildPulse logo")}
-              className="h-6 w-auto"
-            />
-          </div>
+          <img
+            src={buildPulseLogo}
+            alt={t("BuildPulse logo")}
+            className="h-24 w-24"
+          />
           <h1 className="text-center text-xl font-bold">{t("Sign in")}</h1>
           <p className="text-center text-sm text-muted-foreground">
             {t("Welcome back to BuildPulse")}

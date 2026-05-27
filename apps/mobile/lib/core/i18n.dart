@@ -158,6 +158,10 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Edit workpoint': 'Edit workpoint',
     'Email address': 'Email address',
     'Email is required.': 'Email is required.',
+    'Please enter a valid email address.':
+        'Please enter a valid email address.',
+    'Email must be at most 254 characters.':
+        'Email must be at most 254 characters.',
     'Expires {date}': 'Expires {date}',
     'Failed to load invitations.': 'Failed to load invitations.',
     'Failed to open attachment.': 'Failed to open attachment.',
@@ -234,6 +238,12 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password': 'Password',
     'Password does not match the rules.': 'Password does not match the rules.',
     'Password is required.': 'Password is required.',
+    'Password must start with an uppercase letter.':
+        'Password must start with an uppercase letter.',
+    'Password must be at least 6 characters.':
+        'Password must be at least 6 characters.',
+    'Password must be at most 100 characters.':
+        'Password must be at most 100 characters.',
     'Please enter a username.': 'Please enter a username.',
     'Preview and download documents shared with your worker profile.':
         'Preview and download documents shared with your worker profile.',
@@ -242,6 +252,15 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Refresh': 'Refresh',
     'Register': 'Register',
     'Registration failed': 'Registration failed',
+    'Username already taken': 'Username already taken',
+    'Username must be at most 50 characters.':
+        'Username must be at most 50 characters.',
+    'An invitation token is required to register':
+        'An invitation token is required to register',
+    'Invitation is invalid, expired, or does not match this email':
+        'Invitation is invalid, expired, or does not match this email',
+    'Invitation token cannot be empty.': 'Invitation token cannot be empty.',
+    'Invitation token is too long.': 'Invitation token is too long.',
     'Recording attendance...': 'Recording attendance...',
     'Revoke': 'Revoke',
     'Role': 'Role',
@@ -397,8 +416,32 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Workers {count}': 'Workers {count}',
     'Workers scan this code to check in or out.':
         'Workers scan this code to check in or out.',
+    'Worker not found': 'Worker not found',
     'Workpoint details': 'Workpoint details',
+    'Work point not found': 'Work point not found',
     'Workpoint not found': 'Workpoint not found',
+    'Attendance record not found': 'Attendance record not found',
+    'Document not found': 'Document not found',
+    'Document file not found': 'Document file not found',
+    'One or more workers were not found': 'One or more workers were not found',
+    'Only users with the WORKER role can be assigned':
+        'Only users with the WORKER role can be assigned',
+    'workerId is required': 'workerId is required',
+    'This workpoint does not have coordinates set':
+        'This workpoint does not have coordinates set',
+    'You are not assigned to this workpoint':
+        'You are not assigned to this workpoint',
+    'You must be within 100m of this workpoint to scan attendance':
+        'You must be within 100m of this workpoint to scan attendance',
+    'A user with this email already exists':
+        'A user with this email already exists',
+    'Invitation not found': 'Invitation not found',
+    'Invitation already accepted': 'Invitation already accepted',
+    'Cannot chat with yourself': 'Cannot chat with yourself',
+    'Must be a valid UUID': 'Must be a valid UUID',
+    'Must be a valid ISO datetime': 'Must be a valid ISO datetime',
+    'At least one field is required': 'At least one field is required',
+    'Invalid request payload.': 'Invalid request payload.',
     'Workpoints {count}': 'Workpoints {count}',
     'Write a message...': 'Write a message...',
     '{amount} RON/h': '{amount} RON/h',
@@ -410,20 +453,36 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Loading leave requests...': 'Loading leave requests...',
     'Failed to load leave requests.': 'Failed to load leave requests.',
     'You cannot select past dates.': 'You cannot select past dates.',
+    'End date cannot be before start date':
+        'End date cannot be before start date',
     'This period overlaps with an existing request.':
         'This period overlaps with an existing request.',
     'Please select a start and end date.':
         'Please select a start and end date.',
     'Please choose a leave type.': 'Please choose a leave type.',
     'Leave request submitted.': 'Leave request submitted.',
+    'User not found': 'User not found',
+    'Admins cannot create leave requests':
+        'Admins cannot create leave requests',
+    'Only admins and leaders can review requests':
+        'Only admins and leaders can review requests',
     'Failed to submit leave request.': 'Failed to submit leave request.',
     'Leave request approved.': 'Leave request approved.',
+    'Leave request not found': 'Leave request not found',
+    'You cannot review your own leave request':
+        'You cannot review your own leave request',
+    'Only pending requests can be reviewed':
+        'Only pending requests can be reviewed',
     'Failed to approve leave request.': 'Failed to approve leave request.',
     'Leave request rejected.': 'Leave request rejected.',
     'Failed to reject leave request.': 'Failed to reject leave request.',
     'Cancel request': 'Cancel request',
     'Cancel this pending request?': 'Cancel this pending request?',
     'Leave request canceled.': 'Leave request canceled.',
+    'You can only cancel your own requests':
+        'You can only cancel your own requests',
+    'Only pending requests can be canceled':
+        'Only pending requests can be canceled',
     'Failed to cancel leave request.': 'Failed to cancel leave request.',
     'Click a start date, then an end date.':
         'Click a start date, then an end date.',
@@ -519,6 +578,10 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Edit workpoint': 'Editeaza punctul de lucru',
     'Email address': 'Adresa de email',
     'Email is required.': 'Emailul este obligatoriu.',
+    'Please enter a valid email address.':
+        'Te rugam sa introduci o adresa de email valida.',
+    'Email must be at most 254 characters.':
+        'Emailul poate avea cel mult 254 de caractere.',
     'Expires {date}': 'Expira la {date}',
     'Failed to load invitations.': 'Invitatiile nu au putut fi incarcate.',
     'Failed to open attachment.': 'Atasamentul nu a putut fi deschis.',
@@ -597,6 +660,12 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password': 'Parola',
     'Password does not match the rules.': 'Parola nu respecta regulile.',
     'Password is required.': 'Parola este obligatorie.',
+    'Password must start with an uppercase letter.':
+        'Parola trebuie sa inceapa cu o litera mare.',
+    'Password must be at least 6 characters.':
+        'Parola trebuie sa aiba cel putin 6 caractere.',
+    'Password must be at most 100 characters.':
+        'Parola poate avea cel mult 100 de caractere.',
     'Please enter a username.': 'Introdu un nume de utilizator.',
     'Preview and download documents shared with your worker profile.':
         'Previzualizeaza si descarca documentele distribuite profilului tau de muncitor.',
@@ -605,6 +674,16 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Refresh': 'Reincarca',
     'Register': 'Inregistrare',
     'Registration failed': 'Inregistrarea a esuat',
+    'Username already taken': 'Numele de utilizator este deja folosit.',
+    'Username must be at most 50 characters.':
+        'Numele de utilizator poate avea cel mult 50 de caractere.',
+    'An invitation token is required to register':
+        'Este necesar un token de invitatie pentru inregistrare.',
+    'Invitation is invalid, expired, or does not match this email':
+        'Invitatia este invalida, expirata sau nu se potriveste cu acest email.',
+    'Invitation token cannot be empty.':
+        'Tokenul de invitatie nu poate fi gol.',
+    'Invitation token is too long.': 'Tokenul de invitatie este prea lung.',
     'Recording attendance...': 'Se inregistreaza prezenta...',
     'Revoke': 'Revoca',
     'Role': 'Rol',
@@ -763,8 +842,33 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Workers {count}': 'Muncitori {count}',
     'Workers scan this code to check in or out.':
         'Muncitorii scaneaza acest cod pentru a intra sau iesi.',
+    'Worker not found': 'Muncitorul nu a fost gasit',
     'Workpoint details': 'Detalii punct de lucru',
+    'Work point not found': 'Punctul de lucru nu a fost gasit',
     'Workpoint not found': 'Punct de lucru negasit',
+    'Attendance record not found': 'Inregistrarea de prezenta nu a fost gasita',
+    'Document not found': 'Documentul nu a fost gasit',
+    'Document file not found': 'Fisierul documentului nu a fost gasit',
+    'One or more workers were not found':
+        'Unul sau mai multi muncitori nu au fost gasiti',
+    'Only users with the WORKER role can be assigned':
+        'Doar utilizatorii cu rolul WORKER pot fi alocati',
+    'workerId is required': 'workerId este obligatoriu',
+    'This workpoint does not have coordinates set':
+        'Acest punct de lucru nu are coordonate setate',
+    'You are not assigned to this workpoint':
+        'Nu esti alocat la acest punct de lucru',
+    'You must be within 100m of this workpoint to scan attendance':
+        'Trebuie sa fii la cel mult 100 m de acest punct de lucru pentru a scana prezenta',
+    'A user with this email already exists':
+        'Exista deja un utilizator cu acest email',
+    'Invitation not found': 'Invitatia nu a fost gasita',
+    'Invitation already accepted': 'Invitatia a fost deja acceptata',
+    'Cannot chat with yourself': 'Nu poti deschide un chat cu tine insuti',
+    'Must be a valid UUID': 'Trebuie sa fie un UUID valid',
+    'Must be a valid ISO datetime': 'Trebuie sa fie o data si ora ISO valida',
+    'At least one field is required': 'Este necesar cel putin un camp',
+    'Invalid request payload.': 'Payload de cerere invalid.',
     'Workpoints {count}': 'Puncte de lucru {count}',
     'Write a message...': 'Scrie un mesaj...',
     '{amount} RON/h': '{amount} RON/ora',
@@ -777,15 +881,27 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Failed to load leave requests.':
         'Cererile de concediu nu au putut fi incarcate.',
     'You cannot select past dates.': 'Nu poti selecta date din trecut.',
+    'End date cannot be before start date':
+        'Data de sfarsit nu poate fi inaintea datei de inceput.',
     'This period overlaps with an existing request.':
         'Aceasta perioada se suprapune cu o cerere existenta.',
     'Please select a start and end date.':
         'Te rugam sa selectezi o data de inceput si una de sfarsit.',
     'Please choose a leave type.': 'Te rugam sa alegi un tip de concediu.',
     'Leave request submitted.': 'Cererea de concediu a fost trimisa.',
+    'User not found': 'Utilizatorul nu a fost gasit',
+    'Admins cannot create leave requests':
+        'Administratorii nu pot crea cereri de concediu',
+    'Only admins and leaders can review requests':
+        'Doar administratorii si sefii de echipa pot revizui cererile',
     'Failed to submit leave request.':
         'Cererea de concediu nu a putut fi trimisa.',
     'Leave request approved.': 'Cererea de concediu a fost aprobata.',
+    'Leave request not found': 'Cererea de concediu nu a fost gasita',
+    'You cannot review your own leave request':
+        'Nu iti poti revizui propria cerere de concediu',
+    'Only pending requests can be reviewed':
+        'Doar cererile in asteptare pot fi revizuite',
     'Failed to approve leave request.':
         'Cererea de concediu nu a putut fi aprobata.',
     'Leave request rejected.': 'Cererea de concediu a fost respinsa.',
@@ -794,6 +910,10 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Cancel request': 'Anuleaza cererea',
     'Cancel this pending request?': 'Anulezi aceasta cerere in asteptare?',
     'Leave request canceled.': 'Cererea de concediu a fost anulata.',
+    'You can only cancel your own requests':
+        'Poti anula doar propriile tale cereri',
+    'Only pending requests can be canceled':
+        'Doar cererile in asteptare pot fi anulate',
     'Failed to cancel leave request.':
         'Cererea de concediu nu a putut fi anulata.',
     'Click a start date, then an end date.':
@@ -891,6 +1011,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Edit workpoint': 'Munkapont szerkesztese',
     'Email address': 'Email cim',
     'Email is required.': 'Az email cim kotelezo.',
+    'Please enter a valid email address.': 'Adj meg egy ervenyes email cimet.',
+    'Email must be at most 254 characters.':
+        'Az email cim legfeljebb 254 karakter lehet.',
     'Expires {date}': 'Lejar ekkor: {date}',
     'Failed to load invitations.': 'A meghivok betoltese nem sikerult.',
     'Failed to open attachment.': 'A csatolmany megnyitasa nem sikerult.',
@@ -968,6 +1091,12 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password does not match the rules.':
         'A jelszo nem felel meg a szabalyoknak.',
     'Password is required.': 'A jelszo kotelezo.',
+    'Password must start with an uppercase letter.':
+        'A jelszonak nagybetuvel kell kezdodnie.',
+    'Password must be at least 6 characters.':
+        'A jelszonak legalabb 6 karakteresnek kell lennie.',
+    'Password must be at most 100 characters.':
+        'A jelszo legfeljebb 100 karakter lehet.',
     'Please enter a username.': 'Adj meg egy felhasznalonevet.',
     'Preview and download documents shared with your worker profile.':
         'Tekintsd meg es toltsd le a dolgozoi profilodhoz megosztott dokumentumokat.',
@@ -976,6 +1105,15 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Refresh': 'Frissites',
     'Register': 'Regisztracio',
     'Registration failed': 'A regisztracio sikertelen',
+    'Username already taken': 'Ez a felhasznalonev mar foglalt.',
+    'Username must be at most 50 characters.':
+        'A felhasznalonev legfeljebb 50 karakter lehet.',
+    'An invitation token is required to register':
+        'A regisztraciohoz meghivo token szukseges.',
+    'Invitation is invalid, expired, or does not match this email':
+        'A meghivo ervenytelen, lejart, vagy nem ehhez az email cimhez tartozik.',
+    'Invitation token cannot be empty.': 'A meghivo token nem lehet ures.',
+    'Invitation token is too long.': 'A meghivo token tul hosszu.',
     'Recording attendance...': 'Jelenlet rogzitese folyamatban...',
     'Revoke': 'Visszavonas',
     'Role': 'Szerepkor',
@@ -1133,8 +1271,32 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Workers {count}': 'Dolgozok {count}',
     'Workers scan this code to check in or out.':
         'A dolgozok ezzel a koddal lepnek be vagy ki.',
+    'Worker not found': 'A dolgozo nem talalhato',
     'Workpoint details': 'Munkapont reszletei',
+    'Work point not found': 'A munkapont nem talalhato',
     'Workpoint not found': 'Munkapont nem talalhato',
+    'Attendance record not found': 'A jelenleti bejegyzes nem talalhato',
+    'Document not found': 'A dokumentum nem talalhato',
+    'Document file not found': 'A dokumentum fajlja nem talalhato',
+    'One or more workers were not found': 'Egy vagy tobb dolgozo nem talalhato',
+    'Only users with the WORKER role can be assigned':
+        'Csak WORKER szerepkoru felhasznalok rendelhetok hozza',
+    'workerId is required': 'A workerId kotelezo',
+    'This workpoint does not have coordinates set':
+        'Ehhez a munkaponthoz nincsenek beallitva koordinatak',
+    'You are not assigned to this workpoint':
+        'Nem vagy ehhez a munkaponthoz hozzarendelve',
+    'You must be within 100m of this workpoint to scan attendance':
+        'A jelenlet szkenneleshez 100 meteren belul kell lenned ehhez a munkaponthoz',
+    'A user with this email already exists':
+        'Mar letezik felhasznalo ezzel az email cimmel',
+    'Invitation not found': 'A meghivo nem talalhato',
+    'Invitation already accepted': 'A meghivot mar elfogadtak',
+    'Cannot chat with yourself': 'Nem indithatsz chatet sajat magaddal',
+    'Must be a valid UUID': 'Ervenyes UUID szukseges',
+    'Must be a valid ISO datetime': 'Ervenyes ISO datum-es-idopont szukseges',
+    'At least one field is required': 'Legalabb egy mezot meg kell adni',
+    'Invalid request payload.': 'Ervenytelen kerelemadatok.',
     'Workpoints {count}': 'Munkapontok {count}',
     'Write a message...': 'Irj egy uzenetet...',
     '{amount} RON/h': '{amount} RON/ora',
@@ -1147,15 +1309,27 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Failed to load leave requests.':
         'A szabadsagkerelmek betoltese nem sikerult.',
     'You cannot select past dates.': 'Nem valaszthatsz multbeli datumokat.',
+    'End date cannot be before start date':
+        'A befejezo datum nem lehet korabban, mint a kezdo datum.',
     'This period overlaps with an existing request.':
         'Ez az idoszak atfedi egy meglevo kerelmet.',
     'Please select a start and end date.':
         'Kerlek valassz kezdodatumot es vegdatumot.',
     'Please choose a leave type.': 'Kerlek valassz szabadsagtipust.',
     'Leave request submitted.': 'Szabadsagkerelmet elkuldtuk.',
+    'User not found': 'A felhasznalo nem talalhato',
+    'Admins cannot create leave requests':
+        'Az adminisztratorok nem hozhatnak letre szabadsagkereseket',
+    'Only admins and leaders can review requests':
+        'Csak adminisztratorok es csapatvezetok biralhatnak el kerelmeket',
     'Failed to submit leave request.':
         'A szabadsagkeres elkuldese nem sikerult.',
     'Leave request approved.': 'A szabadsagkeres jovahagyva.',
+    'Leave request not found': 'A szabadsagkeres nem talalhato',
+    'You cannot review your own leave request':
+        'Nem biralhatod el a sajat szabadsagkerelmedet',
+    'Only pending requests can be reviewed':
+        'Csak fuggoben levo kerelmek biralhatok el',
     'Failed to approve leave request.':
         'A szabadsagkeres jovahagyasa nem sikerult.',
     'Leave request rejected.': 'A szabadsagkeres elutasitva.',
@@ -1164,6 +1338,10 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Cancel request': 'Kerelmet torol',
     'Cancel this pending request?': 'Toroljuk ezt a fuggoben levo kerelmet?',
     'Leave request canceled.': 'A szabadsagkeres torolve.',
+    'You can only cancel your own requests':
+        'Csak a sajat kerelmeidet torolheted',
+    'Only pending requests can be canceled':
+        'Csak a fuggoben levo kerelmek torolhetok',
     'Failed to cancel leave request.': 'A szabadsagkeres torlese nem sikerult.',
     'Click a start date, then an end date.':
         'Kattints egy kezdo datumra, majd egy vegdatumra.',
