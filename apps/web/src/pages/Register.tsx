@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import {
@@ -60,15 +60,6 @@ export default function Register() {
 
   const hasValidPassword = PASSWORD_PATTERN.test(password);
   const emailValue = prefilledEmail || email;
-
-  const canSubmit = useMemo(() => {
-    return (
-      username.trim().length >= 3 &&
-      emailValue.trim().length > 0 &&
-      hasValidPassword &&
-      !isSubmitting
-    );
-  }, [username, emailValue, hasValidPassword, isSubmitting]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -197,7 +188,7 @@ export default function Register() {
 
             <Button
               type="submit"
-              disabled={!canSubmit}
+              disabled={isSubmitting}
               className="w-full py-2.5 font-semibold"
             >
               {isSubmitting && <Spinner className="mr-2" />}
