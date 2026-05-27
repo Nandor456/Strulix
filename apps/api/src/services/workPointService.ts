@@ -190,6 +190,20 @@ function parseDeadline(value: string | null | undefined) {
   return new Date(value);
 }
 
+export function parseAddressCoordinates(address: string): Coords | null {
+  const match = address.match(
+    /^\s*([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*,\s*([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*$/,
+  );
+  if (!match) return null;
+
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+  return { lat, lng };
+}
+
 async function ensureWorkPointExists(id: string) {
   const workPoint = await prisma.workPoint.findUnique({
     where: { id },
@@ -273,7 +287,7 @@ export async function createWorkPoint(
 ): Promise<WorkPointDetail> {
   const workerIds = uniqueIds(input.workerIds ?? []);
   await assertAssignableWorkers(workerIds);
-  const coords = await geocodeAddress(input.address);
+  const coords = await resolveAddressCoordinates(input.address);
 
   const workPoint = await prisma.workPoint.create({
     data: {
@@ -307,7 +321,7 @@ export async function updateWorkPoint(
 ): Promise<WorkPointDetail> {
   await ensureWorkPointExists(id);
   const nextCoords = input.address !== undefined
-    ? await geocodeAddress(input.address)
+    ? await resolveAddressCoordinates(input.address)
     : undefined;
 
   const data: {
@@ -441,4 +455,8 @@ async function geocodeAddress(address: string): Promise<Coords | null> {
     console.error(`Geocoding request failed for address "${address}"`, error);
     return null;
   }
+}
+
+async function resolveAddressCoordinates(address: string): Promise<Coords | null> {
+  return parseAddressCoordinates(address) ?? geocodeAddress(address);
 }
