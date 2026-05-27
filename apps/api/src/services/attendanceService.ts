@@ -72,7 +72,7 @@ export type MonthlySummary = {
   hourlyWage: number | null;
 };
 
-const GEOFENCE_RADIUS_METERS = 100;
+const GEOFENCE_RADIUS_METERS = 200;
 const EARTH_RADIUS_METERS = 6_371_000;
 const QUARTER_HOUR_MS = 15 * 60 * 1000;
 const ATTENDANCE_RECORDING_START_HOUR = 6;

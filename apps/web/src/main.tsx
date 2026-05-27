@@ -11,19 +11,22 @@ import { ThemeProvider } from './providers/ThemeProvider.tsx';
 import { I18nProvider } from './providers/I18nProvider.tsx';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { ToastProvider } from './components/ui/toast.tsx';
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <StrictMode>
       <I18nProvider>
         <ThemeProvider>
           <TooltipProvider>
-            <AuthProvider>
-              <MessagingSocketProvider>
-                <App />
-                <Analytics />
-                <SpeedInsights />
-              </MessagingSocketProvider>
-            </AuthProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <MessagingSocketProvider>
+                  <App />
+                  <Analytics />
+                  <SpeedInsights />
+                </MessagingSocketProvider>
+              </AuthProvider>
+            </ToastProvider>
           </TooltipProvider>
         </ThemeProvider>
       </I18nProvider>

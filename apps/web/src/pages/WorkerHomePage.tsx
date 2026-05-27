@@ -1,9 +1,10 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Building2, CircleAlert, Clock, DollarSign, MapPin, QrCode } from "lucide-react";
+import { Building2, CircleAlert, Clock, DollarSign, FileText, MapPin, QrCode } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WorkPointDocumentsDialog } from "@/components/workpoints/WorkPointDocumentsDialog";
 import { useI18n } from "@/hooks/useI18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,6 +101,8 @@ function buildAttendanceGroups(
 export default function WorkerHomePage() {
   const { t } = useI18n();
   const [period, setPeriod] = useState(getCurrentPeriod);
+  const [documentsWorkPoint, setDocumentsWorkPoint] =
+    useState<AssignedWorkPointSummary | null>(null);
   const [year, month] = parsePeriod(period);
   const periodLabel = formatMonthLabel(year, month);
 
@@ -275,9 +278,19 @@ export default function WorkerHomePage() {
                             <span className="truncate">{workPoint.address}</span>
                           </p>
                         </div>
-                        <Badge variant="outline">
-                          {t("Deadline")}: {formatDate(workPoint.deadline)}
-                        </Badge>
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          <Badge variant="outline">
+                            {t("Deadline")}: {formatDate(workPoint.deadline)}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDocumentsWorkPoint(workPoint)}
+                          >
+                            <FileText className="h-4 w-4" />
+                            {t("Documents")}
+                          </Button>
+                        </div>
                       </div>
                       {workPoint.description && (
                         <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
@@ -333,6 +346,18 @@ export default function WorkerHomePage() {
             )}
           </section>
         </div>
+      )}
+
+      {documentsWorkPoint && (
+        <WorkPointDocumentsDialog
+          canManage={false}
+          open={documentsWorkPoint !== null}
+          onOpenChange={(open) => {
+            if (!open) setDocumentsWorkPoint(null);
+          }}
+          workPointId={documentsWorkPoint.id}
+          workPointName={documentsWorkPoint.name}
+        />
       )}
     </div>
   );

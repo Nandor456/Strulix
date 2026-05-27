@@ -27,11 +27,7 @@ enum AppLanguage {
   }
 }
 
-const supportedAppLocales = <Locale>[
-  Locale('en'),
-  Locale('ro'),
-  Locale('hu'),
-];
+const supportedAppLocales = <Locale>[Locale('en'), Locale('ro'), Locale('hu')];
 
 const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
   GlobalMaterialLocalizations.delegate,
@@ -149,7 +145,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Deadline': 'Deadline',
     'Deadline {date}': 'Deadline {date}',
     'Delete': 'Delete',
+    'Delete document': 'Delete document',
     'Delete workpoint': 'Delete workpoint',
+    'Delete {name}?': 'Delete {name}?',
     'Delete {name}? Attendance, assignments, and the workpoint chat will be removed.':
         'Delete {name}? Attendance, assignments, and the workpoint chat will be removed.',
     'Description': 'Description',
@@ -164,11 +162,14 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Failed to load invitations.': 'Failed to load invitations.',
     'Failed to open attachment.': 'Failed to open attachment.',
     'Failed to load workpoints.': 'Failed to load workpoints.',
+    'Failed to load workpoint documents.':
+        'Failed to load workpoint documents.',
     'Failed to load your documents.': 'Failed to load your documents.',
     'Failed to load your worker dashboard.':
         'Failed to load your worker dashboard.',
     'Failed to save workpoint.': 'Failed to save workpoint.',
     'Failed to send invitation.': 'Failed to send invitation.',
+    'Failed to upload document.': 'Failed to upload document.',
     'File': 'File',
     'Home': 'Home',
     'Hourly wage': 'Hourly wage',
@@ -215,6 +216,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No documents': 'No documents',
     'No documents have been shared with you yet.':
         'No documents have been shared with you yet.',
+    'No documents uploaded for this workpoint.':
+        'No documents uploaded for this workpoint.',
     'No invitations': 'No invitations',
     'No invitations yet.': 'No invitations yet.',
     'No workers available.': 'No workers available.',
@@ -229,8 +232,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'PENDING': 'Pending',
     'Pending': 'Pending',
     'Password': 'Password',
-    'Password does not match the rules.':
-        'Password does not match the rules.',
+    'Password does not match the rules.': 'Password does not match the rules.',
     'Password is required.': 'Password is required.',
     'Please enter a username.': 'Please enter a username.',
     'Preview and download documents shared with your worker profile.':
@@ -270,6 +272,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Try again': 'Try again',
     'Unable to record attendance.': 'Unable to record attendance.',
     'Unavailable': 'Unavailable',
+    'Upload': 'Upload',
+    'Uploading...': 'Uploading...',
     'Uploaded {date}': 'Uploaded {date}',
     'Use the form above to invite your first user.':
         'Use the form above to invite your first user.',
@@ -282,6 +286,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'WORKER': 'Worker',
     'Workers': 'Workers',
     'Workpoint': 'Workpoint',
+    'Workpoint documents': 'Workpoint documents',
     'Workpoints': 'Workpoints',
     'Worker profile': 'Worker profile',
     '{count} complete': '{count} complete',
@@ -299,14 +304,174 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'You are accepting an invitation. Your role will be assigned.',
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Browse job sites and manage workers, attendance, and QR tools.',
+    'by {name}': 'by {name}',
     'Create one to start assigning workers.':
         'Create one to start assigning workers.',
+    'Active': 'Active',
+    'Actions': 'Actions',
+    'Add': 'Add',
+    'Assign a worker before adding attendance.':
+        'Assign a worker before adding attendance.',
+    'Assign worker': 'Assign worker',
+    'Assigned workers': 'Assigned workers',
+    'Attach file': 'Attach file',
+    'Attachment': 'Attachment',
+    'Attachment link is invalid.': 'Attachment link is invalid.',
+    'Attachment: {name}': 'Attachment: {name}',
+    'Back': 'Back',
+    'BuildPulse': 'BuildPulse',
+    'Cancel reply': 'Cancel reply',
+    'Check in': 'Check in',
+    'Check out': 'Check out',
+    'Close': 'Close',
+    'Completed': 'Completed',
+    'Connected': 'Connected',
+    'Conversations': 'Conversations',
+    'Delete attendance': 'Delete attendance',
+    'Delete attendance for {name}?': 'Delete attendance for {name}?',
+    'Delete {name}? This action cannot be undone.':
+        'Delete {name}? This action cannot be undone.',
+    'Delete worker': 'Delete worker',
+    'Documents for {name}': 'Documents for {name}',
+    'Email': 'Email',
+    'Existing printed codes will stop working.':
+        'Existing printed codes will stop working.',
+    'Export': 'Export',
+    'Exporting...': 'Exporting...',
+    'Failed to add attendance.': 'Failed to add attendance.',
+    'Failed to create chat.': 'Failed to create chat.',
+    'Failed to export attendance.': 'Failed to export attendance.',
+    'Failed to load attendance.': 'Failed to load attendance.',
+    'Failed to load documents.': 'Failed to load documents.',
+    'Failed to load this workpoint.': 'Failed to load this workpoint.',
+    'Failed to load workers.': 'Failed to load workers.',
+    'Failed to set checkout.': 'Failed to set checkout.',
+    'Failed to update worker.': 'Failed to update worker.',
+    'Failed to upload attachment.': 'Failed to upload attachment.',
+    'Filter records and export the same period to Excel.':
+        'Filter records and export the same period to Excel.',
+    'From': 'From',
+    'Hourly wage (RON)': 'Hourly wage (RON)',
+    'Hours: {value}': 'Hours: {value}',
+    'Loading attendance...': 'Loading attendance...',
+    'Loading conversations...': 'Loading conversations...',
+    'Loading messages...': 'Loading messages...',
+    'Loading workpoint...': 'Loading workpoint...',
+    'Loading workers...': 'Loading workers...',
+    'Manual attendance': 'Manual attendance',
+    'Manual entry': 'Manual entry',
+    'Manage registered workers and their documents.':
+        'Manage registered workers and their documents.',
+    'New conversation': 'New conversation',
+    'No conversations': 'No conversations',
+    'No messages yet': 'No messages yet',
+    'No users found': 'No users found',
+    'No wage': 'No wage',
+    'No workers assigned to this workpoint.':
+        'No workers assigned to this workpoint.',
+    'No workers available to assign.': 'No workers available to assign.',
+    'No workers registered yet': 'No workers registered yet',
+    'Not checked out yet': 'Not checked out yet',
+    'Offline': 'Offline',
+    'Open QR': 'Open QR',
+    'QR check-in': 'QR check-in',
+    'QR code is not available yet.': 'QR code is not available yet.',
+    'QR link copied.': 'QR link copied.',
+    'Records {count}': 'Records {count}',
+    'Remove': 'Remove',
+    'Remove {name} from this workpoint?': 'Remove {name} from this workpoint?',
+    'Remove worker': 'Remove worker',
+    'Replying to {name}: {message}': 'Replying to {name}: {message}',
+    'Rotate': 'Rotate',
+    'Rotate QR code': 'Rotate QR code',
+    'Search conversations': 'Search conversations',
+    'Search users': 'Search users',
+    'Send': 'Send',
+    'Set checkout': 'Set checkout',
+    'Start a direct chat or wait for a workpoint chat.':
+        'Start a direct chat or wait for a workpoint chat.',
+    'Time': 'Time',
+    'To': 'To',
+    'Typing...': 'Typing...',
+    'Worker': 'Worker',
+    'Workers {count}': 'Workers {count}',
+    'Workers scan this code to check in or out.':
+        'Workers scan this code to check in or out.',
+    'Workpoint details': 'Workpoint details',
+    'Workpoint not found': 'Workpoint not found',
+    'Workpoints {count}': 'Workpoints {count}',
+    'Write a message...': 'Write a message...',
+    '{amount} RON/h': '{amount} RON/h',
+    'Leave Calendar': 'Leave Calendar',
+    'Select a leave period directly on the calendar.':
+        'Select a leave period directly on the calendar.',
+    'Review employee leave requests and approved absences.':
+        'Review employee leave requests and approved absences.',
+    'Loading leave requests...': 'Loading leave requests...',
+    'Failed to load leave requests.': 'Failed to load leave requests.',
+    'You cannot select past dates.': 'You cannot select past dates.',
+    'This period overlaps with an existing request.':
+        'This period overlaps with an existing request.',
+    'Please select a start and end date.':
+        'Please select a start and end date.',
+    'Please choose a leave type.': 'Please choose a leave type.',
+    'Leave request submitted.': 'Leave request submitted.',
+    'Failed to submit leave request.': 'Failed to submit leave request.',
+    'Leave request approved.': 'Leave request approved.',
+    'Failed to approve leave request.': 'Failed to approve leave request.',
+    'Leave request rejected.': 'Leave request rejected.',
+    'Failed to reject leave request.': 'Failed to reject leave request.',
+    'Cancel request': 'Cancel request',
+    'Cancel this pending request?': 'Cancel this pending request?',
+    'Leave request canceled.': 'Leave request canceled.',
+    'Failed to cancel leave request.': 'Failed to cancel leave request.',
+    'Click a start date, then an end date.':
+        'Click a start date, then an end date.',
+    'Approved leave is highlighted on the calendar.':
+        'Approved leave is highlighted on the calendar.',
+    'Previous month': 'Previous month',
+    'Next month': 'Next month',
+    'Mon': 'Mon',
+    'Tue': 'Tue',
+    'Wed': 'Wed',
+    'Thu': 'Thu',
+    'Fri': 'Fri',
+    'Sat': 'Sat',
+    'Sun': 'Sun',
+    'New leave request': 'New leave request',
+    'Select dates and lock the period for approval.':
+        'Select dates and lock the period for approval.',
+    'Vacation leave': 'Vacation leave',
+    'Sick leave': 'Sick leave',
+    'Leave type': 'Leave type',
+    'Not selected': 'Not selected',
+    'Start date': 'Start date',
+    'End date': 'End date',
+    'Submitting...': 'Submitting...',
+    'Submit request': 'Submit request',
+    'Clear': 'Clear',
+    'Pending approvals': 'Pending approvals',
+    'Requests waiting for a manager decision.':
+        'Requests waiting for a manager decision.',
+    'No pending requests.': 'No pending requests.',
+    'All leave requests': 'All leave requests',
+    'Your leave requests': 'Your leave requests',
+    'Approved and rejected requests stay visible here.':
+        'Approved and rejected requests stay visible here.',
+    'Track your submitted leave requests and approval status.':
+        'Track your submitted leave requests and approval status.',
+    'No reviewed leave requests yet.': 'No reviewed leave requests yet.',
+    'No leave requests yet.': 'No leave requests yet.',
+    'Approved': 'Approved',
+    'Rejected': 'Rejected',
+    'Submitted': 'Submitted',
+    'Approve': 'Approve',
+    'Reject': 'Reject',
   },
   AppLanguage.romanian: {
     'Address': 'Adresa',
     'Address is required.': 'Adresa este obligatorie.',
-    'Already have an account? Sign in':
-        'Ai deja un cont? Autentifica-te',
+    'Already have an account? Sign in': 'Ai deja un cont? Autentifica-te',
     'Allow location access to scan attendance.':
         'Permite accesul la locatie pentru a inregistra prezenta.',
     'Ask an admin to set your wage':
@@ -341,7 +506,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Deadline': 'Termen limita',
     'Deadline {date}': 'Termen limita {date}',
     'Delete': 'Sterge',
+    'Delete document': 'Sterge documentul',
     'Delete workpoint': 'Sterge punctul de lucru',
+    'Delete {name}?': 'Stergi {name}?',
     'Delete {name}? Attendance, assignments, and the workpoint chat will be removed.':
         'Stergi {name}? Prezenta, alocarile si chatul punctului de lucru vor fi eliminate.',
     'Description': 'Descriere',
@@ -353,20 +520,18 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Email address': 'Adresa de email',
     'Email is required.': 'Emailul este obligatoriu.',
     'Expires {date}': 'Expira la {date}',
-    'Failed to load invitations.':
-        'Invitatiile nu au putut fi incarcate.',
-    'Failed to open attachment.':
-        'Atasamentul nu a putut fi deschis.',
-    'Failed to load workpoints.':
-        'Punctele de lucru nu au putut fi incarcate.',
+    'Failed to load invitations.': 'Invitatiile nu au putut fi incarcate.',
+    'Failed to open attachment.': 'Atasamentul nu a putut fi deschis.',
+    'Failed to load workpoints.': 'Punctele de lucru nu au putut fi incarcate.',
+    'Failed to load workpoint documents.':
+        'Documentele punctului de lucru nu au putut fi incarcate.',
     'Failed to load your documents.':
         'Documentele tale nu au putut fi incarcate.',
     'Failed to load your worker dashboard.':
         'Tabloul tau de bord nu a putut fi incarcat.',
-    'Failed to save workpoint.':
-        'Punctul de lucru nu a putut fi salvat.',
-    'Failed to send invitation.':
-        'Invitatia nu a putut fi trimisa.',
+    'Failed to save workpoint.': 'Punctul de lucru nu a putut fi salvat.',
+    'Failed to send invitation.': 'Invitatia nu a putut fi trimisa.',
+    'Failed to upload document.': 'Documentul nu a putut fi incarcat.',
     'File': 'Fisier',
     'Home': 'Acasa',
     'Hourly wage': 'Salariu pe ora',
@@ -401,8 +566,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Must start with an uppercase letter and be at least 6 characters.':
         'Trebuie sa inceapa cu o litera mare si sa aiba cel putin 6 caractere.',
     'Name': 'Nume',
-    'Name and address are required.':
-        'Numele si adresa sunt obligatorii.',
+    'Name and address are required.': 'Numele si adresa sunt obligatorii.',
     'Name is required.': 'Numele este obligatoriu.',
     'Network error. Please check the API connection.':
         'Eroare de retea. Verifica conexiunea la API.',
@@ -416,6 +580,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No documents': 'Fara documente',
     'No documents have been shared with you yet.':
         'Nu au fost distribuite documente pentru tine inca.',
+    'No documents uploaded for this workpoint.':
+        'Nu exista documente incarcate pentru acest punct de lucru.',
     'No invitations': 'Fara invitatii',
     'No invitations yet.': 'Nu exista invitatii inca.',
     'No workers available.': 'Nu exista muncitori disponibili.',
@@ -429,8 +595,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'PENDING': 'In asteptare',
     'Pending': 'In asteptare',
     'Password': 'Parola',
-    'Password does not match the rules.':
-        'Parola nu respecta regulile.',
+    'Password does not match the rules.': 'Parola nu respecta regulile.',
     'Password is required.': 'Parola este obligatorie.',
     'Please enter a username.': 'Introdu un nume de utilizator.',
     'Preview and download documents shared with your worker profile.':
@@ -471,6 +636,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Try again': 'Incearca din nou',
     'Unable to record attendance.': 'Prezenta nu a putut fi inregistrata.',
     'Unavailable': 'Indisponibil',
+    'Upload': 'Incarca',
+    'Uploading...': 'Se incarca...',
     'Uploaded {date}': 'Incarcat la {date}',
     'Use the form above to invite your first user.':
         'Foloseste formularul de mai sus pentru a invita primul utilizator.',
@@ -483,6 +650,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'WORKER': 'Muncitor',
     'Workers': 'Muncitori',
     'Workpoint': 'Punct de lucru',
+    'Workpoint documents': 'Documente punct de lucru',
     'Workpoints': 'Puncte de lucru',
     'Worker profile': 'Profil muncitor',
     '{count} complete': '{count} complete',
@@ -492,16 +660,184 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attendance by workpoint': 'Prezenta pe punct de lucru',
     'Your own check-ins and check-outs for {periodLabel}.':
         'Intrarile si iesirile tale pentru {periodLabel}.',
-    'Your assignments will show up here.':
-        'Atribuirile tale vor aparea aici.',
+    'Your assignments will show up here.': 'Atribuirile tale vor aparea aici.',
     'Your BuildPulse home': 'Panoul tau BuildPulse',
     'Your documents': 'Documentele tale',
     'You are accepting an invitation. Your role will be assigned.':
         'Accepti o invitatie. Rolul tau va fi atribuit automat.',
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Rasfoieste santierele si gestioneaza muncitorii, prezenta si instrumentele QR.',
+    'by {name}': 'de {name}',
     'Create one to start assigning workers.':
         'Creeaza unul pentru a incepe alocarea muncitorilor.',
+    'Active': 'Activ',
+    'Actions': 'Actiuni',
+    'Add': 'Adauga',
+    'Assign a worker before adding attendance.':
+        'Aloca un muncitor inainte de a adauga prezenta.',
+    'Assign worker': 'Atribuie muncitor',
+    'Assigned workers': 'Muncitori alocati',
+    'Attach file': 'Ataseaza fisier',
+    'Attachment': 'Atasament',
+    'Attachment link is invalid.': 'Linkul atasamentului este invalid.',
+    'Attachment: {name}': 'Atasament: {name}',
+    'Back': 'Inapoi',
+    'BuildPulse': 'BuildPulse',
+    'Cancel reply': 'Anuleaza raspunsul',
+    'Check in': 'Intrare',
+    'Check out': 'Iesire',
+    'Close': 'Inchide',
+    'Completed': 'Finalizat',
+    'Connected': 'Conectat',
+    'Conversations': 'Conversatii',
+    'Delete attendance': 'Sterge prezenta',
+    'Delete attendance for {name}?': 'Stergi prezenta pentru {name}?',
+    'Delete {name}? This action cannot be undone.':
+        'Stergi {name}? Aceasta actiune nu poate fi anulata.',
+    'Delete worker': 'Sterge muncitor',
+    'Documents for {name}': 'Documente pentru {name}',
+    'Email': 'Email',
+    'Existing printed codes will stop working.':
+        'Codurile tiparite existente nu vor mai functiona.',
+    'Export': 'Exporta',
+    'Exporting...': 'Se exporta...',
+    'Failed to add attendance.': 'Prezenta nu a putut fi adaugata.',
+    'Failed to create chat.': 'Chatul nu a putut fi creat.',
+    'Failed to export attendance.': 'Prezenta nu a putut fi exportata.',
+    'Failed to load attendance.': 'Prezenta nu a putut fi incarcata.',
+    'Failed to load documents.': 'Documentele nu au putut fi incarcate.',
+    'Failed to load this workpoint.':
+        'Acest punct de lucru nu a putut fi incarcat.',
+    'Failed to load workers.': 'Muncitorii nu au putut fi incarcati.',
+    'Failed to set checkout.': 'Iesirea nu a putut fi setata.',
+    'Failed to update worker.': 'Muncitorul nu a putut fi actualizat.',
+    'Failed to upload attachment.': 'Atasamentul nu a putut fi incarcat.',
+    'Filter records and export the same period to Excel.':
+        'Filtreaza inregistrarile si exporta aceeasi perioada in Excel.',
+    'From': 'De la',
+    'Hourly wage (RON)': 'Salariu pe ora (RON)',
+    'Hours: {value}': 'Ore: {value}',
+    'Loading attendance...': 'Se incarca prezenta...',
+    'Loading conversations...': 'Se incarca conversatiile...',
+    'Loading messages...': 'Se incarca mesajele...',
+    'Loading workpoint...': 'Se incarca punctul de lucru...',
+    'Loading workers...': 'Se incarca muncitorii...',
+    'Manual attendance': 'Prezenta manuala',
+    'Manual entry': 'Intrare manuala',
+    'Manage registered workers and their documents.':
+        'Gestioneaza muncitorii inregistrati si documentele lor.',
+    'New conversation': 'Conversatie noua',
+    'No conversations': 'Nicio conversatie',
+    'No messages yet': 'Niciun mesaj inca',
+    'No users found': 'Nu s-au gasit utilizatori',
+    'No wage': 'Fara salariu',
+    'No workers assigned to this workpoint.':
+        'Nu sunt muncitori alocati acestui punct de lucru.',
+    'No workers available to assign.':
+        'Nu exista muncitori disponibili de alocat.',
+    'No workers registered yet': 'Nu exista muncitori inregistrati inca',
+    'Not checked out yet': 'Iesire neinregistrata inca',
+    'Offline': 'Offline',
+    'Open QR': 'Deschide QR',
+    'QR check-in': 'Check-in QR',
+    'QR code is not available yet.': 'Codul QR nu este disponibil inca.',
+    'QR link copied.': 'Linkul QR a fost copiat.',
+    'Records {count}': 'Inregistrari {count}',
+    'Remove': 'Elimina',
+    'Remove {name} from this workpoint?':
+        'Elimini {name} de la acest punct de lucru?',
+    'Remove worker': 'Elimina muncitor',
+    'Replying to {name}: {message}': 'Raspunzi lui {name}: {message}',
+    'Rotate': 'Roteaza',
+    'Rotate QR code': 'Roteaza codul QR',
+    'Search conversations': 'Cauta conversatii',
+    'Search users': 'Cauta utilizatori',
+    'Send': 'Trimite',
+    'Set checkout': 'Seteaza iesirea',
+    'Start a direct chat or wait for a workpoint chat.':
+        'Porneste un chat direct sau asteapta un chat de punct de lucru.',
+    'Time': 'Ora',
+    'To': 'Pana la',
+    'Typing...': 'Tasteaza...',
+    'Worker': 'Muncitor',
+    'Workers {count}': 'Muncitori {count}',
+    'Workers scan this code to check in or out.':
+        'Muncitorii scaneaza acest cod pentru a intra sau iesi.',
+    'Workpoint details': 'Detalii punct de lucru',
+    'Workpoint not found': 'Punct de lucru negasit',
+    'Workpoints {count}': 'Puncte de lucru {count}',
+    'Write a message...': 'Scrie un mesaj...',
+    '{amount} RON/h': '{amount} RON/ora',
+    'Leave Calendar': 'Calendar concedii',
+    'Select a leave period directly on the calendar.':
+        'Selecteaza o perioada de concediu direct in calendar.',
+    'Review employee leave requests and approved absences.':
+        'Revizuieste cererile de concediu ale angajatilor si absentele aprobate.',
+    'Loading leave requests...': 'Se incarca cererile de concediu...',
+    'Failed to load leave requests.':
+        'Cererile de concediu nu au putut fi incarcate.',
+    'You cannot select past dates.': 'Nu poti selecta date din trecut.',
+    'This period overlaps with an existing request.':
+        'Aceasta perioada se suprapune cu o cerere existenta.',
+    'Please select a start and end date.':
+        'Te rugam sa selectezi o data de inceput si una de sfarsit.',
+    'Please choose a leave type.': 'Te rugam sa alegi un tip de concediu.',
+    'Leave request submitted.': 'Cererea de concediu a fost trimisa.',
+    'Failed to submit leave request.':
+        'Cererea de concediu nu a putut fi trimisa.',
+    'Leave request approved.': 'Cererea de concediu a fost aprobata.',
+    'Failed to approve leave request.':
+        'Cererea de concediu nu a putut fi aprobata.',
+    'Leave request rejected.': 'Cererea de concediu a fost respinsa.',
+    'Failed to reject leave request.':
+        'Cererea de concediu nu a putut fi respinsa.',
+    'Cancel request': 'Anuleaza cererea',
+    'Cancel this pending request?': 'Anulezi aceasta cerere in asteptare?',
+    'Leave request canceled.': 'Cererea de concediu a fost anulata.',
+    'Failed to cancel leave request.':
+        'Cererea de concediu nu a putut fi anulata.',
+    'Click a start date, then an end date.':
+        'Apasa o data de inceput, apoi o data de sfarsit.',
+    'Approved leave is highlighted on the calendar.':
+        'Concediile aprobate sunt evidentiate in calendar.',
+    'Previous month': 'Luna anterioara',
+    'Next month': 'Luna urmatoare',
+    'Mon': 'Lun',
+    'Tue': 'Mar',
+    'Wed': 'Mie',
+    'Thu': 'Joi',
+    'Fri': 'Vin',
+    'Sat': 'Sam',
+    'Sun': 'Dum',
+    'New leave request': 'Cerere de concediu noua',
+    'Select dates and lock the period for approval.':
+        'Selecteaza datele si blocheaza perioada pentru aprobare.',
+    'Vacation leave': 'Concediu de odihna',
+    'Sick leave': 'Concediu medical',
+    'Leave type': 'Tip concediu',
+    'Not selected': 'Neselectat',
+    'Start date': 'Data de inceput',
+    'End date': 'Data de sfarsit',
+    'Submitting...': 'Se trimite...',
+    'Submit request': 'Trimite cererea',
+    'Clear': 'Goleste',
+    'Pending approvals': 'Aprobari in asteptare',
+    'Requests waiting for a manager decision.':
+        'Cereri in asteptarea unei decizii de la manager.',
+    'No pending requests.': 'Nu exista cereri in asteptare.',
+    'All leave requests': 'Toate cererile de concediu',
+    'Your leave requests': 'Cererile tale de concediu',
+    'Approved and rejected requests stay visible here.':
+        'Cereri aprobate si respinse raman vizibile aici.',
+    'Track your submitted leave requests and approval status.':
+        'Urmareste cererile de concediu trimise si statusul aprobarii.',
+    'No reviewed leave requests yet.': 'Nu exista cereri revizuite inca.',
+    'No leave requests yet.': 'Nu exista cereri de concediu inca.',
+    'Approved': 'Aprobata',
+    'Rejected': 'Respinsa',
+    'Submitted': 'Trimisa',
+    'Approve': 'Aproba',
+    'Reject': 'Respinge',
   },
   AppLanguage.hungarian: {
     'Address': 'Cim',
@@ -541,11 +877,14 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Deadline': 'Hatarido',
     'Deadline {date}': 'Hatarido: {date}',
     'Delete': 'Torles',
+    'Delete document': 'Dokumentum torlese',
     'Delete workpoint': 'Munkapont torlese',
+    'Delete {name}?': 'Toroljuk {name}?',
     'Delete {name}? Attendance, assignments, and the workpoint chat will be removed.':
         'Toroljuk ezt: {name}? A jelenlet, a hozzarendelesek es a munkapont csevegese is torlodik.',
     'Description': 'Leiras',
     'Documents': 'Dokumentumok',
+    'Documents for {name}': 'Dokumentumok: {name}',
     'Done': 'Kesz',
     'Earnings': 'Kereset',
     'Edit': 'Szerkesztes',
@@ -553,20 +892,17 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Email address': 'Email cim',
     'Email is required.': 'Az email cim kotelezo.',
     'Expires {date}': 'Lejar ekkor: {date}',
-    'Failed to load invitations.':
-        'A meghivok betoltese nem sikerult.',
-    'Failed to open attachment.':
-        'A csatolmany megnyitasa nem sikerult.',
-    'Failed to load workpoints.':
-        'A munkapontok betoltese nem sikerult.',
-    'Failed to load your documents.':
-        'A dokumentumok betoltese nem sikerult.',
+    'Failed to load invitations.': 'A meghivok betoltese nem sikerult.',
+    'Failed to open attachment.': 'A csatolmany megnyitasa nem sikerult.',
+    'Failed to load workpoints.': 'A munkapontok betoltese nem sikerult.',
+    'Failed to load workpoint documents.':
+        'A munkapont dokumentumainak betoltese nem sikerult.',
+    'Failed to load your documents.': 'A dokumentumok betoltese nem sikerult.',
     'Failed to load your worker dashboard.':
         'A dolgozoi attekintes betoltese nem sikerult.',
-    'Failed to save workpoint.':
-        'A munkapont mentese nem sikerult.',
-    'Failed to send invitation.':
-        'A meghivo kuldese nem sikerult.',
+    'Failed to save workpoint.': 'A munkapont mentese nem sikerult.',
+    'Failed to send invitation.': 'A meghivo kuldese nem sikerult.',
+    'Failed to upload document.': 'A dokumentum feltoltese nem sikerult.',
     'File': 'Fajl',
     'Home': 'Kezdolap',
     'Hourly wage': 'Oraber',
@@ -591,8 +927,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'A helyhozzaferes le van tiltva. Engedelyezd a keszulek beallitasainal a jelenlet rogzitesehez.',
     'Location timed out. Move somewhere with a clearer signal and try again.':
         'A helymeghatarozas idotullepessel leallt. Menj jobb jelu helyre, es probald ujra.',
-    'Are you sure you want to log out?':
-        'Biztosan ki szeretnel jelentkezni?',
+    'Are you sure you want to log out?': 'Biztosan ki szeretnel jelentkezni?',
     'Light theme': 'Vilagos tema',
     'Login failed': 'A belepes sikertelen',
     'Log out': 'Kijelentkezes',
@@ -601,8 +936,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Must start with an uppercase letter and be at least 6 characters.':
         'Nagybetuvel kell kezdodnie, es legalabb 6 karakterbol kell allnia.',
     'Name': 'Nev',
-    'Name and address are required.':
-        'A nev es a cim kotelezo.',
+    'Name and address are required.': 'A nev es a cim kotelezo.',
     'Name is required.': 'A nev kotelezo.',
     'Network error. Please check the API connection.':
         'Halozati hiba. Ellenorizd az API kapcsolatot.',
@@ -616,6 +950,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No documents': 'Nincsenek dokumentumok',
     'No documents have been shared with you yet.':
         'Meg nem osztottak meg veled dokumentumokat.',
+    'No documents uploaded for this workpoint.':
+        'Ehhez a munkaponthoz meg nincs feltoltott dokumentum.',
     'No invitations': 'Nincsenek meghivok',
     'No invitations yet.': 'Meg nincsenek meghivok.',
     'No workers available.': 'Nincs elerheto dolgozo.',
@@ -671,6 +1007,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Try again': 'Probald ujra',
     'Unable to record attendance.': 'A jelenlet rogzitese nem sikerult.',
     'Unavailable': 'Nem erheto el',
+    'Upload': 'Feltoltes',
+    'Uploading...': 'Feltoltes...',
     'Uploaded {date}': 'Feltoltve: {date}',
     'Use the form above to invite your first user.':
         'A fenti urlappal hívhatod meg az elso felhasznalot.',
@@ -683,6 +1021,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'WORKER': 'Munkas',
     'Workers': 'Dolgozok',
     'Workpoint': 'Munkapont',
+    'Workpoint documents': 'Munkapont dokumentumai',
     'Workpoints': 'Munkapontok',
     'Worker profile': 'Dolgozoi profil',
     '{count} complete': '{count} lezart',
@@ -700,8 +1039,174 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Egy meghivot fogadsz el. A szerepkorod automatikusan be lesz allitva.',
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Bongessz a munkateruletek kozott, es kezeld a dolgozokat, a jelenletet es a QR eszkozoket.',
+    'by {name}': '{name} altal',
     'Create one to start assigning workers.':
         'Hozz letre egyet a dolgozok hozzarendelesehez.',
+    'Active': 'Aktiv',
+    'Actions': 'Muveletek',
+    'Add': 'Hozzaad',
+    'Assign a worker before adding attendance.':
+        'Rendelj hozza dolgozot, mielott jelenletet adsz hozza.',
+    'Assign worker': 'Dolgozo hozzarendelese',
+    'Assigned workers': 'Hozzarendelt dolgozok',
+    'Attach file': 'Fajl csatolasa',
+    'Attachment': 'Csatolmany',
+    'Attachment link is invalid.': 'A csatolmany hivatkozasa ervenytelen.',
+    'Attachment: {name}': 'Csatolmany: {name}',
+    'Back': 'Vissza',
+    'BuildPulse': 'BuildPulse',
+    'Cancel reply': 'Valasz megszakitasa',
+    'Check in': 'Belepes',
+    'Check out': 'Kilepes',
+    'Close': 'Bezar',
+    'Completed': 'Lezart',
+    'Connected': 'Csatlakozva',
+    'Conversations': 'Beszelgetesek',
+    'Delete attendance': 'Jelenlet torlese',
+    'Delete attendance for {name}?': 'Toroljuk {name} jelenletet?',
+    'Delete {name}? This action cannot be undone.':
+        'Toroljuk {name} nevut? Ez a muvelet nem visszavonhato.',
+    'Delete worker': 'Dolgozo torlese',
+    'Email': 'Email',
+    'Existing printed codes will stop working.':
+        'A mar kinyomtatott kodok nem fognak mukodni.',
+    'Export': 'Export',
+    'Exporting...': 'Exportalas...',
+    'Failed to add attendance.': 'A jelenlet hozzaadasa nem sikerult.',
+    'Failed to create chat.': 'A chat letrehozasa nem sikerult.',
+    'Failed to export attendance.': 'A jelenlet exportalasa nem sikerult.',
+    'Failed to load attendance.': 'A jelenlet betoltese nem sikerult.',
+    'Failed to load documents.': 'A dokumentumok betoltese nem sikerult.',
+    'Failed to load this workpoint.': 'Ez a munkapont nem toltheto be.',
+    'Failed to load workers.': 'A dolgozok betoltese nem sikerult.',
+    'Failed to set checkout.': 'A kilepes beallitasa nem sikerult.',
+    'Failed to update worker.': 'A dolgozo frissitese nem sikerult.',
+    'Failed to upload attachment.': 'A csatolmany feltoltese nem sikerult.',
+    'Filter records and export the same period to Excel.':
+        'Szurd a bejegyzeseket es exportald ugyanazt az idoszakot Excelbe.',
+    'From': 'Tol',
+    'Hourly wage (RON)': 'Oraber (RON)',
+    'Hours: {value}': 'Orak: {value}',
+    'Loading attendance...': 'Jelenlet betoltese...',
+    'Loading conversations...': 'Beszelgetesek betoltese...',
+    'Loading messages...': 'Uzenetek betoltese...',
+    'Loading workpoint...': 'Munkapont betoltese...',
+    'Loading workers...': 'Dolgozok betoltese...',
+    'Manual attendance': 'Manualis jelenlet',
+    'Manual entry': 'Manualis bejegyzes',
+    'Manage registered workers and their documents.':
+        'Kezeld a regisztralt dolgozokat es dokumentumaikat.',
+    'New conversation': 'Uj beszelgetes',
+    'No conversations': 'Nincsenek beszelgetesek',
+    'No messages yet': 'Meg nincsenek uzenetek',
+    'No users found': 'Nincsenek talalatok',
+    'No wage': 'Nincs ber',
+    'No workers assigned to this workpoint.':
+        'Nincs dolgozo hozzarendelve ehhez a munkaponthoz.',
+    'No workers available to assign.':
+        'Nincs elerheto dolgozo a hozzarendeleshez.',
+    'No workers registered yet': 'Meg nincsenek regisztralt dolgozok',
+    'Not checked out yet': 'Meg nincs kilepes rogzitve',
+    'Offline': 'Offline',
+    'Open QR': 'QR megnyitasa',
+    'QR check-in': 'QR belepes',
+    'QR code is not available yet.': 'A QR-kod meg nem elerheto.',
+    'QR link copied.': 'A QR link masolva.',
+    'Records {count}': 'Bejegyzesek {count}',
+    'Remove': 'Eltavolit',
+    'Remove {name} from this workpoint?':
+        'Eltavolitod {name} nevu dolgozot a munkapontrol?',
+    'Remove worker': 'Dolgozo eltavolitasa',
+    'Replying to {name}: {message}': 'Valasz {name} uzenetere: {message}',
+    'Rotate': 'Forgatas',
+    'Rotate QR code': 'QR kod forgatasa',
+    'Search conversations': 'Beszelgetesek keresese',
+    'Search users': 'Felhasznalok keresese',
+    'Send': 'Kuldes',
+    'Set checkout': 'Kilepes beallitasa',
+    'Start a direct chat or wait for a workpoint chat.':
+        'Indits kozvetlen csevegetest vagy varj a munkapont chatre.',
+    'Time': 'Ido',
+    'To': 'Ig',
+    'Typing...': 'Geplel...',
+    'Worker': 'Dolgozo',
+    'Workers {count}': 'Dolgozok {count}',
+    'Workers scan this code to check in or out.':
+        'A dolgozok ezzel a koddal lepnek be vagy ki.',
+    'Workpoint details': 'Munkapont reszletei',
+    'Workpoint not found': 'Munkapont nem talalhato',
+    'Workpoints {count}': 'Munkapontok {count}',
+    'Write a message...': 'Irj egy uzenetet...',
+    '{amount} RON/h': '{amount} RON/ora',
+    'Leave Calendar': 'Szabadsag naptar',
+    'Select a leave period directly on the calendar.':
+        'Valassz ki egy szabadsag idoszakot kozvetlenul a naptaron.',
+    'Review employee leave requests and approved absences.':
+        'Vizsgald at a dolgozoi szabadsagkerelmeket es a jovahagyott tavolleeket.',
+    'Loading leave requests...': 'Szabadsagkerelmek betoltese...',
+    'Failed to load leave requests.':
+        'A szabadsagkerelmek betoltese nem sikerult.',
+    'You cannot select past dates.': 'Nem valaszthatsz multbeli datumokat.',
+    'This period overlaps with an existing request.':
+        'Ez az idoszak atfedi egy meglevo kerelmet.',
+    'Please select a start and end date.':
+        'Kerlek valassz kezdodatumot es vegdatumot.',
+    'Please choose a leave type.': 'Kerlek valassz szabadsagtipust.',
+    'Leave request submitted.': 'Szabadsagkerelmet elkuldtuk.',
+    'Failed to submit leave request.':
+        'A szabadsagkeres elkuldese nem sikerult.',
+    'Leave request approved.': 'A szabadsagkeres jovahagyva.',
+    'Failed to approve leave request.':
+        'A szabadsagkeres jovahagyasa nem sikerult.',
+    'Leave request rejected.': 'A szabadsagkeres elutasitva.',
+    'Failed to reject leave request.':
+        'A szabadsagkeres elutasitasa nem sikerult.',
+    'Cancel request': 'Kerelmet torol',
+    'Cancel this pending request?': 'Toroljuk ezt a fuggoben levo kerelmet?',
+    'Leave request canceled.': 'A szabadsagkeres torolve.',
+    'Failed to cancel leave request.': 'A szabadsagkeres torlese nem sikerult.',
+    'Click a start date, then an end date.':
+        'Kattints egy kezdo datumra, majd egy vegdatumra.',
+    'Approved leave is highlighted on the calendar.':
+        'A jovahagyott szabadsag ki van emelve a naptaron.',
+    'Previous month': 'Elozo honap',
+    'Next month': 'Kovetkezo honap',
+    'Mon': 'Het',
+    'Tue': 'Ked',
+    'Wed': 'Sze',
+    'Thu': 'Csu',
+    'Fri': 'Pent',
+    'Sat': 'Szo',
+    'Sun': 'Vas',
+    'New leave request': 'Uj szabadsagkeres',
+    'Select dates and lock the period for approval.':
+        'Valassz datumokat es rogzitsd az idoszakot jovahagyasra.',
+    'Vacation leave': 'Szabadsag',
+    'Sick leave': 'Betegszabadsag',
+    'Leave type': 'Szabadsag tipusa',
+    'Not selected': 'Nincs kivalasztva',
+    'Start date': 'Kezdo datum',
+    'End date': 'Vegdatum',
+    'Submitting...': 'Kuldese folyamatban...',
+    'Submit request': 'Kerelmet kuld',
+    'Clear': 'Torles',
+    'Pending approvals': 'Fuggoben levo jovahagyasok',
+    'Requests waiting for a manager decision.':
+        'A vezeto dontesere varo kerelmek.',
+    'No pending requests.': 'Nincsenek fuggoben levo kerelmek.',
+    'All leave requests': 'Osszes szabadsagkeres',
+    'Your leave requests': 'Sajat szabadsagkereseid',
+    'Approved and rejected requests stay visible here.':
+        'A jovahagyott es elutasitott kerelmek itt maradnak.',
+    'Track your submitted leave requests and approval status.':
+        'Kovesd a bekuldott szabadsagkerelmeket es a jovahagyas statuszat.',
+    'No reviewed leave requests yet.': 'Meg nincsenek elbiralt kerelmek.',
+    'No leave requests yet.': 'Meg nincsenek szabadsagkerelmek.',
+    'Approved': 'Jovahagyva',
+    'Rejected': 'Elutasitva',
+    'Submitted': 'Bekuldve',
+    'Approve': 'Jovahagy',
+    'Reject': 'Elutasit',
   },
 };
 
@@ -717,9 +1222,7 @@ String _translate(
   Map<String, String>? params,
 ]) {
   final template =
-      _messages[language]?[key] ??
-      _messages[AppLanguage.english]?[key] ??
-      key;
+      _messages[language]?[key] ?? _messages[AppLanguage.english]?[key] ?? key;
   if (params == null || params.isEmpty) return template;
 
   var result = template;

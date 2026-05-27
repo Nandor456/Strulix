@@ -9,7 +9,7 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 - Auth: JWT cookie auth with short-lived access cookies and rotating refresh tokens
 - Role-based access: invitations, workpoint, worker assignment, worker account edits, and workpoint attendance operator routes allow `ADMIN` and `LEADER`; attendance time edit routes are `ADMIN`-only
 - Real-time: Socket.IO with JWT auth and chat events
-- File uploads: `/uploads/messaging` is static for messaging attachments; worker documents are stored under `private/worker-documents` and streamed through authenticated `/api/worker-documents/:documentId/file`
+- File uploads: `/uploads/messaging` is static for messaging attachments; worker documents are stored under `private/worker-documents` and streamed through authenticated `/api/worker-documents/:documentId/file`; workpoint documents are stored under `private/workpoint-documents` and streamed through authenticated `/api/workpoint-documents/:documentId/file`
 
 ## Runtime and environment
 
@@ -154,6 +154,20 @@ Worker assignment routes:
 - Body: `{ token }`
 - Removes the current user's FCM device token.
 
+## Leave request routes
+
+Worker/leader request routes:
+- `GET /api/leave-requests/my`
+- `POST /api/leave-requests` with `{ type: "VACATION" | "SICK", startDate: "YYYY-MM-DD", endDate: "YYYY-MM-DD" }`
+- `DELETE /api/leave-requests/:id` cancels the current user's own `PENDING` request.
+
+Admin/leader review routes:
+- `GET /api/leave-requests`
+- `PATCH /api/leave-requests/:id/approve`
+- `PATCH /api/leave-requests/:id/reject`
+
+Leave requests reject past dates, reversed ranges, self-review, and overlaps with the same user's `PENDING` or `APPROVED` requests.
+
 ## Socket.IO events
 
 Socket auth uses the access JWT cookie, bearer token, or socket auth token. Unauthenticated sockets are rejected.
@@ -170,6 +184,7 @@ Server -> client:
 - `chat:bumped` `{ chatId, lastMessageAt }`
 - `chat:changed` `{ chatId }`
 - `attendance:changed` `{ workPointId, workerId?, attendanceId?, changedAt }`
+- `leave-request:changed` `{ action, leaveRequest, changedAt }`
 - `presence:online` `{ userId }`
 - `presence:offline` `{ userId }`
 - `typing` `{ chatId, userId, isTyping }`

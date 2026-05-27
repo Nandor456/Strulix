@@ -96,7 +96,7 @@ export default function Login() {
           <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
             <img
               src="/buildpulselogo.png"
-              alt="BuildPulse logo"
+              alt={t("BuildPulse logo")}
               className="h-6 w-auto"
             />
           </div>
@@ -115,7 +115,7 @@ export default function Login() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
-                placeholder="your.username"
+                placeholder={t("your.username")}
                 minLength={3}
                 required
               />

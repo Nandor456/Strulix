@@ -10,6 +10,7 @@ import 'package:mobile/core/app_router.dart';
 import 'package:mobile/core/app_scope.dart';
 import 'package:mobile/core/formatters.dart';
 import 'package:mobile/core/i18n.dart';
+import 'package:mobile/core/leave_dates.dart';
 import 'package:mobile/core/models.dart';
 import 'package:mobile/core/theme_controller.dart';
 import 'package:mobile/messaging/messaging_controller.dart';
@@ -64,6 +65,25 @@ void main() {
     expect(redirect, '/');
   });
 
+  test('route guard allows the shared leave calendar for workers and leaders', () {
+    expect(
+      buildPulseRedirect(
+        isAuthenticated: true,
+        role: UserRole.worker,
+        uri: Uri.parse('/leave-calendar'),
+      ),
+      isNull,
+    );
+    expect(
+      buildPulseRedirect(
+        isAuthenticated: true,
+        role: UserRole.leader,
+        uri: Uri.parse('/leave-calendar'),
+      ),
+      isNull,
+    );
+  });
+
   test('formatters and user model mirror web behavior', () {
     expect(formatHours(2.75), '2.75h');
     expect(formatMoney(null), 'Not set');
@@ -75,6 +95,40 @@ void main() {
       'role': 'WORKER',
     });
     expect(user.role, UserRole.worker);
+  });
+
+  test('leave date helpers count inclusive days and detect overlaps', () {
+    expect(countInclusiveDays('2026-06-15', '2026-06-17'), 3);
+
+    final request = LeaveRequest.fromJson({
+      'id': 'leave-1',
+      'userId': 'worker-1',
+      'userName': 'worker',
+      'userEmail': 'worker@example.com',
+      'type': 'VACATION',
+      'startDate': '2026-06-15',
+      'endDate': '2026-06-20',
+      'days': 6,
+      'status': 'PENDING',
+      'createdAt': '2026-05-27T10:00:00.000Z',
+    });
+
+    expect(
+      selectedRangeOverlapsRequest(
+        startDate: '2026-06-20',
+        endDate: '2026-06-24',
+        request: request,
+      ),
+      isTrue,
+    );
+    expect(
+      selectedRangeOverlapsRequest(
+        startDate: '2026-06-21',
+        endDate: '2026-06-24',
+        request: request,
+      ),
+      isFalse,
+    );
   });
 
   test('messaging resets when the authenticated user changes', () async {

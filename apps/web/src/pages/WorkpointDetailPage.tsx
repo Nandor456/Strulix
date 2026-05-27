@@ -6,6 +6,7 @@ import {
   Clock,
   Copy,
   Download,
+  FileText,
   FileSpreadsheet,
   MapPin,
   Pencil,
@@ -22,6 +23,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WorkPointDocumentsDialog } from "@/components/workpoints/WorkPointDocumentsDialog";
 import {
   Dialog,
   DialogContent,
@@ -77,6 +79,7 @@ import {
   getCurrentPeriod,
   getMonthBounds,
 } from "@/lib/format";
+import { useI18n } from "@/hooks/useI18n";
 
 function getTodayInputValue() {
   return new Date().toISOString().slice(0, 10);
@@ -122,7 +125,10 @@ export default function WorkpointDetailPage() {
   const navigate = useNavigate();
   const { id: workPointId } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t } = useI18n();
   const isAdmin = user?.role === "ADMIN";
+  const canManageWorkPointDocuments =
+    user?.role === "ADMIN" || user?.role === "LEADER";
 
   const currentPeriod = getCurrentPeriod();
   const currentBounds = getMonthBounds(currentPeriod);
@@ -164,6 +170,7 @@ export default function WorkpointDetailPage() {
   const [attendanceTimeError, setAttendanceTimeError] = useState<string | null>(null);
   const [copiedQr, setCopiedQr] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
 
   const scanUrl = qr ? `${window.location.origin}/checkin/${qr.qrToken}` : "";
 
@@ -202,7 +209,7 @@ export default function WorkpointDetailPage() {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        "Failed to add attendance";
+        t("Failed to add attendance");
       setManualError(message);
     }
   }
@@ -237,13 +244,19 @@ export default function WorkpointDetailPage() {
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        "Failed to update attendance hours";
+        t("Failed to update attendance hours");
       setAttendanceTimeError(message);
     }
   }
 
   async function handleDeleteAttendance(record: AttendanceRecord) {
-    if (!window.confirm(`Delete attendance for ${record.worker.username}?`)) return;
+    if (
+      !window.confirm(
+        t("Delete attendance for {name}?", { name: record.worker.username }),
+      )
+    ) {
+      return;
+    }
     await deleteAttendance.mutateAsync(record.id);
   }
 
@@ -268,7 +281,13 @@ export default function WorkpointDetailPage() {
 
   async function handleRotateQr() {
     if (!workPointId) return;
-    if (!window.confirm("Rotate this QR code? Existing printed codes will stop working.")) return;
+    if (
+      !window.confirm(
+        t("Rotate this QR code? Existing printed codes will stop working."),
+      )
+    ) {
+      return;
+    }
     await rotateQr.mutateAsync();
   }
 
@@ -280,9 +299,9 @@ export default function WorkpointDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-semibold">Workpoint details</h1>
+            <h1 className="text-3xl font-semibold">{t("Workpoint details")}</h1>
             <p className="text-sm text-muted-foreground">
-              Manage assignments, attendance, QR access, and exports for this site.
+              {t("Manage assignments, attendance, QR access, and exports for this site.")}
             </p>
           </div>
         </div>
@@ -296,12 +315,12 @@ export default function WorkpointDetailPage() {
 
       {error != null && !isLoading && (
         <Alert variant="destructive" className="mb-4">
-          Failed to load this workpoint.
+          {t("Failed to load this workpoint.")}
         </Alert>
       )}
 
       {!isLoading && !error && !workPoint && (
-        <Alert>That workpoint could not be found.</Alert>
+        <Alert>{t("That workpoint could not be found.")}</Alert>
       )}
 
       {workPoint && (
@@ -324,18 +343,22 @@ export default function WorkpointDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm sm:min-w-44">
                 <div className="rounded-md bg-muted/70 px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Workers</p>
+                  <p className="text-xs text-muted-foreground">{t("Workers")}</p>
                   <p className="font-semibold tabular-nums">{workPoint.workerCount}</p>
                 </div>
                 <div className="rounded-md bg-muted/70 px-3 py-2">
-                  <p className="text-xs text-muted-foreground">Records</p>
+                  <p className="text-xs text-muted-foreground">{t("Records")}</p>
                   <p className="font-semibold tabular-nums">{workPoint.attendanceCount}</p>
                 </div>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <span>Deadline: {formatDate(workPoint.deadline)}</span>
-              <span>Created: {formatDate(workPoint.uploadedAt)}</span>
+              <span>
+                {t("Deadline")}: {formatDate(workPoint.deadline)}
+              </span>
+              <span>
+                {t("Created")}: {formatDate(workPoint.uploadedAt)}
+              </span>
               {workPoint.lat != null && workPoint.lng != null && (
                 <span>
                   {workPoint.lat}, {workPoint.lng}
@@ -345,10 +368,27 @@ export default function WorkpointDetailPage() {
           </div>
 
           <div className="rounded-md border bg-card p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold">{t("Workpoint documents")}</h3>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setIsDocumentsOpen(true)}
+                disabled={!canManageWorkPointDocuments}
+              >
+                <FileText className="h-4 w-4" />
+                {t("Documents")}
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-md border bg-card p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Assigned workers</h3>
+                <h3 className="font-semibold">{t("Assigned workers")}</h3>
               </div>
             </div>
 
@@ -359,7 +399,7 @@ export default function WorkpointDetailPage() {
                 disabled={availableWorkers.length === 0 || assignWorker.isPending}
               >
                 <SelectTrigger className="sm:flex-1">
-                  <SelectValue placeholder="Assign worker" />
+                  <SelectValue placeholder={t("Assign worker")} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableWorkers.map((worker) => (
@@ -375,12 +415,12 @@ export default function WorkpointDetailPage() {
                 disabled={!assignWorkerId || assignWorker.isPending}
               >
                 <UserPlus className="h-4 w-4" />
-                Assign
+                {t("Assign")}
               </Button>
             </div>
 
             {assignedWorkers.length === 0 ? (
-              <Alert>No workers assigned to this workpoint.</Alert>
+              <Alert>{t("No workers assigned to this workpoint.")}</Alert>
             ) : (
               <div className="space-y-2">
                 {assignedWorkers.map((worker) => (
@@ -397,8 +437,10 @@ export default function WorkpointDetailPage() {
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">
                         {worker.hourlyWage == null
-                          ? "No wage"
-                          : `${worker.hourlyWage.toFixed(2)} RON/h`}
+                          ? t("No wage")
+                          : t("{amount} RON/h", {
+                            amount: worker.hourlyWage.toFixed(2),
+                          })}
                       </Badge>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -408,12 +450,12 @@ export default function WorkpointDetailPage() {
                             className="text-destructive hover:text-destructive"
                             onClick={() => void handleRemoveWorker(worker.id)}
                             disabled={removeWorker.isPending}
-                            aria-label="Remove worker"
+                            aria-label={t("Remove worker")}
                           >
                             <UserMinus className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Remove worker</TooltipContent>
+                        <TooltipContent>{t("Remove worker")}</TooltipContent>
                       </Tooltip>
                     </div>
                   </div>
@@ -426,7 +468,7 @@ export default function WorkpointDetailPage() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <QrCode className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">QR check-in</h3>
+                <h3 className="font-semibold">{t("QR check-in")}</h3>
               </div>
               {isQrLoading && <Spinner size={16} />}
             </div>
@@ -434,21 +476,25 @@ export default function WorkpointDetailPage() {
             {qr ? (
               <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
                 <div className="rounded-md border bg-white p-3">
-                  <img src={qr.qrPng} alt="Workpoint check-in QR code" className="w-full" />
+                  <img
+                    src={qr.qrPng}
+                    alt={t("Workpoint check-in QR code")}
+                    className="w-full"
+                  />
                 </div>
                 <div className="min-w-0 space-y-3">
                   <Input value={scanUrl} readOnly />
                   <div className="flex flex-wrap gap-2">
                     <Button variant="outline" onClick={() => void handleCopyQr()}>
                       {copiedQr ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copiedQr ? "Copied" : "Copy link"}
+                      {copiedQr ? t("Copied!") : t("Copy link")}
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => downloadDataUrl(qr.qrPng, `${workPoint.name}-qr.png`)}
                     >
                       <Download className="h-4 w-4" />
-                      Download QR
+                      {t("Download QR")}
                     </Button>
                     <Button
                       variant="outline"
@@ -460,13 +506,13 @@ export default function WorkpointDetailPage() {
                       ) : (
                         <RotateCcw className="h-4 w-4" />
                       )}
-                      Rotate
+                      {t("Rotate")}
                     </Button>
                   </div>
                 </div>
               </div>
             ) : (
-              <Alert>QR code is not available yet.</Alert>
+              <Alert>{t("QR code is not available yet.")}</Alert>
             )}
           </div>
 
@@ -475,15 +521,15 @@ export default function WorkpointDetailPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" />
-                  <h3 className="font-semibold">Attendance</h3>
+                  <h3 className="font-semibold">{t("Attendance")}</h3>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Filter records and export the same period to Excel.
+                  {t("Filter records and export the same period to Excel.")}
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="attendance-from">From</Label>
+                  <Label htmlFor="attendance-from">{t("From")}</Label>
                   <Input
                     id="attendance-from"
                     type="date"
@@ -492,7 +538,7 @@ export default function WorkpointDetailPage() {
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="attendance-to">To</Label>
+                  <Label htmlFor="attendance-to">{t("To")}</Label>
                   <Input
                     id="attendance-to"
                     type="date"
@@ -506,7 +552,7 @@ export default function WorkpointDetailPage() {
                   disabled={isExporting}
                 >
                   {isExporting ? <Spinner size={16} /> : <FileSpreadsheet className="h-4 w-4" />}
-                  Export
+                  {t("Export")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -516,7 +562,7 @@ export default function WorkpointDetailPage() {
                   disabled={assignedWorkers.length === 0}
                 >
                   <Plus className="h-4 w-4" />
-                  Manual mark
+                  {t("Manual mark")}
                 </Button>
               </div>
             </div>
@@ -526,19 +572,19 @@ export default function WorkpointDetailPage() {
                 <Spinner size={28} />
               </div>
             ) : attendance.length === 0 ? (
-              <Alert>No attendance records for this period.</Alert>
+              <Alert>{t("No attendance records for this period.")}</Alert>
             ) : (
               <div className="overflow-x-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Worker</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Check in</TableHead>
-                      <TableHead>Check out</TableHead>
-                      <TableHead className="text-right">Hours</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
+                      <TableHead>{t("Worker")}</TableHead>
+                      <TableHead>{t("Date")}</TableHead>
+                      <TableHead>{t("Source")}</TableHead>
+                      <TableHead>{t("Check in")}</TableHead>
+                      <TableHead>{t("Check out")}</TableHead>
+                      <TableHead className="text-right">{t("Hours")}</TableHead>
+                      <TableHead className="text-center">{t("Actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -565,21 +611,23 @@ export default function WorkpointDetailPage() {
                               <span>
                                 {record.checkedOutAt
                                   ? formatDateTime(record.checkedOutAt)
-                                  : "Open"}
+                                  : t("Open")}
                               </span>
                               {record.checkoutSource === "AUTO" && (
                                 <Badge
                                   variant="destructive"
-                                  title="Automatically closed at 22:00. Edit to mark reviewed."
+                                  title={t(
+                                    "Automatically closed at 22:00. Edit to mark reviewed.",
+                                  )}
                                 >
                                   <CircleAlert className="h-3 w-3" />
-                                  Auto
+                                  {t("Auto")}
                                 </Badge>
                               )}
                             </div>
                           </TableCell>
                           <TableCell className="text-right tabular-nums">
-                            {hours == null ? "Open" : formatHours(hours)}
+                            {hours == null ? t("Open") : formatHours(hours)}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-1">
@@ -590,12 +638,12 @@ export default function WorkpointDetailPage() {
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => openAttendanceTimeDialog(record)}
-                                      aria-label="Edit attendance hours"
+                                      aria-label={t("Edit attendance hours")}
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent>Edit hours</TooltipContent>
+                                  <TooltipContent>{t("Edit hours")}</TooltipContent>
                                 </Tooltip>
                               )}
                               <Tooltip>
@@ -605,12 +653,12 @@ export default function WorkpointDetailPage() {
                                     size="icon"
                                     className="text-destructive hover:text-destructive"
                                     onClick={() => void handleDeleteAttendance(record)}
-                                    aria-label="Delete attendance"
+                                    aria-label={t("Delete attendance")}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Delete attendance</TooltipContent>
+                                <TooltipContent>{t("Delete attendance")}</TooltipContent>
                               </Tooltip>
                             </div>
                           </TableCell>
@@ -636,18 +684,18 @@ export default function WorkpointDetailPage() {
       >
         <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Manual attendance</DialogTitle>
+            <DialogTitle>{t("Manual attendance")}</DialogTitle>
             <DialogDescription>
-              Add a check-in and optional check-out for an assigned worker.
+              {t("Add a check-in and optional check-out for an assigned worker.")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(event) => void handleManualAttendance(event)} className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <Label htmlFor="manual-worker">Worker</Label>
+                <Label htmlFor="manual-worker">{t("Worker")}</Label>
                 <Select value={manualWorkerId} onValueChange={setManualWorkerId}>
                   <SelectTrigger id="manual-worker">
-                    <SelectValue placeholder="Choose worker" />
+                    <SelectValue placeholder={t("Choose worker")} />
                   </SelectTrigger>
                   <SelectContent>
                     {assignedWorkers.map((worker) => (
@@ -659,7 +707,7 @@ export default function WorkpointDetailPage() {
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="manual-date">Date</Label>
+                <Label htmlFor="manual-date">{t("Date")}</Label>
                 <Input
                   id="manual-date"
                   type="date"
@@ -668,7 +716,7 @@ export default function WorkpointDetailPage() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="manual-in">Check in</Label>
+                <Label htmlFor="manual-in">{t("Check in")}</Label>
                 <Input
                   id="manual-in"
                   type="datetime-local"
@@ -677,7 +725,7 @@ export default function WorkpointDetailPage() {
                 />
               </div>
               <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <Label htmlFor="manual-out">Check out</Label>
+                <Label htmlFor="manual-out">{t("Check out")}</Label>
                 <Input
                   id="manual-out"
                   type="datetime-local"
@@ -697,16 +745,26 @@ export default function WorkpointDetailPage() {
                 }}
               >
                 <X className="h-4 w-4" />
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button type="submit" disabled={!manualWorkerId || manualMark.isPending}>
                 {manualMark.isPending ? <Spinner size={16} /> : <Plus className="h-4 w-4" />}
-                Add
+                {t("Add")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {workPoint && (
+        <WorkPointDocumentsDialog
+          canManage={canManageWorkPointDocuments}
+          open={isDocumentsOpen}
+          onOpenChange={setIsDocumentsOpen}
+          workPointId={workPointId ?? null}
+          workPointName={workPoint.name}
+        />
+      )}
 
       <Dialog
         open={attendanceTimeRecord !== null}
@@ -718,10 +776,10 @@ export default function WorkpointDetailPage() {
       >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Edit attendance hours</DialogTitle>
+            <DialogTitle>{t("Edit attendance hours")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="attendance-checkin-at">Check-in time</Label>
+            <Label htmlFor="attendance-checkin-at">{t("Check-in time")}</Label>
             <Input
               id="attendance-checkin-at"
               type="datetime-local"
@@ -730,7 +788,7 @@ export default function WorkpointDetailPage() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="attendance-checkout-at">Check-out time</Label>
+            <Label htmlFor="attendance-checkout-at">{t("Check-out time")}</Label>
             <Input
               id="attendance-checkout-at"
               type="datetime-local"
@@ -747,7 +805,7 @@ export default function WorkpointDetailPage() {
               onClick={closeAttendanceTimeDialog}
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               onClick={() => void handleAttendanceTimesSave()}
@@ -758,7 +816,7 @@ export default function WorkpointDetailPage() {
               ) : (
                 <Check className="h-4 w-4" />
               )}
-              Save
+              {t("Save")}
             </Button>
           </DialogFooter>
         </DialogContent>

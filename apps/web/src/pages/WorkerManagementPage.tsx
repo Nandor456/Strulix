@@ -33,6 +33,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useI18n } from "@/hooks/useI18n";
 import {
     useDeleteWorker,
     useUpdateWorker,
@@ -53,13 +54,17 @@ import {
 
 const EDITABLE_ROLES = ["WORKER", "LEADER"];
 
-function getDocumentKind(document: WorkerDocumentSummary) {
-    if (document.mimeType === "application/pdf") return "PDF";
-    if (document.mimeType.startsWith("image/")) return "Image";
-    return "File";
+function getDocumentKind(
+    document: WorkerDocumentSummary,
+    t: (key: string, params?: Record<string, string | number>) => string,
+) {
+    if (document.mimeType === "application/pdf") return t("PDF");
+    if (document.mimeType.startsWith("image/")) return t("Image");
+    return t("File");
 }
 
 export default function WorkerManagementPage() {
+    const { t, roleLabel } = useI18n();
     const { user } = useAuth();
     const canManageWorkerAccounts = user?.role === "ADMIN" || user?.role === "LEADER"; // Only admins and leaders can manage worker accounts
     const { data: workers = [], isLoading } = useWorkers();
@@ -134,7 +139,7 @@ export default function WorkerManagementPage() {
         } catch (err: unknown) {
             const message =
                 (err as { response?: { data?: { error?: string } } })?.response?.data
-                    ?.error ?? "Failed to update worker";
+                    ?.error ?? t("Failed to update worker");
             setEditError(message);
         }
     }
@@ -159,13 +164,13 @@ export default function WorkerManagementPage() {
         } catch (err: unknown) {
             const message =
                 (err as { response?: { data?: { error?: string } } })?.response?.data
-                    ?.error ?? "Failed to upload document";
+                    ?.error ?? t("Failed to upload document");
             setDocumentError(message);
         }
     }
 
     async function handleDocumentDelete(document: WorkerDocumentSummary) {
-        if (!window.confirm(`Delete ${document.originalName}?`)) return;
+        if (!window.confirm(t("Delete {name}?", { name: document.originalName }))) return;
         await deleteDocumentMutation.mutateAsync(document.id);
     }
 
@@ -174,9 +179,9 @@ export default function WorkerManagementPage() {
             <div className="mb-6 flex items-center gap-3">
                 <Users className="h-8 w-8 text-primary" />
                 <div>
-                    <h1 className="text-3xl font-semibold">Workers</h1>
+                    <h1 className="text-3xl font-semibold">{t("Workers")}</h1>
                     <p className="text-sm text-muted-foreground">
-                        Manage registered workers and their documents.
+                        {t("Manage registered workers and their documents.")}
                     </p>
                 </div>
             </div>
@@ -188,7 +193,7 @@ export default function WorkerManagementPage() {
             )}
 
             {!isLoading && workers.length === 0 && (
-                <Alert>No workers registered yet.</Alert>
+                <Alert>{t("No workers registered yet.")}</Alert>
             )}
 
             {!isLoading && workers.length > 0 && (
@@ -196,12 +201,12 @@ export default function WorkerManagementPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Username</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead className="text-center">Work Points</TableHead>
-                                <TableHead className="text-right">Hourly wage</TableHead>
-                                <TableHead className="text-center">Actions</TableHead>
+                                <TableHead>{t("Username")}</TableHead>
+                                <TableHead>{t("Email")}</TableHead>
+                                <TableHead>{t("Role")}</TableHead>
+                                <TableHead className="text-center">{t("Workpoints")}</TableHead>
+                                <TableHead className="text-right">{t("Hourly wage")}</TableHead>
+                                <TableHead className="text-center">{t("Actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -214,16 +219,18 @@ export default function WorkerManagementPage() {
                                         {worker.email}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline">{worker.role}</Badge>
+                                        <Badge variant="outline">{roleLabel(worker.role)}</Badge>
                                     </TableCell>
                                     <TableCell className="text-center text-sm text-muted-foreground">
                                         {worker.assignedWorkPointCount}
                                     </TableCell>
                                     <TableCell className="text-right text-sm tabular-nums">
                                         {worker.hourlyWage != null ? (
-                                            `${worker.hourlyWage.toFixed(2)} RON/h`
+                                            t("{amount} RON/h", {
+                                                amount: worker.hourlyWage.toFixed(2),
+                                            })
                                         ) : (
-                                            <span className="text-muted-foreground">—</span>
+                                            <span className="text-muted-foreground">{t("Not set")}</span>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-center">
@@ -234,12 +241,12 @@ export default function WorkerManagementPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() => openDocumentsDialog(worker)}
-                                                        aria-label="Manage worker documents"
+                                                        aria-label={t("Manage worker documents")}
                                                     >
                                                         <FileText className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
-                                                <TooltipContent>Worker documents</TooltipContent>
+                                                <TooltipContent>{t("Worker documents")}</TooltipContent>
                                             </Tooltip>
                                             {canManageWorkerAccounts && (
                                                 <>
@@ -249,12 +256,12 @@ export default function WorkerManagementPage() {
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 onClick={() => openEditDialog(worker)}
-                                                                aria-label="Edit worker"
+                                                                aria-label={t("Edit worker")}
                                                             >
                                                                 <Pencil className="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent>Edit worker</TooltipContent>
+                                                        <TooltipContent>{t("Edit worker")}</TooltipContent>
                                                     </Tooltip>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
@@ -263,12 +270,12 @@ export default function WorkerManagementPage() {
                                                                 size="icon"
                                                                 className="text-destructive hover:text-destructive"
                                                                 onClick={() => setDeleteWorker(worker)}
-                                                                aria-label="Delete worker"
+                                                                aria-label={t("Delete worker")}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent>Delete worker</TooltipContent>
+                                                        <TooltipContent>{t("Delete worker")}</TooltipContent>
                                                     </Tooltip>
                                                 </>
                                             )}
@@ -288,7 +295,11 @@ export default function WorkerManagementPage() {
                 <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
-                            Documents{documentsWorker ? ` for ${documentsWorker.username}` : ""}
+                            {documentsWorker
+                                ? t("Documents for {name}", {
+                                    name: documentsWorker.username,
+                                })
+                                : t("Documents")}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -314,7 +325,7 @@ export default function WorkerManagementPage() {
                                 ) : (
                                     <Upload className="h-4 w-4" />
                                 )}
-                                Upload
+                                {t("Upload")}
                             </Button>
                         </div>
                         {documentError && (
@@ -329,7 +340,7 @@ export default function WorkerManagementPage() {
                             <Spinner size={28} />
                         </div>
                     ) : workerDocuments.length === 0 ? (
-                        <Alert>No documents uploaded for this worker.</Alert>
+                        <Alert>{t("No documents uploaded for this worker.")}</Alert>
                     ) : (
                         <div className="space-y-2">
                             {workerDocuments.map((document) => (
@@ -343,14 +354,18 @@ export default function WorkerManagementPage() {
                                                 {document.originalName}
                                             </p>
                                             <Badge variant="outline">
-                                                {getDocumentKind(document)}
+                                                {getDocumentKind(document, t)}
                                             </Badge>
                                         </div>
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                            {formatFileSize(document.sizeBytes)} · Uploaded{" "}
-                                            {formatDateTime(document.createdAt)}
+                                            {formatFileSize(document.sizeBytes)} ·{" "}
+                                            {t("Uploaded {date}", {
+                                                date: formatDateTime(document.createdAt),
+                                            })}
                                             {document.uploadedBy
-                                                ? ` by ${document.uploadedBy.username}`
+                                                ? ` ${t("by {name}", {
+                                                    name: document.uploadedBy.username,
+                                                })}`
                                                 : ""}
                                         </p>
                                     </div>
@@ -362,13 +377,13 @@ export default function WorkerManagementPage() {
                                                         href={getWorkerDocumentFileUrl(document.id)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        aria-label="Preview document"
+                                                        aria-label={t("Preview document")}
                                                     >
                                                         <ExternalLink className="h-4 w-4" />
                                                     </a>
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Preview document</TooltipContent>
+                                            <TooltipContent>{t("Preview document")}</TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
@@ -378,13 +393,13 @@ export default function WorkerManagementPage() {
                                                             document.id,
                                                             true,
                                                         )}
-                                                        aria-label="Download document"
+                                                        aria-label={t("Download document")}
                                                     >
                                                         <Download className="h-4 w-4" />
                                                     </a>
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Download document</TooltipContent>
+                                            <TooltipContent>{t("Download document")}</TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
@@ -394,12 +409,12 @@ export default function WorkerManagementPage() {
                                                     className="text-destructive hover:text-destructive"
                                                     onClick={() => void handleDocumentDelete(document)}
                                                     disabled={deleteDocumentMutation.isPending}
-                                                    aria-label="Delete document"
+                                                    aria-label={t("Delete document")}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Delete document</TooltipContent>
+                                            <TooltipContent>{t("Delete document")}</TooltipContent>
                                         </Tooltip>
                                     </div>
                                 </div>
@@ -415,11 +430,11 @@ export default function WorkerManagementPage() {
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit worker</DialogTitle>
+                        <DialogTitle>{t("Edit worker")}</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="edit-username">Username</Label>
+                            <Label htmlFor="edit-username">{t("Username")}</Label>
                             <Input
                                 id="edit-username"
                                 value={editUsername}
@@ -427,7 +442,7 @@ export default function WorkerManagementPage() {
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="edit-email">Email</Label>
+                            <Label htmlFor="edit-email">{t("Email")}</Label>
                             <Input
                                 id="edit-email"
                                 type="email"
@@ -436,7 +451,7 @@ export default function WorkerManagementPage() {
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="edit-role">Role</Label>
+                            <Label htmlFor="edit-role">{t("Role")}</Label>
                             <Select value={editRole} onValueChange={setEditRole}>
                                 <SelectTrigger id="edit-role">
                                     <SelectValue />
@@ -444,20 +459,20 @@ export default function WorkerManagementPage() {
                                 <SelectContent>
                                     {EDITABLE_ROLES.map((role) => (
                                         <SelectItem key={role} value={role}>
-                                            {role.charAt(0) + role.slice(1).toLowerCase().replace("_", " ")}
+                                            {roleLabel(role)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="edit-wage">Hourly wage (RON)</Label>
+                            <Label htmlFor="edit-wage">{t("Hourly wage (RON)")}</Label>
                             <Input
                                 id="edit-wage"
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                placeholder="e.g. 35.50"
+                                placeholder={t("e.g. 35.50")}
                                 value={editWage}
                                 onChange={(e) => setEditWage(e.target.value)}
                             />
@@ -466,14 +481,14 @@ export default function WorkerManagementPage() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={closeEditDialog}>
-                            Cancel
+                            {t("Cancel")}
                         </Button>
                         <Button
                             onClick={handleEditSave}
                             disabled={updateWorkerMutation.isPending}
                         >
                             {updateWorkerMutation.isPending && <Spinner size={16} />}
-                            {updateWorkerMutation.isPending ? "Saving…" : "Save"}
+                            {updateWorkerMutation.isPending ? t("Saving…") : t("Save")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -485,16 +500,16 @@ export default function WorkerManagementPage() {
             >
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>Delete worker</DialogTitle>
+                        <DialogTitle>{t("Delete worker")}</DialogTitle>
                     </DialogHeader>
                     <p className="text-sm text-muted-foreground">
-                        Are you sure you want to delete{" "}
-                        <strong>{deleteWorker?.username}</strong>? This action cannot be
-                        undone.
+                        {t("Are you sure you want to delete {name}? This action cannot be undone.", {
+                            name: deleteWorker?.username ?? "",
+                        })}
                     </p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteWorker(null)}>
-                            Cancel
+                            {t("Cancel")}
                         </Button>
                         <Button
                             variant="destructive"
@@ -502,7 +517,7 @@ export default function WorkerManagementPage() {
                             disabled={deleteWorkerMutation.isPending}
                         >
                             {deleteWorkerMutation.isPending && <Spinner size={16} />}
-                            {deleteWorkerMutation.isPending ? "Deleting…" : "Delete"}
+                            {deleteWorkerMutation.isPending ? t("Deleting…") : t("Delete")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

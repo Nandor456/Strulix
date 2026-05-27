@@ -5,6 +5,10 @@ import {
   getOrCreateWorkPointChat,
   removeParticipantFromChat,
 } from "./messagingService.js";
+import {
+  listWorkPointDocumentStoredNames,
+  removeWorkPointDocumentFiles,
+} from "./workPointDocumentService.js";
 
 type PublicUserSummary = {
   id: string;
@@ -344,6 +348,7 @@ export async function updateWorkPoint(
 
 export async function deleteWorkPoint(id: string): Promise<void> {
   await ensureWorkPointExists(id);
+  const documentStoredNames = await listWorkPointDocumentStoredNames(id);
 
   const chat = await prisma.chat.findUnique({
     where: { workPointId: id },
@@ -362,6 +367,7 @@ export async function deleteWorkPoint(id: string): Promise<void> {
   }
 
   await prisma.workPoint.delete({ where: { id } });
+  await removeWorkPointDocumentFiles(documentStoredNames);
 }
 
 

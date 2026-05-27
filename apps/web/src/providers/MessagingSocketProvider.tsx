@@ -3,6 +3,11 @@ import { io, type Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/services/queryClient";
 import type { ChatListItem, Message } from "@/types/messaging";
+import type { LeaveRequest } from "@/services/api/leaveRequestApi";
+import {
+    removeLeaveRequest,
+    upsertLeaveRequest,
+} from "@/hooks/useLeaveRequests";
 import { MessagingContext } from "@/context/MessagingSocketContext";
 import { useAuth } from "@/hooks/useAuth";
 import { API_ORIGIN } from "@/services/api/config";
@@ -160,6 +165,49 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
             }
         };
 
+        const handleLeaveRequestChanged = ({
+            action,
+            leaveRequest,
+        }: {
+            action: "created" | "approved" | "rejected" | "canceled";
+            leaveRequest: LeaveRequest;
+            changedAt: string;
+        }) => {
+            const update = action === "canceled"
+                ? (old: LeaveRequest[] | undefined) =>
+                    old ? removeLeaveRequest(old, leaveRequest.id) : old
+                : (old: LeaveRequest[] | undefined) =>
+                    old ? upsertLeaveRequest(old, leaveRequest) : old;
+
+            qc.setQueryData<LeaveRequest[]>(
+                QUERY_KEYS.leaveRequests.all,
+                update,
+            );
+
+            qc.setQueryData<LeaveRequest[]>(
+                QUERY_KEYS.leaveRequests.mine,
+                (old) => {
+                    if (!old) return old;
+                    if (action === "canceled") {
+                        return removeLeaveRequest(old, leaveRequest.id);
+                    }
+
+                    const belongsToCurrentUser = leaveRequest.userId === user?.id;
+                    const alreadyExists = old.some(
+                        (request) => request.id === leaveRequest.id,
+                    );
+                    return belongsToCurrentUser || alreadyExists
+                        ? upsertLeaveRequest(old, leaveRequest)
+                        : old;
+                },
+            );
+
+            void qc.invalidateQueries({
+                queryKey: QUERY_KEYS.leaveRequests.all,
+                refetchType: "inactive",
+            });
+        };
+
         socket.on("connect", handleConnect);
         socket.on("disconnect", handleDisconnect);
         socket.on("connect_error", handleConnectError);
@@ -169,6 +217,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
         socket.on("chat:bumped", handleChatBumped);
         socket.on("chat:changed", handleChatChanged);
         socket.on("attendance:changed", handleAttendanceChanged);
+        socket.on("leave-request:changed", handleLeaveRequestChanged);
         socket.connect();
 
         return () => {
@@ -181,6 +230,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
             socket.off("chat:bumped", handleChatBumped);
             socket.off("chat:changed", handleChatChanged);
             socket.off("attendance:changed", handleAttendanceChanged);
+            socket.off("leave-request:changed", handleLeaveRequestChanged);
         };
     }, [isAuthenticated, isLoading, qc, socket, user?.id]);
 

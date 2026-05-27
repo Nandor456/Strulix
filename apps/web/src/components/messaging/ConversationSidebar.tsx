@@ -13,6 +13,7 @@ import { NewChatDialog } from "./NewChatDialog";
 import { useChats } from "@/hooks/useChats";
 import { useMessagingSocket } from "@/hooks/useMessagingSocket";
 import type { ChatListItem } from "@/types/messaging";
+import { useI18n } from "@/hooks/useI18n";
 
 interface ConversationSidebarProps {
   activeChatId: string | null;
@@ -24,6 +25,7 @@ export function ConversationSidebar({ activeChatId, onSelectChat }: Conversation
   const [newChatOpen, setNewChatOpen] = useState(false);
   const { data: chats = [], isLoading } = useChats();
   const { joinChat } = useMessagingSocket();
+  const { t } = useI18n();
 
   const filtered = chats.filter((c: ChatListItem) =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -45,10 +47,10 @@ export function ConversationSidebar({ activeChatId, onSelectChat }: Conversation
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">
-              Messaging
+              {t("Messaging")}
             </p>
             <div className="mt-1 flex items-center gap-2">
-              <span className="text-base font-semibold tracking-tight">Conversations</span>
+              <span className="text-base font-semibold tracking-tight">{t("Conversations")}</span>
             </div>
           </div>
           <Tooltip>
@@ -62,7 +64,7 @@ export function ConversationSidebar({ activeChatId, onSelectChat }: Conversation
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>New conversation</TooltipContent>
+            <TooltipContent>{t("New conversation")}</TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -71,7 +73,7 @@ export function ConversationSidebar({ activeChatId, onSelectChat }: Conversation
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search conversations…"
+            placeholder={t("Search conversations…")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 rounded-xl border-border/70 bg-background/80 pl-8 text-sm shadow-sm"
@@ -101,7 +103,9 @@ export function ConversationSidebar({ activeChatId, onSelectChat }: Conversation
 
         {!isLoading && filtered.length === 0 && (
           <div className="mt-8 rounded-2xl border border-dashed border-border/70 bg-background/55 px-4 py-6 text-center text-sm text-muted-foreground">
-            {search ? "No conversations match your search." : "No conversations yet."}
+            {search
+              ? t("No conversations match your search.")
+              : t("No conversations yet.")}
           </div>
         )}
       </div>

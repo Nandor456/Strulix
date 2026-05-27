@@ -23,7 +23,7 @@ class AppShell extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BuildPulse'),
+        title: Text(l10n.t('BuildPulse')),
         actions: [
           const AppLanguageMenuButton(),
           IconButton(
@@ -52,7 +52,7 @@ class AppShell extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'BuildPulse',
+                            l10n.t('BuildPulse'),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           if (user != null)
@@ -93,6 +93,12 @@ class AppShell extends StatelessWidget {
                         onTap: () => _go(context, '/documents'),
                       ),
                     _NavTile(
+                      icon: Icons.event_available_outlined,
+                      label: l10n.t('Leave Calendar'),
+                      selected: location.startsWith('/leave-calendar'),
+                      onTap: () => _go(context, '/leave-calendar'),
+                    ),
+                    _NavTile(
                       icon: Icons.chat_bubble_outline,
                       label: l10n.t('Messages'),
                       selected: location.startsWith('/messages'),
@@ -128,14 +134,15 @@ class AppShell extends StatelessWidget {
                 title: Text(l10n.t('Log out')),
                 onTap: () async {
                   Navigator.pop(context);
+                  final messaging = AppScope.messagingOf(context);
                   final confirmed = await confirmAction(
                     context,
                     title: l10n.t('Log out'),
                     message: l10n.t('Are you sure you want to log out?'),
-                    confirmLabel: 'Log out',
+                    confirmLabel: l10n.t('Log out'),
                   );
                   if (!confirmed) return;
-                  AppScope.messagingOf(context).disconnect();
+                  messaging.disconnect();
                   await auth.logout();
                   if (context.mounted) context.go('/login');
                 },

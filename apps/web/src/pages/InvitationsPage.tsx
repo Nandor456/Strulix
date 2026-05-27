@@ -41,10 +41,7 @@ import type {
   InvitationStatus,
 } from "../services/api/invitationApi";
 
-const ROLE_OPTIONS: { value: InvitationRole; label: string }[] = [
-  { value: "WORKER", label: "Worker" },
-  { value: "LEADER", label: "Leader" },
-];
+const ROLE_OPTIONS: InvitationRole[] = ["WORKER", "LEADER"];
 
 type BadgeVariant =
   | "default"
@@ -73,7 +70,7 @@ export default function InvitationsPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const roleOptions = useMemo(
-    () => ROLE_OPTIONS.map((option) => ({ ...option, label: roleLabel(option.value) })),
+    () => ROLE_OPTIONS.map((value) => ({ value, label: roleLabel(value) })),
     [roleLabel],
   );
 
@@ -140,7 +137,7 @@ export default function InvitationsPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
+                placeholder={t("user@example.com")}
                 required
               />
             </div>

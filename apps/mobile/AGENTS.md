@@ -18,6 +18,7 @@
 - Relative `/uploads/...` URLs are resolved against the API origin in `lib/core/app_config.dart`
 - Message push notifications use Firebase Cloud Messaging on iOS/Android; add platform Firebase config files before production builds
 - Worker QR attendance uses `mobile_scanner` for camera scanning and `geolocator` for a one-time current location sent with `/attendance/checkin`; do not add background location tracking
+- Leave calendar route is `/leave-calendar`; WORKER and LEADER can create requests, ADMIN and LEADER can review requests; the page listens for `leave-request:changed` through `MessagingController`
 
 ## Commands
 

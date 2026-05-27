@@ -7,6 +7,7 @@ import '../attendance/checkin_page.dart';
 import '../attendance/scan_page.dart';
 import '../documents/documents_page.dart';
 import '../invitations/invitations_page.dart';
+import '../leave/leave_calendar_page.dart';
 import '../messaging/messaging_page.dart';
 import '../workers/workers_page.dart';
 import '../workpoints/workpoint_detail_page.dart';
@@ -64,6 +65,11 @@ GoRouter createAppRouter(AuthController auth) {
               state,
               MessagingPage(initialChatId: state.uri.queryParameters['chatId']),
             ),
+          ),
+          GoRoute(
+            path: '/leave-calendar',
+            pageBuilder: (context, state) =>
+                _buildPage(state, const LeaveCalendarPage()),
           ),
           GoRoute(
             path: '/documents',

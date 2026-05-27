@@ -85,7 +85,7 @@ class _BuildPulseAppState extends State<BuildPulseApp> {
       animation: Listenable.merge([theme, language]),
       builder: (context, _) {
         return MaterialApp.router(
-          title: 'BuildPulse',
+          title: language.t('BuildPulse'),
           debugShowCheckedModeBanner: false,
           themeMode: theme.mode,
           theme: buildPulseTheme(Brightness.light),

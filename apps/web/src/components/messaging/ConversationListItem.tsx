@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { ChatListItem } from "@/types/messaging";
 import { usePresence } from "@/hooks/usePresence";
+import { useI18n } from "@/hooks/useI18n";
 
 interface ConversationListItemProps {
   chat: ChatListItem;
@@ -8,10 +9,13 @@ interface ConversationListItemProps {
   onClick: () => void;
 }
 
-function formatRelativeTime(iso: string): string {
+function formatRelativeTime(
+  iso: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "now";
+  if (mins < 1) return t("now");
   if (mins < 60) return `${mins}m`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h`;
@@ -31,11 +35,12 @@ function getInitials(name: string): string {
 
 export function ConversationListItem({ chat, isActive, onClick }: ConversationListItemProps) {
   const isOnline = usePresence(chat.otherUserId);
+  const { t } = useI18n();
   const lastMsgPreview = chat.lastMessage
     ? chat.lastMessage.attachmentName
       ? `📎 ${chat.lastMessage.attachmentName}`
       : chat.lastMessage.body
-    : "No messages yet";
+    : t("No messages yet");
 
   return (
     <button
@@ -67,7 +72,7 @@ export function ConversationListItem({ chat, isActive, onClick }: ConversationLi
           </span>
           {chat.lastMessageAt && (
             <span className="shrink-0 text-[11px] text-muted-foreground">
-              {formatRelativeTime(chat.lastMessageAt)}
+              {formatRelativeTime(chat.lastMessageAt, t)}
             </span>
           )}
         </div>

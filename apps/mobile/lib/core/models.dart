@@ -490,6 +490,115 @@ class MonthlySummary {
   }
 }
 
+enum LeaveRequestType {
+  vacation('VACATION'),
+  sick('SICK');
+
+  const LeaveRequestType(this.wireName);
+
+  final String wireName;
+
+  static LeaveRequestType fromWire(String value) {
+    return LeaveRequestType.values.firstWhere(
+      (type) => type.wireName == value,
+      orElse: () => LeaveRequestType.vacation,
+    );
+  }
+}
+
+enum LeaveRequestStatus {
+  pending('PENDING'),
+  approved('APPROVED'),
+  rejected('REJECTED');
+
+  const LeaveRequestStatus(this.wireName);
+
+  final String wireName;
+
+  static LeaveRequestStatus fromWire(String value) {
+    return LeaveRequestStatus.values.firstWhere(
+      (status) => status.wireName == value,
+      orElse: () => LeaveRequestStatus.pending,
+    );
+  }
+}
+
+class LeaveRequest {
+  const LeaveRequest({
+    required this.id,
+    required this.userId,
+    required this.userName,
+    required this.userEmail,
+    required this.type,
+    required this.startDate,
+    required this.endDate,
+    required this.days,
+    required this.status,
+    required this.createdAt,
+    required this.reviewedAt,
+    required this.reviewedBy,
+    required this.reviewedByName,
+  });
+
+  final String id;
+  final String userId;
+  final String userName;
+  final String userEmail;
+  final LeaveRequestType type;
+  final String startDate;
+  final String endDate;
+  final int days;
+  final LeaveRequestStatus status;
+  final String createdAt;
+  final String? reviewedAt;
+  final String? reviewedBy;
+  final String? reviewedByName;
+
+  bool get isActive =>
+      status == LeaveRequestStatus.pending ||
+      status == LeaveRequestStatus.approved;
+
+  factory LeaveRequest.fromJson(JsonMap json) {
+    return LeaveRequest(
+      id: _string(json['id']),
+      userId: _string(json['userId']),
+      userName: _string(json['userName']),
+      userEmail: _string(json['userEmail']),
+      type: LeaveRequestType.fromWire(_string(json['type'])),
+      startDate: _string(json['startDate']),
+      endDate: _string(json['endDate']),
+      days: _int(json['days']),
+      status: LeaveRequestStatus.fromWire(_string(json['status'])),
+      createdAt: _string(json['createdAt']),
+      reviewedAt: _nullableString(json['reviewedAt']),
+      reviewedBy: _nullableString(json['reviewedBy']),
+      reviewedByName: _nullableString(json['reviewedByName']),
+    );
+  }
+}
+
+class LeaveRequestChange {
+  const LeaveRequestChange({
+    required this.action,
+    required this.leaveRequest,
+    required this.changedAt,
+  });
+
+  final String action;
+  final LeaveRequest leaveRequest;
+  final String changedAt;
+
+  bool get isCanceled => action == 'canceled';
+
+  factory LeaveRequestChange.fromJson(JsonMap json) {
+    return LeaveRequestChange(
+      action: _string(json['action']),
+      leaveRequest: LeaveRequest.fromJson(_map(json['leaveRequest'])),
+      changedAt: _string(json['changedAt']),
+    );
+  }
+}
+
 class WorkerDocumentSummary {
   const WorkerDocumentSummary({
     required this.id,
@@ -523,6 +632,44 @@ class WorkerDocumentSummary {
       createdAt: _string(json['createdAt']),
       uploadedBy:
           json['uploadedBy'] == null ? null : PublicUserSummary.fromJson(_map(json['uploadedBy'])),
+    );
+  }
+}
+
+class WorkPointDocumentSummary {
+  const WorkPointDocumentSummary({
+    required this.id,
+    required this.workPointId,
+    required this.originalName,
+    required this.mimeType,
+    required this.sizeBytes,
+    required this.createdAt,
+    required this.uploadedBy,
+  });
+
+  final String id;
+  final String workPointId;
+  final String originalName;
+  final String mimeType;
+  final int sizeBytes;
+  final String createdAt;
+  final PublicUserSummary? uploadedBy;
+
+  bool get isImage => mimeType.startsWith('image/');
+
+  bool get isPdf => mimeType == 'application/pdf';
+
+  factory WorkPointDocumentSummary.fromJson(JsonMap json) {
+    return WorkPointDocumentSummary(
+      id: _string(json['id']),
+      workPointId: _string(json['workPointId']),
+      originalName: _string(json['originalName']),
+      mimeType: _string(json['mimeType']),
+      sizeBytes: _int(json['sizeBytes']),
+      createdAt: _string(json['createdAt']),
+      uploadedBy: json['uploadedBy'] == null
+          ? null
+          : PublicUserSummary.fromJson(_map(json['uploadedBy'])),
     );
   }
 }

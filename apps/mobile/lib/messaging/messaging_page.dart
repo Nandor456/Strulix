@@ -8,6 +8,7 @@ import 'package:open_filex/open_filex.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
 
@@ -60,6 +61,7 @@ class _MessagingPageState extends State<MessagingPage> {
   @override
   Widget build(BuildContext context) {
     final messaging = AppScope.messagingOf(context);
+    final l10n = context.l10n;
     return AnimatedBuilder(
       animation: messaging,
       builder: (context, _) {
@@ -85,12 +87,12 @@ class _MessagingPageState extends State<MessagingPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Conversations',
+                      l10n.t('Conversations'),
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
                   IconButton.filledTonal(
-                    tooltip: 'New conversation',
+                    tooltip: l10n.t('New conversation'),
                     onPressed: () => _showNewChatDialog(context),
                     icon: const Icon(Icons.add),
                   ),
@@ -99,20 +101,22 @@ class _MessagingPageState extends State<MessagingPage> {
               const SizedBox(height: 12),
               TextField(
                 controller: _search,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  labelText: 'Search conversations',
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  labelText: l10n.t('Search conversations'),
                 ),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
               if (messaging.isLoadingChats)
-                const LoadingView(label: 'Loading conversations...')
+                LoadingView(label: l10n.t('Loading conversations...'))
               else if (chats.isEmpty)
-                const EmptyState(
+                EmptyState(
                   icon: Icons.chat_bubble_outline,
-                  title: 'No conversations',
-                  message: 'Start a direct chat or wait for a workpoint chat.',
+                  title: l10n.t('No conversations'),
+                  message: l10n.t(
+                    'Start a direct chat or wait for a workpoint chat.',
+                  ),
                 )
               else
                 ...chats.map((chat) => _ChatTile(chat: chat)),
@@ -142,6 +146,7 @@ class _ChatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final last = chat.lastMessage;
+    final l10n = context.l10n;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -149,9 +154,11 @@ class _ChatTile extends StatelessWidget {
         title: Text(chat.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Text(
           last == null
-              ? 'No messages yet'
+              ? l10n.t('No messages yet')
               : _isAttachmentOnlyLastMessage(last)
-              ? 'Attachment: ${last.attachmentName}'
+              ? l10n.t('Attachment: {name}', {
+                  'name': last.attachmentName ?? '',
+                })
               : '${last.senderUsername}: ${last.body}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -223,6 +230,7 @@ class _ThreadViewState extends State<_ThreadView> {
 
   Future<void> _attach() async {
     final messaging = AppScope.messagingOf(context);
+    final l10n = context.l10n;
     final result = await FilePicker.pickFiles(withData: false);
     final file = result?.files.single;
     final path = file?.path;
@@ -246,7 +254,10 @@ class _ThreadViewState extends State<_ThreadView> {
       setState(() => _replyTo = null);
     } catch (error) {
       if (mounted) {
-        showSnack(context, errorMessage(error, 'Failed to upload attachment.'));
+        showSnack(
+          context,
+          errorMessage(error, l10n.t('Failed to upload attachment.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSendingAttachment = false);
@@ -266,6 +277,7 @@ class _ThreadViewState extends State<_ThreadView> {
   }
 
   Future<void> _openAttachment(Message message) async {
+    final l10n = context.l10n;
     final attachmentUrl = message.attachmentUrl?.trim();
     if (attachmentUrl == null) {
       debugPrint('[attachments] abort: message has no attachmentUrl');
@@ -273,7 +285,7 @@ class _ThreadViewState extends State<_ThreadView> {
     }
     if (!_isMessageAttachmentUrl(attachmentUrl)) {
       debugPrint('[attachments] abort: invalid attachmentUrl=$attachmentUrl');
-      showSnack(context, 'Attachment link is invalid.');
+      showSnack(context, l10n.t('Attachment link is invalid.'));
       return;
     }
     final api = AppScope.apiOf(context);
@@ -286,8 +298,6 @@ class _ThreadViewState extends State<_ThreadView> {
         attachmentUrl: attachmentUrl,
         filename: filename,
       );
-      final exists = await file.exists();
-      final size = exists ? await file.length() : null;
 
       if (shouldPreviewText) {
         final contents = await file.readAsString(
@@ -315,7 +325,10 @@ class _ThreadViewState extends State<_ThreadView> {
       debugPrint('[attachments] open failed error=$error');
       debugPrint('[attachments] open failed stack=$stackTrace');
       if (mounted) {
-        showSnack(context, errorMessage(error, 'Failed to open attachment.'));
+        showSnack(
+          context,
+          errorMessage(error, l10n.t('Failed to open attachment.')),
+        );
       }
     }
   }
@@ -324,11 +337,12 @@ class _ThreadViewState extends State<_ThreadView> {
     Message message,
     String contents,
   ) async {
+    final l10n = context.l10n;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          message.attachmentName ?? 'Attachment',
+          message.attachmentName ?? l10n.t('Attachment'),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -339,7 +353,7 @@ class _ThreadViewState extends State<_ThreadView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l10n.t('Close')),
           ),
         ],
       ),
@@ -350,6 +364,7 @@ class _ThreadViewState extends State<_ThreadView> {
   Widget build(BuildContext context) {
     final messaging = AppScope.messagingOf(context);
     final currentUserId = AppScope.authOf(context).user?.id;
+    final l10n = context.l10n;
 
     return AnimatedBuilder(
       animation: messaging,
@@ -361,17 +376,21 @@ class _ThreadViewState extends State<_ThreadView> {
               color: Theme.of(context).colorScheme.surface,
               child: ListTile(
                 leading: IconButton(
-                  tooltip: 'Back',
+                  tooltip: l10n.t('Back'),
                   onPressed: widget.onBack,
                   icon: const Icon(Icons.arrow_back),
                 ),
                 title: Text(widget.chat.name),
-                subtitle: Text(messaging.isConnected ? 'Connected' : 'Offline'),
+                subtitle: Text(
+                  messaging.isConnected
+                      ? l10n.t('Connected')
+                      : l10n.t('Offline'),
+                ),
               ),
             ),
             Expanded(
               child: messaging.isLoadingMessages(widget.chat.id)
-                  ? const LoadingView(label: 'Loading messages...')
+                  ? LoadingView(label: l10n.t('Loading messages...'))
                   : ListView.builder(
                       controller: _scroll,
                       reverse: false,
@@ -381,11 +400,13 @@ class _ThreadViewState extends State<_ThreadView> {
                           (messaging.isTypingInActiveChat ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index >= messages.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(8),
+                          return Padding(
+                            padding: const EdgeInsets.all(8),
                             child: Text(
-                              'Typing...',
-                              style: TextStyle(fontStyle: FontStyle.italic),
+                              l10n.t('Typing...'),
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           );
                         }
@@ -408,13 +429,16 @@ class _ThreadViewState extends State<_ThreadView> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Replying to ${_replyTo!.senderUsername}: ${_messageSummary(_replyTo!)}',
+                        l10n.t('Replying to {name}: {message}', {
+                          'name': _replyTo!.senderUsername,
+                          'message': _messageSummary(_replyTo!, l10n),
+                        }),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Cancel reply',
+                      tooltip: l10n.t('Cancel reply'),
                       onPressed: () => setState(() => _replyTo = null),
                       icon: const Icon(Icons.close),
                     ),
@@ -428,7 +452,7 @@ class _ThreadViewState extends State<_ThreadView> {
                 child: Row(
                   children: [
                     IconButton(
-                      tooltip: 'Attach file',
+                      tooltip: l10n.t('Attach file'),
                       onPressed: _isSendingAttachment ? null : _attach,
                       icon: _isSendingAttachment
                           ? const SizedBox.square(
@@ -442,9 +466,9 @@ class _ThreadViewState extends State<_ThreadView> {
                         controller: _body,
                         minLines: 1,
                         maxLines: 5,
-                        decoration: const InputDecoration(
-                          hintText: 'Write a message...',
-                          contentPadding: EdgeInsets.symmetric(
+                        decoration: InputDecoration(
+                          hintText: l10n.t('Write a message...'),
+                          contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 10,
                           ),
@@ -454,7 +478,7 @@ class _ThreadViewState extends State<_ThreadView> {
                       ),
                     ),
                     IconButton.filled(
-                      tooltip: 'Send',
+                      tooltip: l10n.t('Send'),
                       onPressed: _send,
                       icon: const Icon(Icons.send),
                     ),
@@ -596,6 +620,7 @@ class _BubbleContents extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final attachmentUrl = message.attachmentUrl;
     final attachmentName = message.attachmentName?.trim();
     final body = message.body.trim();
@@ -636,7 +661,7 @@ class _BubbleContents extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                '${message.replyTo!.senderUsername}: ${_replySummary(message.replyTo!)}',
+                '${message.replyTo!.senderUsername}: ${_replySummary(message.replyTo!, l10n)}',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -646,7 +671,7 @@ class _BubbleContents extends StatelessWidget {
           if (attachmentUrl != null) ...[
             if (shouldShowBody) const SizedBox(height: 8),
             _AttachmentButton(
-              label: message.attachmentName ?? 'Open attachment',
+              label: message.attachmentName ?? l10n.t('Open attachment'),
               onPressed: onOpenAttachment,
             ),
           ],
@@ -720,6 +745,7 @@ class _NewChatDialogState extends State<_NewChatDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final query = _search.text.trim().toLowerCase();
     final users = widget.users
         .where(
@@ -731,7 +757,7 @@ class _NewChatDialogState extends State<_NewChatDialog> {
         .toList();
 
     return AlertDialog(
-      title: const Text('New conversation'),
+      title: Text(l10n.t('New conversation')),
       content: SizedBox(
         width: 420,
         child: Column(
@@ -739,18 +765,18 @@ class _NewChatDialogState extends State<_NewChatDialog> {
           children: [
             TextField(
               controller: _search,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                labelText: 'Search users',
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                labelText: l10n.t('Search users'),
               ),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
             Flexible(
               child: users.isEmpty
-                  ? const EmptyState(
+                  ? EmptyState(
                       icon: Icons.person_search,
-                      title: 'No users found',
+                      title: l10n.t('No users found'),
                     )
                   : ListView.builder(
                       shrinkWrap: true,
@@ -763,7 +789,9 @@ class _NewChatDialogState extends State<_NewChatDialog> {
                           ),
                           title: Text(user.username),
                           subtitle: Text(user.email),
-                          trailing: Chip(label: Text(user.role)),
+                          trailing: Chip(
+                            label: Text(l10n.roleLabel(user.role)),
+                          ),
                           enabled: !_isCreating,
                           onTap: () async {
                             setState(() => _isCreating = true);
@@ -776,7 +804,10 @@ class _NewChatDialogState extends State<_NewChatDialog> {
                               if (context.mounted) {
                                 showSnack(
                                   context,
-                                  errorMessage(error, 'Failed to create chat.'),
+                                  errorMessage(
+                                    error,
+                                    l10n.t('Failed to create chat.'),
+                                  ),
                                 );
                               }
                             } finally {
@@ -808,11 +839,13 @@ String _initials(String name) {
       .substring(0, parts.length == 1 ? 1 : 2);
 }
 
-String _messageSummary(Message message) {
+String _messageSummary(Message message, LanguageController l10n) {
   final body = message.body.trim();
   final attachmentName = message.attachmentName?.trim();
   if (body.isNotEmpty && body != attachmentName) return body;
-  return attachmentName?.isNotEmpty == true ? attachmentName! : 'Attachment';
+  return attachmentName?.isNotEmpty == true
+      ? attachmentName!
+      : l10n.t('Attachment');
 }
 
 bool _isAttachmentOnlyLastMessage(LastMessage message) {
@@ -821,9 +854,9 @@ bool _isAttachmentOnlyLastMessage(LastMessage message) {
   return attachmentName != null && (body.isEmpty || body == attachmentName);
 }
 
-String _replySummary(ReplyTo reply) {
+String _replySummary(ReplyTo reply, LanguageController l10n) {
   final body = reply.body.trim();
-  return body.isEmpty ? 'Attachment' : body;
+  return body.isEmpty ? l10n.t('Attachment') : body;
 }
 
 bool _isMessageAttachmentUrl(String url) {

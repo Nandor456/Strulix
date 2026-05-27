@@ -26,6 +26,8 @@ class MessagingController extends ChangeNotifier {
   bool _isRefreshingSocketAuth = false;
   bool _isLoadingChats = false;
   String? _activeChatId;
+  int _leaveRequestChangeVersion = 0;
+  LeaveRequestChange? _latestLeaveRequestChange;
 
   final Map<String, List<Message>> _messagesByChat = {};
   final Map<String, String?> _nextCursorByChat = {};
@@ -41,6 +43,10 @@ class MessagingController extends ChangeNotifier {
   bool get isLoadingChats => _isLoadingChats;
 
   List<ChatListItem> get chats => _chats;
+
+  int get leaveRequestChangeVersion => _leaveRequestChangeVersion;
+
+  LeaveRequestChange? get latestLeaveRequestChange => _latestLeaveRequestChange;
 
   String? get activeChatId => _activeChatId;
 
@@ -165,6 +171,15 @@ class MessagingController extends ChangeNotifier {
     });
     socket.on('presence:offline', (_) {
       if (_isActiveSocket(socket, userId)) notifyListeners();
+    });
+    socket.on('leave-request:changed', (payload) {
+      if (!_isActiveSocket(socket, userId)) return;
+      if (payload is! Map) return;
+      _latestLeaveRequestChange = LeaveRequestChange.fromJson(
+        Map<String, dynamic>.from(payload),
+      );
+      _leaveRequestChangeVersion += 1;
+      notifyListeners();
     });
     socket.on('typing', (payload) {
       if (!_isActiveSocket(socket, userId)) return;

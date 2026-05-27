@@ -18,8 +18,17 @@ export const QUERY_KEYS = {
       ["worker-documents", "worker", workerId] as const,
     mine: ["worker-documents", "me"] as const,
   },
+  workPointDocuments: {
+    all: ["workpoint-documents"] as const,
+    forWorkPoint: (workPointId: string) =>
+      ["workpoint-documents", "workpoint", workPointId] as const,
+  },
   invitations: {
     all: ["invitations"] as const,
+  },
+  leaveRequests: {
+    all: ["leave-requests"] as const,
+    mine: ["leave-requests", "my"] as const,
   },
   attendance: {
     all: ["attendance"] as const,
@@ -44,9 +53,11 @@ const USER_SCOPED_QUERY_PREFIXES = [
   QUERY_KEYS.attendance.all,
   ["attendance", "me"] as const,
   QUERY_KEYS.invitations.all,
+  QUERY_KEYS.leaveRequests.all,
   QUERY_KEYS.workPoints.all,
   QUERY_KEYS.workers.all,
   QUERY_KEYS.workerDocuments.all,
+  QUERY_KEYS.workPointDocuments.all,
   QUERY_KEYS.messaging.chats,
   QUERY_KEYS.messaging.users,
 ] as const satisfies readonly QueryKey[];

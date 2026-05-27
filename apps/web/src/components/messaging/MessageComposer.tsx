@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/theme/useThemeMode";
 import type { Message } from "@/types/messaging";
+import { useI18n } from "@/hooks/useI18n";
 
 interface MessageComposerProps {
   onSend: (opts: {
@@ -50,6 +51,7 @@ export function MessageComposer({
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { mode } = useThemeMode();
   const isDark = mode === "dark";
+  const { t } = useI18n();
 
   const canSend = body.trim().length > 0 && !disabled && !isUploading;
 
@@ -130,7 +132,7 @@ export function MessageComposer({
               {replyTo.senderUsername}
             </span>
             <span className="block truncate text-xs text-muted-foreground">
-              {replyTo.body || "📎 Attachment"}
+              {replyTo.body || `📎 ${t("Attachment")}`}
             </span>
           </div>
           <Button
@@ -197,7 +199,7 @@ export function MessageComposer({
           value={body}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Write a message… (Enter to send, Shift+Enter for newline)"
+          placeholder={t("Write a message… (Enter to send, Shift+Enter for newline)")}
           rows={1}
           disabled={disabled}
           className="min-h-[44px] resize-none overflow-hidden rounded-2xl border border-border/70 bg-background/85 px-3 py-2.5 text-sm leading-snug shadow-sm placeholder:text-muted-foreground/80 focus-visible:ring-2 dark:border-border/50 dark:bg-background/60"

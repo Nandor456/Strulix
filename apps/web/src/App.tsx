@@ -14,6 +14,7 @@ import WorkerManagementPage from "./pages/WorkerManagementPage";
 import WorkpointPage from "./pages/WorkpointPage";
 import WorkpointDetailPage from "./pages/WorkpointDetailPage";
 import CheckinPage from "./pages/CheckinPage";
+import LeaveCalendarPage from "./pages/LeaveCalendarPage";
 import WorkerHomePage from "./pages/WorkerHomePage";
 import WorkerDocumentsPage from "./pages/WorkerDocumentsPage";
 import ScanPage from "./pages/ScanPage";
@@ -56,6 +57,14 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/messages" element={<MessagingPage />} />
+                        <Route
+                            path="/leave-calendar"
+                            element={
+                                <RequireRoles roles={["ADMIN", "LEADER", "WORKER"]}>
+                                    <LeaveCalendarPage />
+                                </RequireRoles>
+                            }
+                        />
                         <Route
                             path="/documents"
                             element={

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePresence } from "@/hooks/usePresence";
 import type { ChatListItem } from "@/types/messaging";
+import { useI18n } from "@/hooks/useI18n";
 
 interface ChatHeaderProps {
   chat: ChatListItem;
@@ -15,11 +16,12 @@ function getInitials(name: string): string {
 
 export function ChatHeader({ chat, onBack }: ChatHeaderProps) {
   const isOnline = usePresence(chat.otherUserId);
+  const { t } = useI18n();
   const statusText = chat.otherUserId
     ? isOnline
-      ? "Online"
-      : "Offline"
-    : `${chat.participants.length} members`;
+      ? t("Online")
+      : t("Offline")
+    : t("{count} members", { count: chat.participants.length });
 
   return (
     <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border/70 bg-background/90 px-4 py-4 backdrop-blur-md md:px-5">

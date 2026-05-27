@@ -10,8 +10,10 @@ import 'package:path_provider/path_provider.dart';
 import '../core/app_config.dart';
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
+import 'workpoint_documents_dialog.dart';
 
 class WorkpointDetailPage extends StatefulWidget {
   const WorkpointDetailPage({required this.id, super.key});
@@ -64,7 +66,10 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
       await _loadAttendance();
     } catch (error) {
       setState(
-        () => _error = errorMessage(error, 'Failed to load this workpoint.'),
+        () => _error = errorMessage(
+          error,
+          context.l10n.t('Failed to load this workpoint.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -80,7 +85,10 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
       setState(() => _attendance = rows);
     } catch (error) {
       if (mounted) {
-        showSnack(context, errorMessage(error, 'Failed to load attendance.'));
+        showSnack(
+          context,
+          errorMessage(error, context.l10n.t('Failed to load attendance.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isAttendanceLoading = false);
@@ -94,13 +102,13 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
         .where((worker) => !assignedIds.contains(worker.id))
         .toList();
     if (available.isEmpty) {
-      showSnack(context, 'No workers available to assign.');
+      showSnack(context, context.l10n.t('No workers available to assign.'));
       return;
     }
     final worker = await showDialog<WorkerSummary>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Assign worker'),
+        title: Text(context.l10n.t('Assign worker')),
         children: available
             .map(
               (worker) => SimpleDialogOption(
@@ -120,9 +128,11 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     final api = AppScope.apiOf(context);
     final confirmed = await confirmAction(
       context,
-      title: 'Remove worker',
-      message: 'Remove ${worker.username} from this workpoint?',
-      confirmLabel: 'Remove',
+      title: context.l10n.t('Remove worker'),
+      message: context.l10n.t('Remove {name} from this workpoint?', {
+        'name': worker.username,
+      }),
+      confirmLabel: context.l10n.t('Remove'),
     );
     if (!confirmed) return;
     await api.removeWorker(widget.id, worker.id);
@@ -133,9 +143,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     final api = AppScope.apiOf(context);
     final confirmed = await confirmAction(
       context,
-      title: 'Rotate QR code',
-      message: 'Existing printed codes will stop working.',
-      confirmLabel: 'Rotate',
+      title: context.l10n.t('Rotate QR code'),
+      message: context.l10n.t('Existing printed codes will stop working.'),
+      confirmLabel: context.l10n.t('Rotate'),
     );
     if (!confirmed) return;
     final qr = await api.rotateQr(widget.id);
@@ -174,16 +184,33 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
       await OpenFilex.open(file.path);
     } catch (error) {
       if (mounted) {
-        showSnack(context, errorMessage(error, 'Failed to export attendance.'));
+        showSnack(
+          context,
+          errorMessage(error, context.l10n.t('Failed to export attendance.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
   }
 
+  Future<void> _showDocumentsDialog() async {
+    final workPoint = _workPoint;
+    if (workPoint == null) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => WorkPointDocumentsDialog(
+        workPointId: workPoint.id,
+        workPointName: workPoint.name,
+        canManage: AppScope.authOf(context).canManageWorkPoints,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final workPoint = _workPoint;
+    final l10n = context.l10n;
     return RefreshIndicator(
       onRefresh: _loadAll,
       child: ListView(
@@ -192,14 +219,14 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
           Row(
             children: [
               IconButton.outlined(
-                tooltip: 'Back',
+                tooltip: l10n.t('Back'),
                 onPressed: () => context.go('/workpoints'),
                 icon: const Icon(Icons.arrow_back),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Workpoint details',
+                  l10n.t('Workpoint details'),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
@@ -207,16 +234,26 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
           ),
           const SizedBox(height: 16),
           if (_isLoading)
-            const LoadingView(label: 'Loading workpoint...')
+            LoadingView(label: l10n.t('Loading workpoint...'))
           else if (_error != null)
             ErrorBanner(_error!)
           else if (workPoint == null)
-            const EmptyState(
+            EmptyState(
               icon: Icons.business_outlined,
-              title: 'Workpoint not found',
+              title: l10n.t('Workpoint not found'),
             )
           else ...[
             _Overview(workPoint: workPoint),
+            const SizedBox(height: 12),
+            SectionCard(
+              title: l10n.t('Workpoint documents'),
+              trailing: FilledButton.tonalIcon(
+                onPressed: _showDocumentsDialog,
+                icon: const Icon(Icons.description_outlined),
+                label: Text(l10n.t('Documents')),
+              ),
+              child: const SizedBox.shrink(),
+            ),
             const SizedBox(height: 12),
             _WorkersSection(
               workers: _assignedWorkers,
@@ -235,7 +272,9 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
                     text: '${AppConfig.apiOrigin}/checkin/${qr.qrToken}',
                   ),
                 );
-                if (context.mounted) showSnack(context, 'QR link copied.');
+                if (context.mounted) {
+                  showSnack(context, l10n.t('QR link copied.'));
+                }
               },
               onSave: _saveQrImage,
               onRotate: _rotateQr,
@@ -269,7 +308,10 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
 
   Future<void> _showManualAttendanceDialog() async {
     if (_assignedWorkers.isEmpty) {
-      showSnack(context, 'Assign a worker before adding attendance.');
+      showSnack(
+        context,
+        context.l10n.t('Assign a worker before adding attendance.'),
+      );
       return;
     }
     final saved = await showDialog<bool>(
@@ -294,9 +336,11 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     final api = AppScope.apiOf(context);
     final confirmed = await confirmAction(
       context,
-      title: 'Delete attendance',
-      message: 'Delete attendance for ${record.worker.username}?',
-      confirmLabel: 'Delete',
+      title: context.l10n.t('Delete attendance'),
+      message: context.l10n.t('Delete attendance for {name}?', {
+        'name': record.worker.username,
+      }),
+      confirmLabel: context.l10n.t('Delete'),
       destructive: true,
     );
     if (!confirmed) return;
@@ -312,6 +356,7 @@ class _Overview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SectionCard(
       title: workPoint.name,
       subtitle: workPoint.address,
@@ -324,10 +369,34 @@ class _Overview extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              Chip(label: Text('Workers ${workPoint.workerCount}')),
-              Chip(label: Text('Records ${workPoint.attendanceCount}')),
-              Chip(label: Text('Deadline ${formatDate(workPoint.deadline)}')),
-              Chip(label: Text('Created ${formatDate(workPoint.uploadedAt)}')),
+              Chip(
+                label: Text(
+                  l10n.t('Workers {count}', {
+                    'count': '${workPoint.workerCount}',
+                  }),
+                ),
+              ),
+              Chip(
+                label: Text(
+                  l10n.t('Records {count}', {
+                    'count': '${workPoint.attendanceCount}',
+                  }),
+                ),
+              ),
+              Chip(
+                label: Text(
+                  l10n.t('Deadline {date}', {
+                    'date': formatDate(workPoint.deadline),
+                  }),
+                ),
+              ),
+              Chip(
+                label: Text(
+                  l10n.t('Created {date}', {
+                    'date': formatDate(workPoint.uploadedAt),
+                  }),
+                ),
+              ),
             ],
           ),
         ],
@@ -349,15 +418,16 @@ class _WorkersSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SectionCard(
-      title: 'Assigned workers',
+      title: l10n.t('Assigned workers'),
       trailing: IconButton.filledTonal(
-        tooltip: 'Assign worker',
+        tooltip: l10n.t('Assign worker'),
         onPressed: onAssign,
         icon: const Icon(Icons.person_add_alt),
       ),
       child: workers.isEmpty
-          ? const Text('No workers assigned to this workpoint.')
+          ? Text(l10n.t('No workers assigned to this workpoint.'))
           : Column(
               children: workers
                   .map(
@@ -374,12 +444,15 @@ class _WorkersSection extends StatelessWidget {
                           Chip(
                             label: Text(
                               worker.hourlyWage == null
-                                  ? 'No wage'
-                                  : '${worker.hourlyWage!.toStringAsFixed(2)} RON/h',
+                                  ? l10n.t('No wage')
+                                  : l10n.t('{amount} RON/h', {
+                                      'amount': worker.hourlyWage!
+                                          .toStringAsFixed(2),
+                                    }),
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Remove',
+                            tooltip: l10n.t('Remove'),
                             onPressed: () => onRemove(worker),
                             icon: const Icon(Icons.person_remove_outlined),
                           ),
@@ -411,11 +484,12 @@ class _QrSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = qr;
+    final l10n = context.l10n;
     return SectionCard(
-      title: 'QR check-in',
-      subtitle: 'Workers scan this code to check in or out.',
+      title: l10n.t('QR check-in'),
+      subtitle: l10n.t('Workers scan this code to check in or out.'),
       child: data == null
-          ? const Text('QR code is not available yet.')
+          ? Text(l10n.t('QR code is not available yet.'))
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -440,17 +514,17 @@ class _QrSection extends StatelessWidget {
                     OutlinedButton.icon(
                       onPressed: onCopy,
                       icon: const Icon(Icons.copy),
-                      label: const Text('Copy link'),
+                      label: Text(l10n.t('Copy link')),
                     ),
                     OutlinedButton.icon(
                       onPressed: onSave,
                       icon: const Icon(Icons.download),
-                      label: const Text('Open QR'),
+                      label: Text(l10n.t('Open QR')),
                     ),
                     OutlinedButton.icon(
                       onPressed: onRotate,
                       icon: const Icon(Icons.sync),
-                      label: const Text('Rotate'),
+                      label: Text(l10n.t('Rotate')),
                     ),
                   ],
                 ),
@@ -491,9 +565,10 @@ class _AttendanceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SectionCard(
-      title: 'Attendance',
-      subtitle: 'Filter records and export the same period to Excel.',
+      title: l10n.t('Attendance'),
+      subtitle: l10n.t('Filter records and export the same period to Excel.'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -504,7 +579,7 @@ class _AttendanceSection extends StatelessWidget {
               SizedBox(
                 width: 220,
                 child: _DateButton(
-                  label: 'From',
+                  label: l10n.t('From'),
                   value: from,
                   onChanged: onFromChanged,
                 ),
@@ -512,7 +587,7 @@ class _AttendanceSection extends StatelessWidget {
               SizedBox(
                 width: 220,
                 child: _DateButton(
-                  label: 'To',
+                  label: l10n.t('To'),
                   value: to,
                   onChanged: onToChanged,
                 ),
@@ -528,7 +603,7 @@ class _AttendanceSection extends StatelessWidget {
                 child: FilledButton.tonalIcon(
                   onPressed: onManual,
                   icon: const Icon(Icons.add),
-                  label: const Text('Manual entry'),
+                  label: Text(l10n.t('Manual entry')),
                 ),
               ),
               const SizedBox(width: 8),
@@ -541,7 +616,9 @@ class _AttendanceSection extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.table_view_outlined),
-                  label: Text(isExporting ? 'Exporting...' : 'Export'),
+                  label: Text(
+                    isExporting ? l10n.t('Exporting...') : l10n.t('Export'),
+                  ),
                 ),
               ),
             ],
@@ -550,7 +627,7 @@ class _AttendanceSection extends StatelessWidget {
           const SizedBox(height: 16),
 
           if (isLoading)
-            const LoadingView(label: 'Loading attendance...')
+            LoadingView(label: l10n.t('Loading attendance...'))
           else if (records.isEmpty)
             const _EmptyAttendanceState()
           else
@@ -593,6 +670,7 @@ class _AttendanceRecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final hasCheckedOut = record.checkedOutAt != null;
     final hours = record.hours;
 
@@ -650,12 +728,12 @@ class _AttendanceRecordCard extends StatelessWidget {
                 ),
 
                 _AttendanceStatusBadge(
-                  label: hasCheckedOut ? 'Completed' : 'Active',
+                  label: hasCheckedOut ? l10n.t('Completed') : l10n.t('Active'),
                   isCompleted: hasCheckedOut,
                 ),
 
                 PopupMenuButton<String>(
-                  tooltip: 'Actions',
+                  tooltip: l10n.t('Actions'),
                   icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
                     if (value == 'checkout') onCheckout();
@@ -663,23 +741,23 @@ class _AttendanceRecordCard extends StatelessWidget {
                   },
                   itemBuilder: (context) => [
                     if (canSetCheckout)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'checkout',
                         child: Row(
                           children: [
-                            Icon(Icons.logout, size: 20),
-                            SizedBox(width: 8),
-                            Text('Set checkout'),
+                            const Icon(Icons.logout, size: 20),
+                            const SizedBox(width: 8),
+                            Text(l10n.t('Set checkout')),
                           ],
                         ),
                       ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, size: 20),
-                          SizedBox(width: 8),
-                          Text('Delete'),
+                          const Icon(Icons.delete_outline, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.t('Delete')),
                         ],
                       ),
                     ),
@@ -704,8 +782,11 @@ class _AttendanceRecordCard extends StatelessWidget {
                 _InfoChip(icon: Icons.fingerprint, label: record.source),
                 _InfoChip(
                   icon: Icons.schedule,
-                  label:
-                      'Hours: ${hours == null ? 'Open' : formatHours(hours)}',
+                  label: l10n.t('Hours: {value}', {
+                    'value': hours == null
+                        ? l10n.t('Open')
+                        : formatHours(hours),
+                  }),
                 ),
               ],
             ),
@@ -714,7 +795,7 @@ class _AttendanceRecordCard extends StatelessWidget {
 
             _TimeRow(
               icon: Icons.login,
-              label: 'Checked in',
+              label: l10n.t('Checked in'),
               value: formatDateTime(record.checkedInAt),
             ),
 
@@ -722,9 +803,9 @@ class _AttendanceRecordCard extends StatelessWidget {
 
             _TimeRow(
               icon: Icons.logout,
-              label: 'Checked out',
+              label: l10n.t('Checked out'),
               value: record.checkedOutAt == null
-                  ? 'Not checked out yet'
+                  ? l10n.t('Not checked out yet')
                   : formatDateTime(record.checkedOutAt),
               muted: record.checkedOutAt == null,
             ),
@@ -860,6 +941,7 @@ class _EmptyAttendanceState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -879,14 +961,14 @@ class _EmptyAttendanceState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'No attendance records',
+            l10n.t('No attendance records'),
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'There are no records for the selected period.',
+            l10n.t('There are no records for the selected period.'),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -965,7 +1047,10 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) {
-        showSnack(context, errorMessage(error, 'Failed to add attendance.'));
+        showSnack(
+          context,
+          errorMessage(error, context.l10n.t('Failed to add attendance.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -974,15 +1059,16 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Manual attendance'),
+      title: Text(l10n.t('Manual attendance')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<String>(
               initialValue: _workerId,
-              decoration: const InputDecoration(labelText: 'Worker'),
+              decoration: InputDecoration(labelText: l10n.t('Worker')),
               items: widget.workers
                   .map(
                     (worker) => DropdownMenuItem(
@@ -996,7 +1082,7 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
             ),
             const SizedBox(height: 10),
             _DialogDateButton(
-              label: 'Date',
+              label: l10n.t('Date'),
               value: formatDate(_date.toIso8601String()),
               onTap: () async {
                 final value = await showDatePicker(
@@ -1009,7 +1095,7 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
               },
             ),
             _DialogDateButton(
-              label: 'Check in',
+              label: l10n.t('Check in'),
               value: _inTime.format(context),
               onTap: () async {
                 final value = await showTimePicker(
@@ -1020,8 +1106,8 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
               },
             ),
             _DialogDateButton(
-              label: 'Check out',
-              value: _outTime?.format(context) ?? 'Open',
+              label: l10n.t('Check out'),
+              value: _outTime?.format(context) ?? l10n.t('Open'),
               onTap: () async {
                 final value = await showTimePicker(
                   context: context,
@@ -1036,11 +1122,11 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.t('Cancel')),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
-          child: Text(_isSaving ? 'Saving...' : 'Add'),
+          child: Text(_isSaving ? l10n.t('Saving...') : l10n.t('Add')),
         ),
       ],
     );
@@ -1071,7 +1157,10 @@ class _CheckoutDialogState extends State<_CheckoutDialog> {
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) {
-        showSnack(context, errorMessage(error, 'Failed to set checkout.'));
+        showSnack(
+          context,
+          errorMessage(error, context.l10n.t('Failed to set checkout.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -1080,13 +1169,14 @@ class _CheckoutDialogState extends State<_CheckoutDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Set checkout'),
+      title: Text(l10n.t('Set checkout')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _DialogDateButton(
-            label: 'Date',
+            label: l10n.t('Date'),
             value: formatDate(_dateTime.toIso8601String()),
             onTap: () async {
               final date = await showDatePicker(
@@ -1109,7 +1199,7 @@ class _CheckoutDialogState extends State<_CheckoutDialog> {
             },
           ),
           _DialogDateButton(
-            label: 'Time',
+            label: l10n.t('Time'),
             value: TimeOfDay.fromDateTime(_dateTime).format(context),
             onTap: () async {
               final time = await showTimePicker(
@@ -1134,11 +1224,11 @@ class _CheckoutDialogState extends State<_CheckoutDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.t('Cancel')),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
-          child: Text(_isSaving ? 'Saving...' : 'Save'),
+          child: Text(_isSaving ? l10n.t('Saving...') : l10n.t('Save')),
         ),
       ],
     );

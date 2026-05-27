@@ -7,6 +7,7 @@ import '../core/formatters.dart';
 import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
+import '../workpoints/workpoint_documents_dialog.dart';
 
 class WorkerHomePage extends StatefulWidget {
   const WorkerHomePage({super.key});
@@ -57,6 +58,17 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _showDocuments(AssignedWorkPointSummary workPoint) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => WorkPointDocumentsDialog(
+        workPointId: workPoint.id,
+        workPointName: workPoint.name,
+        canManage: false,
+      ),
+    );
   }
 
   @override
@@ -190,6 +202,7 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
               rows: _rows,
               hasWage: hasWage,
               hourlyWage: hourlyWage,
+              onOpenDocuments: _showDocuments,
             ),
             const SizedBox(height: 16),
             _AttendanceByWorkpoint(
@@ -212,12 +225,14 @@ class _AssignedWorkpoints extends StatelessWidget {
     required this.rows,
     required this.hasWage,
     required this.hourlyWage,
+    required this.onOpenDocuments,
   });
 
   final List<AssignedWorkPointSummary> workPoints;
   final List<DailyStatRow> rows;
   final bool hasWage;
   final double? hourlyWage;
+  final Future<void> Function(AssignedWorkPointSummary workPoint) onOpenDocuments;
 
   @override
   Widget build(BuildContext context) {
@@ -252,19 +267,29 @@ class _AssignedWorkpoints extends StatelessWidget {
               '${workPoint.address}\n${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
             ),
             isThreeLine: true,
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  formatHours(hours),
-                  style: Theme.of(context).textTheme.titleSmall,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatHours(hours),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    Text(
+                      hasWage
+                          ? formatMoney(earnings, precise: true)
+                          : l10n.t('{count} complete', {'count': '$complete'}),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-                Text(
-                  hasWage
-                      ? formatMoney(earnings, precise: true)
-                      : l10n.t('{count} complete', {'count': '$complete'}),
-                  style: Theme.of(context).textTheme.bodySmall,
+                IconButton(
+                  tooltip: l10n.t('Documents'),
+                  onPressed: () => onOpenDocuments(workPoint),
+                  icon: const Icon(Icons.description_outlined),
                 ),
               ],
             ),

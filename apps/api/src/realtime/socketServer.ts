@@ -12,6 +12,7 @@ import {
   verifyAccessToken,
 } from "../services/authTokenService.js";
 import { createCorsOriginValidator } from "../config/env.js";
+import type { LeaveRequestDTO } from "../services/leaveRequestService.js";
 
 interface ServerToClientEvents {
   "message:new": (message: Record<string, unknown>) => void;
@@ -22,6 +23,11 @@ interface ServerToClientEvents {
     workPointId: string;
     workerId?: string;
     attendanceId?: string;
+    changedAt: string;
+  }) => void;
+  "leave-request:changed": (data: {
+    action: "created" | "approved" | "rejected" | "canceled";
+    leaveRequest: LeaveRequestDTO;
     changedAt: string;
   }) => void;
   "presence:online": (data: { userId: string }) => void;
@@ -224,5 +230,20 @@ export function emitAttendanceChanged(
 
   for (const userId of new Set(userIds)) {
     ioInstance.to(`user:${userId}`).emit("attendance:changed", payload);
+  }
+}
+
+export function emitLeaveRequestChanged(
+  payload: {
+    action: "created" | "approved" | "rejected" | "canceled";
+    leaveRequest: LeaveRequestDTO;
+    changedAt: string;
+  },
+  userIds: string[],
+): void {
+  if (!ioInstance) return;
+
+  for (const userId of new Set(userIds)) {
+    ioInstance.to(`user:${userId}`).emit("leave-request:changed", payload);
   }
 }

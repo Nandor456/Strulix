@@ -342,6 +342,67 @@ class BuildPulseApi {
     return MonthlySummary.fromJson(_responseMap(response));
   }
 
+  Future<List<LeaveRequest>> listAllLeaveRequests() async {
+    final response = await client.get<dynamic>('/leave-requests');
+    final data = _responseMap(response);
+    return (data['leaveRequests'] as List? ?? const [])
+        .map(
+          (item) =>
+              LeaveRequest.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
+        .toList();
+  }
+
+  Future<List<LeaveRequest>> listMyLeaveRequests() async {
+    final response = await client.get<dynamic>('/leave-requests/my');
+    final data = _responseMap(response);
+    return (data['leaveRequests'] as List? ?? const [])
+        .map(
+          (item) =>
+              LeaveRequest.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
+        .toList();
+  }
+
+  Future<LeaveRequest> createLeaveRequest({
+    required LeaveRequestType type,
+    required String startDate,
+    required String endDate,
+  }) async {
+    final response = await client.post<dynamic>(
+      '/leave-requests',
+      data: {
+        'type': type.wireName,
+        'startDate': startDate,
+        'endDate': endDate,
+      },
+    );
+    return LeaveRequest.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['leaveRequest'] as Map),
+    );
+  }
+
+  Future<LeaveRequest> approveLeaveRequest(String id) async {
+    final response = await client.patch<dynamic>('/leave-requests/$id/approve');
+    return LeaveRequest.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['leaveRequest'] as Map),
+    );
+  }
+
+  Future<LeaveRequest> rejectLeaveRequest(String id) async {
+    final response = await client.patch<dynamic>('/leave-requests/$id/reject');
+    return LeaveRequest.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['leaveRequest'] as Map),
+    );
+  }
+
+  Future<LeaveRequest> cancelLeaveRequest(String id) async {
+    final response = await client.delete<dynamic>('/leave-requests/$id');
+    return LeaveRequest.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['leaveRequest'] as Map),
+    );
+  }
+
   Future<List<WorkerDocumentSummary>> listMyDocuments() async {
     final response = await client.get<dynamic>('/worker-documents/me');
     final data = _responseMap(response);
@@ -403,6 +464,60 @@ class BuildPulseApi {
   Future<Uint8List> workerDocumentBytes(String documentId) {
     return client.getBytes(
       '/worker-documents/${Uri.encodeComponent(documentId)}/file',
+    );
+  }
+
+  Future<List<WorkPointDocumentSummary>> listWorkPointDocuments(
+    String workPointId,
+  ) async {
+    final response = await client.get<dynamic>(
+      '/workpoints/$workPointId/documents',
+    );
+    final data = _responseMap(response);
+    return (data['documents'] as List? ?? const [])
+        .map(
+          (item) => WorkPointDocumentSummary.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<WorkPointDocumentSummary> uploadWorkPointDocument({
+    required String workPointId,
+    required String path,
+    required String filename,
+  }) async {
+    final response = await client.post<dynamic>(
+      '/workpoints/$workPointId/documents',
+      data: FormData.fromMap({
+        'file': await MultipartFile.fromFile(path, filename: filename),
+      }),
+      options: Options(contentType: Headers.multipartFormDataContentType),
+    );
+    return WorkPointDocumentSummary.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['document'] as Map),
+    );
+  }
+
+  Future<void> deleteWorkPointDocument(String documentId) async {
+    await client.delete<dynamic>('/workpoint-documents/$documentId');
+  }
+
+  Future<File> downloadWorkPointDocument(
+    WorkPointDocumentSummary document, {
+    bool download = false,
+  }) {
+    return client.download(
+      '/workpoint-documents/${Uri.encodeComponent(document.id)}/file',
+      queryParameters: download ? {'download': '1'} : null,
+      filename: document.originalName,
+    );
+  }
+
+  Future<Uint8List> workPointDocumentBytes(String documentId) {
+    return client.getBytes(
+      '/workpoint-documents/${Uri.encodeComponent(documentId)}/file',
     );
   }
 

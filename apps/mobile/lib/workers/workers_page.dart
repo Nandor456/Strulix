@@ -4,6 +4,7 @@ import 'package:open_filex/open_filex.dart';
 
 import '../core/app_scope.dart';
 import '../core/formatters.dart';
+import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
 
@@ -34,7 +35,12 @@ class _WorkersPageState extends State<WorkersPage> {
       final workers = await AppScope.apiOf(context).listWorkers();
       setState(() => _workers = workers);
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to load workers.'));
+      setState(
+        () => _error = errorMessage(
+          error,
+          context.l10n.t('Failed to load workers.'),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -50,11 +56,14 @@ class _WorkersPageState extends State<WorkersPage> {
 
   Future<void> _delete(WorkerSummary worker) async {
     final api = AppScope.apiOf(context);
+    final l10n = context.l10n;
     final confirmed = await confirmAction(
       context,
-      title: 'Delete worker',
-      message: 'Delete ${worker.username}? This action cannot be undone.',
-      confirmLabel: 'Delete',
+      title: l10n.t('Delete worker'),
+      message: l10n.t('Delete {name}? This action cannot be undone.', {
+        'name': worker.username,
+      }),
+      confirmLabel: l10n.t('Delete'),
       destructive: true,
     );
     if (!confirmed) return;
@@ -72,26 +81,30 @@ class _WorkersPageState extends State<WorkersPage> {
   @override
   Widget build(BuildContext context) {
     final canManageAccounts = AppScope.authOf(context).canManageUsers;
+    final l10n = context.l10n;
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Workers', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            l10n.t('Workers'),
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 4),
           Text(
-            'Manage registered workers and their documents.',
+            l10n.t('Manage registered workers and their documents.'),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           if (_isLoading)
-            const LoadingView(label: 'Loading workers...')
+            LoadingView(label: l10n.t('Loading workers...'))
           else if (_error != null)
             ErrorBanner(_error!)
           else if (_workers.isEmpty)
-            const EmptyState(
+            EmptyState(
               icon: Icons.groups_outlined,
-              title: 'No workers registered yet',
+              title: l10n.t('No workers registered yet'),
             )
           else
             ..._workers.map(
@@ -105,8 +118,9 @@ class _WorkersPageState extends State<WorkersPage> {
                     title: Text(worker.username),
                     subtitle: Text(
                       '${worker.email}\n'
-                      '${worker.role} · Workpoints ${worker.assignedWorkPointCount} · '
-                      '${worker.hourlyWage == null ? 'No wage' : '${worker.hourlyWage!.toStringAsFixed(2)} RON/h'}',
+                      '${l10n.roleLabel(worker.role)} · '
+                      '${l10n.t('Workpoints {count}', {'count': '${worker.assignedWorkPointCount}'})} · '
+                      '${worker.hourlyWage == null ? l10n.t('No wage') : l10n.t('{amount} RON/h', {'amount': worker.hourlyWage!.toStringAsFixed(2)})}',
                     ),
                     isThreeLine: true,
                     trailing: PopupMenuButton<String>(
@@ -116,19 +130,19 @@ class _WorkersPageState extends State<WorkersPage> {
                         if (value == 'delete') _delete(worker);
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'documents',
-                          child: Text('Documents'),
+                          child: Text(l10n.t('Documents')),
                         ),
                         if (canManageAccounts)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'edit',
-                            child: Text('Edit'),
+                            child: Text(l10n.t('Edit')),
                           ),
                         if (canManageAccounts)
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
-                            child: Text('Delete'),
+                            child: Text(l10n.t('Delete')),
                           ),
                       ],
                     ),
@@ -189,7 +203,12 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
       });
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to update worker.'));
+      setState(
+        () => _error = errorMessage(
+          error,
+          context.l10n.t('Failed to update worker.'),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -197,29 +216,36 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Edit worker'),
+      title: Text(l10n.t('Edit worker')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _username,
-              decoration: const InputDecoration(labelText: 'Username'),
+              decoration: InputDecoration(labelText: l10n.t('Username')),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: l10n.t('Email')),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: _role,
-              decoration: const InputDecoration(labelText: 'Role'),
-              items: const [
-                DropdownMenuItem(value: 'WORKER', child: Text('Worker')),
-                DropdownMenuItem(value: 'LEADER', child: Text('Leader')),
+              decoration: InputDecoration(labelText: l10n.t('Role')),
+              items: [
+                DropdownMenuItem(
+                  value: 'WORKER',
+                  child: Text(l10n.roleLabel('WORKER')),
+                ),
+                DropdownMenuItem(
+                  value: 'LEADER',
+                  child: Text(l10n.roleLabel('LEADER')),
+                ),
               ],
               onChanged: (value) => setState(() => _role = value ?? 'WORKER'),
             ),
@@ -229,7 +255,9 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(labelText: 'Hourly wage (RON)'),
+              decoration: InputDecoration(
+                labelText: l10n.t('Hourly wage (RON)'),
+              ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 10),
@@ -241,11 +269,11 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.t('Cancel')),
         ),
         FilledButton(
           onPressed: _isSaving ? null : _save,
-          child: Text(_isSaving ? 'Saving...' : 'Save'),
+          child: Text(_isSaving ? l10n.t('Saving...') : l10n.t('Save')),
         ),
       ],
     );
@@ -284,7 +312,12 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
       ).listWorkerDocuments(widget.worker.id);
       setState(() => _documents = documents);
     } catch (error) {
-      setState(() => _error = errorMessage(error, 'Failed to load documents.'));
+      setState(
+        () => _error = errorMessage(
+          error,
+          context.l10n.t('Failed to load documents.'),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -310,8 +343,12 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
       );
       await _load();
     } catch (error) {
-      if (mounted)
-        showSnack(context, errorMessage(error, 'Failed to upload document.'));
+      if (mounted) {
+        showSnack(
+          context,
+          errorMessage(error, context.l10n.t('Failed to upload document.')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -325,11 +362,12 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
 
   Future<void> _delete(WorkerDocumentSummary document) async {
     final api = AppScope.apiOf(context);
+    final l10n = context.l10n;
     final confirmed = await confirmAction(
       context,
-      title: 'Delete document',
-      message: 'Delete ${document.originalName}?',
-      confirmLabel: 'Delete',
+      title: l10n.t('Delete document'),
+      message: l10n.t('Delete {name}?', {'name': document.originalName}),
+      confirmLabel: l10n.t('Delete'),
       destructive: true,
     );
     if (!confirmed) return;
@@ -339,18 +377,21 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: Text('Documents for ${widget.worker.username}'),
+      title: Text(
+        l10n.t('Documents for {name}', {'name': widget.worker.username}),
+      ),
       content: SizedBox(
         width: 520,
         child: _isLoading
-            ? const LoadingView(label: 'Loading documents...')
+            ? LoadingView(label: l10n.t('Loading documents...'))
             : _error != null
             ? ErrorBanner(_error!)
             : _documents.isEmpty
-            ? const EmptyState(
+            ? EmptyState(
                 icon: Icons.description_outlined,
-                title: 'No documents',
+                title: l10n.t('No documents'),
               )
             : ListView.builder(
                 shrinkWrap: true,
@@ -372,9 +413,15 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
                         if (value == 'open') _open(document);
                         if (value == 'delete') _delete(document);
                       },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(value: 'open', child: Text('Open')),
-                        PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'open',
+                          child: Text(l10n.t('Open')),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(l10n.t('Delete')),
+                        ),
                       ],
                     ),
                   );
@@ -384,7 +431,7 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(l10n.t('Close')),
         ),
         FilledButton.icon(
           onPressed: _isUploading ? null : _upload,
@@ -394,7 +441,7 @@ class _WorkerDocumentsDialogState extends State<_WorkerDocumentsDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.upload_file),
-          label: Text(_isUploading ? 'Uploading...' : 'Upload'),
+          label: Text(_isUploading ? l10n.t('Uploading...') : l10n.t('Upload')),
         ),
       ],
     );

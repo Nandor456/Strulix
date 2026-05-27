@@ -15,6 +15,7 @@ import {
 import buildPulseLogo from "@/assets/buildpulselogo.png";
 import {
     Building2,
+    CalendarDays,
     FileText,
     Home as HomeIcon,
     MessageSquare,
@@ -52,19 +53,12 @@ function getUserInitials(username?: string) {
     return username?.slice(0, 2).toUpperCase() || "BP";
 }
 
-function getRoleLabel(role?: string) {
-    if (role === "ADMIN") return "Admin";
-    if (role === "LEADER") return "Leader";
-    if (role === "WORKER") return "Worker";
-    return role ?? "";
-}
-
 export function AppSidebar() {
     const location = useLocation();
     const { user, logout } = useAuth();
     const { isMobile } = useSidebar();
     const { mode, toggleMode } = useThemeMode();
-    const { language, setLanguage, t } = useI18n();
+    const { language, setLanguage, t, roleLabel } = useI18n();
     const isDarkMode = mode === "dark";
 
     const canManageWorkPoints = user?.role === "ADMIN" || user?.role === "LEADER";
@@ -85,13 +79,13 @@ export function AppSidebar() {
                             {/* Brand icon mark */}
                             <img
                                 src={buildPulseLogo}
-                                alt="BuildPulse"
+                                alt={t("BuildPulse")}
                                 className="h-12 w-12 rounded"
                             />
                             {/* Name + tagline – hidden when collapsed */}
                             <div className="flex flex-col group-data-[collapsible=icon]:hidden">
                                 <span className="text-[13.5px] font-semibold leading-tight tracking-tight">
-                                    BuildPulse
+                                    {t("BuildPulse")}
                                 </span>
                             </div>
                         </div>
@@ -125,6 +119,13 @@ export function AppSidebar() {
                                 />
                             </>
                         )}
+
+                        <NavItem
+                            to="/leave-calendar"
+                            label={t("Leave Calendar")}
+                            icon={<CalendarDays className="h-4 w-4" />}
+                            active={location.pathname.startsWith("/leave-calendar")}
+                        />
 
                         <NavItem
                             to="/messages"
@@ -263,7 +264,7 @@ export function AppSidebar() {
                                             {user?.username}
                                         </span>
                                         <span className="truncate text-[11px] text-muted-foreground">
-                                            {getRoleLabel(user?.role)}
+                                            {user?.role ? roleLabel(user.role) : ""}
                                         </span>
                                     </div>
                                     <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-muted-foreground group-data-[collapsible=icon]:hidden" />

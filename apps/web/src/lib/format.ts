@@ -47,11 +47,12 @@ export function formatMonthLabel(year: number, month: number) {
 }
 
 export function formatHours(value: number | null | undefined) {
-  if (value === null || value === undefined) return "0h";
+  const hourUnit = translate("h");
+  if (value === null || value === undefined) return `0${hourUnit}`;
   const quarterHours = Math.round(value * 4) / 4;
   return `${new Intl.NumberFormat(activeLocale, {
     maximumFractionDigits: 2,
-  }).format(quarterHours)}h`;
+  }).format(quarterHours)}${hourUnit}`;
 }
 
 export function formatMoney(
@@ -68,9 +69,8 @@ export function formatMoney(
 }
 
 export function formatFileSize(value: number | null | undefined) {
-  if (value === null || value === undefined) return "0 B";
-
-  const units = ["B", "KB", "MB", "GB"];
+  const units = ["B", "KB", "MB", "GB"].map((unit) => translate(unit));
+  if (value === null || value === undefined) return `0 ${units[0]}`;
   let size = value;
   let unitIndex = 0;
 

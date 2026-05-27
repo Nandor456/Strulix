@@ -22,16 +22,19 @@ model User {
   role       String
   hourlyWage Float?  @map("hourly_wage")
 
-  workPoints         WorkPoint[]
-  invitations        Invitation[]     @relation("InvitedBy")
-  assignedWorkPoints WorkPoint[]      @relation("WorkPointWorkers")
-  attendances        Attendance[]
-  chatParticipants   ChatParticipant[]
-  sentMessages       Message[]
-  workerDocuments    WorkerDocument[] @relation("WorkerDocuments")
-  uploadedDocuments  WorkerDocument[] @relation("UploadedWorkerDocuments")
-  refreshTokens      RefreshToken[]
-  pushDevices        PushDevice[]
+  workPoints            WorkPoint[]
+  invitations           Invitation[]     @relation("InvitedBy")
+  assignedWorkPoints    WorkPoint[]      @relation("WorkPointWorkers")
+  attendances           Attendance[]
+  chatParticipants      ChatParticipant[]
+  sentMessages          Message[]
+  workerDocuments       WorkerDocument[] @relation("WorkerDocuments")
+  uploadedDocuments     WorkerDocument[] @relation("UploadedWorkerDocuments")
+  uploadedWorkPointDocuments WorkPointDocument[] @relation("UploadedWorkPointDocuments")
+  refreshTokens         RefreshToken[]
+  pushDevices           PushDevice[]
+  leaveRequests         LeaveRequest[]   @relation("LeaveRequestUser")
+  reviewedLeaveRequests LeaveRequest[]   @relation("LeaveRequestReviewer")
 }
 
 model WorkPoint {
@@ -48,6 +51,7 @@ model WorkPoint {
   user        User?         @relation(fields: [userId], references: [id])
   workers               User[]     @relation("WorkPointWorkers")
   attendances           Attendance[]
+  documents             WorkPointDocument[]
   chat                  Chat?
 }
 
@@ -104,6 +108,24 @@ model WorkerDocument {
   @@map("worker_documents")
 }
 
+model WorkPointDocument {
+  id           String   @id @default(uuid())
+  workPointId  String   @map("work_point_id")
+  uploadedById String?  @map("uploaded_by_id")
+  originalName String   @map("original_name")
+  storedName   String   @unique @map("stored_name")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  workPoint  WorkPoint @relation(fields: [workPointId], references: [id], onDelete: Cascade)
+  uploadedBy User?     @relation("UploadedWorkPointDocuments", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([workPointId, createdAt])
+  @@index([uploadedById])
+  @@map("workpoint_documents")
+}
+
 model RefreshToken {
   id                String    @id @default(uuid())
   userId            String    @map("user_id")
@@ -133,6 +155,37 @@ model PushDevice {
 
   @@index([userId])
   @@map("push_devices")
+}
+
+enum LeaveRequestType {
+  VACATION
+  SICK
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LeaveRequest {
+  id         String             @id @default(uuid())
+  userId     String             @map("user_id")
+  type       LeaveRequestType
+  startDate  DateTime           @db.Date @map("start_date")
+  endDate    DateTime           @db.Date @map("end_date")
+  status     LeaveRequestStatus @default(PENDING)
+  createdAt  DateTime           @default(now()) @map("created_at")
+  reviewedAt DateTime?          @map("reviewed_at")
+  reviewedBy String?            @map("reviewed_by")
+
+  user     User  @relation("LeaveRequestUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("LeaveRequestReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId, startDate, endDate])
+  @@index([status])
+  @@index([reviewedBy])
+  @@map("leave_requests")
 }
 
 // ─── Messaging ───────────────────────────────────────────────────────────────

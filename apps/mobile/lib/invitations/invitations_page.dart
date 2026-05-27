@@ -61,8 +61,9 @@ class _InvitationsPageState extends State<InvitationsPage> {
       _role = 'WORKER';
       await _load();
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, errorMessage(error, 'Failed to send invitation.'));
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
