@@ -35,6 +35,8 @@ import {
   useInvitations,
   useRevokeInvitation,
 } from "../hooks/useInvitations";
+import { useAuth } from "@/hooks/useAuth";
+import { isBillingActive, isBillingRequiredError } from "@/lib/billing";
 import type {
   Invitation,
   InvitationRole,
@@ -60,6 +62,7 @@ const STATUS_VARIANTS: Record<InvitationStatus, BadgeVariant> = {
 
 export default function InvitationsPage() {
   const { t, roleLabel, invitationStatusLabel } = useI18n();
+  const { user } = useAuth();
   const { data: invitations = [], isLoading, error } = useInvitations();
   const createMutation = useCreateInvitation();
   const revokeMutation = useRevokeInvitation();
@@ -68,6 +71,7 @@ export default function InvitationsPage() {
   const [role, setRole] = useState<InvitationRole>("WORKER");
   const [formError, setFormError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const hasActiveBilling = isBillingActive(user?.company.billingStatus);
 
   const roleOptions = useMemo(
     () => ROLE_OPTIONS.map((value) => ({ value, label: roleLabel(value) })),
@@ -75,8 +79,8 @@ export default function InvitationsPage() {
   );
 
   const canSubmit = useMemo(() => {
-    return email.trim().length > 0 && !createMutation.isPending;
-  }, [email, createMutation.isPending]);
+    return email.trim().length > 0 && hasActiveBilling && !createMutation.isPending;
+  }, [email, hasActiveBilling, createMutation.isPending]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,6 +97,11 @@ export default function InvitationsPage() {
       setEmail("");
       setRole("WORKER");
     } catch (err: unknown) {
+      if (isBillingRequiredError(err)) {
+        setFormError(t("Billing is required to continue."));
+        return;
+      }
+
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data
           ?.error ?? t("Failed to send invitation");
@@ -128,6 +137,11 @@ export default function InvitationsPage() {
 
       <div className="mb-8 rounded-lg border p-4 sm:p-6">
         <h2 className="mb-4 text-lg font-semibold">{t("Invite a new user")}</h2>
+        {!hasActiveBilling && (
+          <Alert variant="destructive" className="mb-4">
+            {t("Your subscription is not active. Fix billing before inviting users.")}
+          </Alert>
+        )}
         <form onSubmit={onSubmit}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex flex-1 flex-col gap-1.5">
@@ -213,7 +227,7 @@ export default function InvitationsPage() {
             </TableHeader>
             <TableBody>
               {invitations.map((invitation) => {
-                const canRevoke = invitation.status === "pending";
+                const canRevoke = invitation.status === "pending" && hasActiveBilling;
                 return (
                   <TableRow key={invitation.id}>
                     <TableCell className="font-medium">

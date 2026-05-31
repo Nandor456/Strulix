@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import multer from "multer";
 import {
   ensureAuthenticated,
+  ensureActiveBillingForWrites,
   ensureRole,
 } from "../middlewares/authMiddleware.js";
 import {
@@ -101,14 +102,15 @@ router.get("/workers/:workerId/documents", admin_leaderAccess, listWorkerDocumen
 router.post(
   "/workers/:workerId/documents",
   admin_leaderAccess,
+  ensureActiveBillingForWrites,
   handleWorkerDocumentUpload,
   uploadWorkerDocumentController,
 );
 router.get("/workpoints/:id/workers", admin_leaderAccess, listWorkPointWorkersController);
-router.post("/workpoints/:id/workers", admin_leaderAccess, assignWorkerController);
-router.delete("/workpoints/:id/workers/:workerId", admin_leaderAccess, removeWorkerController);
-router.put("/workers/:workerId", admin_leaderAccess, updateWorkerController);
-router.delete("/workers/:workerId", admin_leaderAccess, deleteWorkerController);
+router.post("/workpoints/:id/workers", admin_leaderAccess, ensureActiveBillingForWrites, assignWorkerController);
+router.delete("/workpoints/:id/workers/:workerId", admin_leaderAccess, ensureActiveBillingForWrites, removeWorkerController);
+router.put("/workers/:workerId", admin_leaderAccess, ensureActiveBillingForWrites, updateWorkerController);
+router.delete("/workers/:workerId", admin_leaderAccess, ensureActiveBillingForWrites, deleteWorkerController);
 router.get("/worker-documents/me", admin_leader_workerAccess, listMyWorkerDocumentsController);
 router.get(
   "/worker-documents/:documentId/file",
@@ -118,6 +120,7 @@ router.get(
 router.delete(
   "/worker-documents/:documentId",
   admin_leaderAccess,
+  ensureActiveBillingForWrites,
   deleteWorkerDocumentController,
 );
 

@@ -14,6 +14,7 @@ import {
 import { createCorsOriginValidator } from "../config/env.js";
 import type { LeaveRequestDTO } from "../services/leaveRequestService.js";
 import { prisma } from "../../database/prisma.js";
+import { isBillingActive } from "../services/billingService.js";
 
 interface ServerToClientEvents {
   "message:new": (message: Record<string, unknown>) => void;
@@ -89,13 +90,17 @@ export function initSocketServer(httpServer: HttpServer) {
       const verified = await verifyAccessToken(token);
       const user = await prisma.user.findUnique({
         where: { id: verified.userId },
-        select: { companyId: true },
+        select: {
+          companyId: true,
+          company: { select: { billingStatus: true } },
+        },
       });
       if (!user) {
         return next(new Error("Unauthorized"));
       }
       socket.data.userId = verified.userId;
       socket.data.companyId = user.companyId;
+      socket.data.companyBillingStatus = user.company.billingStatus;
       next();
     } catch {
       next(new Error("Unauthorized"));
@@ -105,6 +110,7 @@ export function initSocketServer(httpServer: HttpServer) {
   io.on("connection", async (socket) => {
     const userId = socket.data.userId as string | undefined;
     const companyId = socket.data.companyId as string | undefined;
+    const companyBillingStatus = socket.data.companyBillingStatus as string | undefined;
     if (!userId || !companyId) return socket.disconnect();
 
     // Track presence
@@ -124,6 +130,8 @@ export function initSocketServer(httpServer: HttpServer) {
 
     // ── message:send ───────────────────────────────────────────────
     socket.on("message:send", async (data) => {
+      if (!isBillingActive(companyBillingStatus)) return;
+
       try {
         const message = await createMessage(
           data.chatId,
@@ -177,6 +185,8 @@ export function initSocketServer(httpServer: HttpServer) {
 
     // ── chat:read ──────────────────────────────────────────────────
     socket.on("chat:read", async (data) => {
+      if (!isBillingActive(companyBillingStatus)) return;
+
       try {
         await markChatRead(data.chatId, userId);
         const now = new Date().toISOString();

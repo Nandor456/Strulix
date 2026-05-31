@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import multer from "multer";
 import {
   ensureAuthenticated,
+  ensureActiveBillingForWrites,
   ensureRole,
 } from "../middlewares/authMiddleware.js";
 import {
@@ -89,6 +90,7 @@ router.get("/workpoints/:id/documents", listWorkPointDocumentsController);
 router.post(
   "/workpoints/:id/documents",
   adminLeaderAccess,
+  ensureActiveBillingForWrites,
   handleWorkPointDocumentUpload,
   uploadWorkPointDocumentController,
 );
@@ -99,6 +101,7 @@ router.get(
 router.delete(
   "/workpoint-documents/:documentId",
   adminLeaderAccess,
+  ensureActiveBillingForWrites,
   deleteWorkPointDocumentController,
 );
 

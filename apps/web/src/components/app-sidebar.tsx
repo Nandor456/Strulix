@@ -29,6 +29,7 @@ import {
     Languages,
     Mail,
     BadgeCheck,
+    CreditCard,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ import { useI18n } from "@/hooks/useI18n";
 import { Button } from "@/components/ui/button";
 import { APP_LANGUAGES } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { isBillingActive } from "@/lib/billing";
 
 function getUserInitials(username?: string) {
     return username?.slice(0, 2).toUpperCase() || "BP";
@@ -64,6 +66,9 @@ export function AppSidebar() {
     const canManageWorkPoints = user?.role === "ADMIN" || user?.role === "LEADER";
     const canManageUsers = user?.role === "ADMIN" || user?.role === "LEADER";
     const canViewWorkers = user?.role === "ADMIN" || user?.role === "LEADER";
+    const canManageBilling = user?.role === "ADMIN";
+    const hasInactiveBilling =
+        canManageBilling && !isBillingActive(user?.company.billingStatus);
     const isWorker = user?.role === "WORKER";
     const isUsersRoute =
         canViewWorkers &&
@@ -143,6 +148,15 @@ export function AppSidebar() {
                                 label={t("Workpoints")}
                                 icon={<Building2 className="h-4 w-4" />}
                                 active={location.pathname.startsWith("/workpoints")}
+                            />
+                        )}
+
+                        {canManageBilling && (
+                            <NavItem
+                                to="/billing"
+                                label={t("Billing")}
+                                icon={<CreditCard className="h-4 w-4" />}
+                                active={location.pathname.startsWith("/billing")}
                             />
                         )}
                     </SidebarMenu>
@@ -240,6 +254,18 @@ export function AppSidebar() {
                             </SidebarMenu>
                         </SidebarGroup>
                     </>
+                )}
+
+                {hasInactiveBilling && (
+                    <div className="mt-4 rounded-md border border-destructive/25 bg-destructive/10 p-3 text-xs leading-5 text-destructive group-data-[collapsible=icon]:hidden">
+                        <p className="font-medium">{t("Billing attention needed")}</p>
+                        <p className="mt-1 opacity-85">
+                            {t("Operational changes are paused until billing is fixed.")}
+                        </p>
+                        <Button asChild size="sm" variant="outline" className="mt-3 h-8 w-full">
+                            <Link to="/billing">{t("Manage billing")}</Link>
+                        </Button>
+                    </div>
                 )}
             </SidebarContent>
 

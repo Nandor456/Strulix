@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import router from "./routes/index.js";
 import { createCorsOriginValidator, loadEnvironment } from "./config/env.js";
 import { prisma } from "../database/prisma.js";
+import { stripeWebhookController } from "./controllers/billingController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +28,11 @@ app.use(
     },
     credentials: true,
   }),
+);
+app.post(
+  "/api/billing/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhookController,
 );
 app.use(express.json());
 app.use(morgan(nodeEnv === "production" ? "combined" : "tiny"));

@@ -4,6 +4,7 @@ import {
   addParticipantToChat,
   removeParticipantFromChat,
 } from "./messagingService.js";
+import { syncCompanySeatQuantity } from "./billingService.js";
 
 export type WorkerSummary = {
   id: string;
@@ -198,4 +199,7 @@ export async function deleteWorker(workerId: string, companyId: string): Promise
   }
 
   await prisma.user.delete({ where: { id: workerId } });
+  void syncCompanySeatQuantity(companyId).catch((error) => {
+    console.error("Failed to sync Stripe seat quantity after user deletion:", error);
+  });
 }

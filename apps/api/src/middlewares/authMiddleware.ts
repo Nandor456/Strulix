@@ -6,6 +6,7 @@ import {
   getAccessTokenFromRequest,
   verifyAccessToken,
 } from "../services/authTokenService.js";
+import { isBillingActive } from "../services/billingService.js";
 
 export async function ensureAuthenticated(
   req: Request,
@@ -62,4 +63,22 @@ export function ensureRole(...allowedRoles: string[]) {
     }
     next();
   };
+}
+
+export function ensureActiveBillingForWrites(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const billingStatus = req.auth?.companyBillingStatus;
+  if (!billingStatus) return res.status(401).json({ error: "Unauthorized" });
+
+  if (!isBillingActive(billingStatus)) {
+    return res.status(402).json({
+      error: "Billing is required to continue.",
+      code: "billing_required",
+    });
+  }
+
+  next();
 }

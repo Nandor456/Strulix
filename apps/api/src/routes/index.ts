@@ -1,6 +1,7 @@
 import { Router } from "express";
 import healthRouter from "./healthRoute.js";
 import authRouter from "./authRoute.js";
+import billingRouter from "./billingRoute.js";
 import invitationRouter from "./invitationRoute.js";
 import attendanceRouter from "./attendanceRoute.js";
 import leaveRequestRouter from "./leaveRequestRoute.js";
@@ -15,6 +16,7 @@ const router = Router();
 // Grouped routers
 router.use("/health", healthRouter);
 router.use("/auth", authRouter);
+router.use("/billing", billingRouter);
 router.use("/invitations", invitationRouter);
 router.use("/attendance", attendanceRouter);
 router.use("/leave-requests", leaveRequestRouter);

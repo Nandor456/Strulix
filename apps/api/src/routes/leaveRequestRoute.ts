@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   ensureAuthenticated,
+  ensureActiveBillingForWrites,
   ensureRole,
 } from "../middlewares/authMiddleware.js";
 import { validate } from "../middlewares/validate.js";
@@ -26,23 +27,27 @@ router.get("/my", listMyLeaveRequestsController);
 router.post(
   "/",
   ensureRole("WORKER", "LEADER"),
+  ensureActiveBillingForWrites,
   validate(createLeaveRequestSchema),
   createLeaveRequestController,
 );
 router.patch(
   "/:id/approve",
   ensureRole("ADMIN", "LEADER"),
+  ensureActiveBillingForWrites,
   validate(leaveRequestIdSchema),
   approveLeaveRequestController,
 );
 router.patch(
   "/:id/reject",
   ensureRole("ADMIN", "LEADER"),
+  ensureActiveBillingForWrites,
   validate(leaveRequestIdSchema),
   rejectLeaveRequestController,
 );
 router.delete(
   "/:id",
+  ensureActiveBillingForWrites,
   validate(leaveRequestIdSchema),
   cancelLeaveRequestController,
 );

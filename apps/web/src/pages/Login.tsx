@@ -10,10 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { useI18n } from "@/hooks/useI18n";
 import { translateApiErrorMessage } from "@/lib/apiErrors";
-import {
-  isExternalRequestAccessUrl,
-  REQUEST_ACCESS_URL,
-} from "@/lib/publicLinks";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
 import buildPulseLogo from "@/assets/buildpulselogo.png";
@@ -32,7 +28,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const hasRequestAccessUrl = REQUEST_ACCESS_URL.length > 0;
 
   const canSubmit = useMemo(() => {
     return username.trim().length >= 3 && password.length > 0 && !isSubmitting;
@@ -129,22 +124,6 @@ export default function Login() {
               {isSubmitting ? t("Signing in…") : t("Sign in")}
             </Button>
           </form>
-        </div>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <span>{t("Need access?")}</span>{" "}
-          {hasRequestAccessUrl ? (
-            <a
-              href={REQUEST_ACCESS_URL}
-              target={isExternalRequestAccessUrl() ? "_blank" : undefined}
-              rel={isExternalRequestAccessUrl() ? "noreferrer" : undefined}
-              className="font-medium text-primary hover:underline"
-            >
-              {t("Request access")}
-            </a>
-          ) : (
-            <span>{t("Ask your company administrator for an invitation.")}</span>
-          )}
         </div>
       </div>
     </main>

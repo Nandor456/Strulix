@@ -1,19 +1,15 @@
 import { Link } from "react-router-dom";
-import { LogIn, Send } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 import buildPulseLogo from "@/assets/buildpulselogo.png";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { useI18n } from "@/hooks/useI18n";
-import {
-  isExternalRequestAccessUrl,
-  REQUEST_ACCESS_URL,
-} from "@/lib/publicLinks";
+
 
 export function PublicHeader() {
   const { t } = useI18n();
-  const hasRequestAccessUrl = REQUEST_ACCESS_URL.length > 0;
 
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
@@ -39,23 +35,6 @@ export function PublicHeader() {
               {t("Login")}
             </Link>
           </Button>
-          {hasRequestAccessUrl ? (
-            <Button asChild size="lg">
-              <a
-                href={REQUEST_ACCESS_URL}
-                target={isExternalRequestAccessUrl() ? "_blank" : undefined}
-                rel={isExternalRequestAccessUrl() ? "noreferrer" : undefined}
-              >
-                <Send className="h-4 w-4" />
-                {t("Request access")}
-              </a>
-            </Button>
-          ) : (
-            <Button type="button" size="lg" disabled>
-              <Send className="h-4 w-4" />
-              {t("Request access")}
-            </Button>
-          )}
         </div>
       </div>
     </header>

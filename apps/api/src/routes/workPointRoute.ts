@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   ensureAuthenticated,
+  ensureActiveBillingForWrites,
   ensureRole,
 } from "../middlewares/authMiddleware.js";
 import { validate } from "../middlewares/validate.js";
@@ -25,9 +26,24 @@ router.get("/me", ensureAuthenticated, listMyAssignedWorkPointsController);
 router.use(ensureAuthenticated, ensureRole("ADMIN", "LEADER"));
 
 router.get("/", listWorkPointsController);
-router.post("/", validate(createWorkPointSchema), createWorkPointController);
+router.post(
+  "/",
+  ensureActiveBillingForWrites,
+  validate(createWorkPointSchema),
+  createWorkPointController,
+);
 router.get("/:id", validate(workPointIdSchema), getWorkPointController);
-router.put("/:id", validate(updateWorkPointSchema), updateWorkPointController);
-router.delete("/:id", validate(workPointIdSchema), deleteWorkPointController);
+router.put(
+  "/:id",
+  ensureActiveBillingForWrites,
+  validate(updateWorkPointSchema),
+  updateWorkPointController,
+);
+router.delete(
+  "/:id",
+  ensureActiveBillingForWrites,
+  validate(workPointIdSchema),
+  deleteWorkPointController,
+);
 
 export default router;

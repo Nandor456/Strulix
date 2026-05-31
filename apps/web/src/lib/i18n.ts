@@ -485,6 +485,64 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "{count} complete": "{count} complete",
     "{count} complete days": "{count} zile complete",
     "{count} records": "{count} înregistrări",
+    "ACTIVE": "Activ",
+    "TRIALING": "Perioadă de probă",
+    "UNPAID": "Neplătit",
+    "PAST_DUE": "Plată întârziată",
+    "CANCELED": "Anulat",
+    "Active users": "Utilizatori activi",
+    "Automatic": "Automat",
+    "Billing": "Facturare",
+    "Billing attention needed": "Facturarea necesită atenție",
+    "Billing is required to continue.":
+      "Facturarea este necesară pentru a continua.",
+    "BuildPulse updates Stripe when invited users accept or when users are removed, including prorated monthly changes.":
+      "BuildPulse actualizează Stripe când utilizatorii invitați acceptă sau când utilizatorii sunt eliminați, inclusiv ajustările lunare proporționale.",
+    "Checkout session is required.": "Sesiunea de checkout este obligatorie.",
+    "Completing your signup": "Se finalizează înregistrarea",
+    "Continue to payment": "Continuă la plată",
+    "Create your company workspace": "Creează spațiul companiei",
+    "Current period ends {date}": "Perioada curentă se încheie la {date}",
+    "Current status": "Stare curentă",
+    "Failed to complete paid registration":
+      "Înregistrarea plătită nu a putut fi finalizată",
+    "Failed to load billing status.":
+      "Starea facturării nu a putut fi încărcată.",
+    "Failed to start checkout": "Checkout-ul nu a putut fi pornit",
+    "Manage billing": "Gestionează facturarea",
+    "Manage your BuildPulse subscription and user-based billing.":
+      "Gestionează abonamentul BuildPulse și facturarea pe utilizator.",
+    "Monthly price": "Preț lunar",
+    "New companies can start with paid signup. Invited users should use their invitation link.":
+      "Companiile noi pot începe cu înregistrarea plătită. Utilizatorii invitați trebuie să folosească linkul de invitație.",
+    "No current billing period is available.":
+      "Nu este disponibilă nicio perioadă de facturare curentă.",
+    "No payment provider": "Niciun furnizor de plată",
+    "Opening checkout…": "Se deschide checkout-ul…",
+    "Operational changes are paused until billing is fixed.":
+      "Modificările operaționale sunt suspendate până la rezolvarea facturării.",
+    "Paid seats": "Locuri plătite",
+    "Seat updates": "Actualizări locuri",
+    "secure checkout and tax handling":
+      "checkout securizat și gestionarea taxelor",
+    "Simple per-user billing": "Facturare simplă pe utilizator",
+    "Start for €3/user/month": "Începe cu 3 €/utilizator/lună",
+    "Start paid signup": "Începe înregistrarea plătită",
+    "Start with one admin seat, then pay monthly only for users who accept invitations and join your company.":
+      "Începi cu un loc de administrator, apoi plătești lunar doar pentru utilizatorii care acceptă invitațiile și intră în companie.",
+    "per active user": "per utilizator activ",
+    "when invitees join or users are removed":
+      "când invitații se alătură sau utilizatorii sunt eliminați",
+    "We are confirming your subscription and preparing your admin account.":
+      "Confirmăm abonamentul și pregătim contul de administrator.",
+    "We could not complete signup": "Nu am putut finaliza înregistrarea",
+    "Your subscription is not active. Fix billing before inviting users.":
+      "Abonamentul nu este activ. Rezolvă facturarea înainte de a invita utilizatori.",
+    "Your subscription is not active. Operational changes are paused until billing is fixed.":
+      "Abonamentul nu este activ. Modificările operaționale sunt suspendate până la rezolvarea facturării.",
+    "Your subscription starts at €3 per active user each month after checkout.":
+      "Abonamentul începe după checkout la 3 € pe utilizator activ pe lună.",
+    "€3 per active user each month": "3 € pe utilizator activ în fiecare lună",
   },
   hu: {
     "ADMIN": "Adminisztrátor",
@@ -961,6 +1019,64 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "{count} complete": "{count} lezárt",
     "{count} complete days": "{count} teljes nap",
     "{count} records": "{count} bejegyzés",
+    "ACTIVE": "Aktív",
+    "TRIALING": "Próbaidőszak",
+    "UNPAID": "Nincs fizetve",
+    "PAST_DUE": "Lejárt fizetés",
+    "CANCELED": "Lemondva",
+    "Active users": "Aktív felhasználók",
+    "Automatic": "Automatikus",
+    "Billing": "Számlázás",
+    "Billing attention needed": "Számlázási teendő szükséges",
+    "Billing is required to continue.":
+      "A folytatáshoz rendezett számlázás szükséges.",
+    "BuildPulse updates Stripe when invited users accept or when users are removed, including prorated monthly changes.":
+      "A BuildPulse frissíti a Stripe-ot, amikor a meghívott felhasználók csatlakoznak vagy felhasználókat törölnek, beleértve az időarányos havi módosításokat.",
+    "Checkout session is required.": "A checkout munkamenet kötelező.",
+    "Completing your signup": "A regisztráció befejezése",
+    "Continue to payment": "Tovább a fizetéshez",
+    "Create your company workspace": "Céges munkaterület létrehozása",
+    "Current period ends {date}": "Az aktuális időszak vége: {date}",
+    "Current status": "Aktuális állapot",
+    "Failed to complete paid registration":
+      "A fizetett regisztrációt nem sikerült befejezni",
+    "Failed to load billing status.":
+      "Nem sikerült betölteni a számlázási állapotot.",
+    "Failed to start checkout": "Nem sikerült elindítani a checkoutot",
+    "Manage billing": "Számlázás kezelése",
+    "Manage your BuildPulse subscription and user-based billing.":
+      "Kezeld a BuildPulse előfizetést és a felhasználóalapú számlázást.",
+    "Monthly price": "Havi ár",
+    "New companies can start with paid signup. Invited users should use their invitation link.":
+      "Az új cégek fizetett regisztrációval indulhatnak. A meghívott felhasználók használják a meghívólinkjüket.",
+    "No current billing period is available.":
+      "Nincs elérhető aktuális számlázási időszak.",
+    "No payment provider": "Nincs fizetési szolgáltató",
+    "Opening checkout…": "Checkout megnyitása…",
+    "Operational changes are paused until billing is fixed.":
+      "Az operatív módosítások szünetelnek, amíg a számlázás nincs rendezve.",
+    "Paid seats": "Fizetett helyek",
+    "Seat updates": "Helyek frissítése",
+    "secure checkout and tax handling":
+      "biztonságos checkout és adókezelés",
+    "Simple per-user billing": "Egyszerű felhasználóalapú számlázás",
+    "Start for €3/user/month": "Indítás 3 €/felhasználó/hó áron",
+    "Start paid signup": "Fizetett regisztráció indítása",
+    "Start with one admin seat, then pay monthly only for users who accept invitations and join your company.":
+      "Egy adminisztrátori hellyel indulsz, majd havonta csak azokért fizetsz, akik elfogadják a meghívást és csatlakoznak a céghez.",
+    "per active user": "aktív felhasználónként",
+    "when invitees join or users are removed":
+      "amikor meghívottak csatlakoznak vagy felhasználókat törölnek",
+    "We are confirming your subscription and preparing your admin account.":
+      "Ellenőrizzük az előfizetést és előkészítjük az admin fiókodat.",
+    "We could not complete signup": "Nem sikerült befejezni a regisztrációt",
+    "Your subscription is not active. Fix billing before inviting users.":
+      "Az előfizetés nem aktív. Rendezd a számlázást, mielőtt felhasználókat hívsz meg.",
+    "Your subscription is not active. Operational changes are paused until billing is fixed.":
+      "Az előfizetés nem aktív. Az operatív módosítások szünetelnek, amíg a számlázás nincs rendezve.",
+    "Your subscription starts at €3 per active user each month after checkout.":
+      "Az előfizetés checkout után havi 3 € aktív felhasználónként.",
+    "€3 per active user each month": "3 € aktív felhasználónként havonta",
   },
 };
 

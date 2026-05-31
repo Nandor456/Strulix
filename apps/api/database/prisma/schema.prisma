@@ -23,70 +23,105 @@ enum CompanyBillingStatus {
 }
 
 model Company {
-  id                    String               @id @default(uuid())
-  name                  String
-  billingStatus         CompanyBillingStatus @default(UNPAID) @map("billing_status")
-  paymentProvider       String?              @map("payment_provider")
-  paymentCustomerId     String?              @unique @map("payment_customer_id")
-  paymentSubscriptionId String?              @unique @map("payment_subscription_id")
-  paidUntil             DateTime?            @map("paid_until")
-  createdAt             DateTime             @default(now()) @map("created_at")
-  updatedAt             DateTime             @updatedAt @map("updated_at")
+  id                        String               @id @default(uuid())
+  name                      String
+  billingStatus             CompanyBillingStatus @default(UNPAID) @map("billing_status")
+  paymentProvider           String?              @map("payment_provider")
+  paymentCustomerId         String?              @unique @map("payment_customer_id")
+  paymentSubscriptionId     String?              @unique @map("payment_subscription_id")
+  paymentSubscriptionItemId String?              @unique @map("payment_subscription_item_id")
+  paymentSeatQuantity       Int                  @default(0) @map("payment_seat_quantity")
+  paidUntil                 DateTime?            @map("paid_until")
+  createdAt                 DateTime             @default(now()) @map("created_at")
+  updatedAt                 DateTime             @updatedAt @map("updated_at")
 
-  users       User[]
-  workPoints  WorkPoint[]
-  invitations Invitation[]
-  chats       Chat[]
+  users                    User[]
+  workPoints               WorkPoint[]
+  invitations              Invitation[]
+  chats                    Chat[]
+  pendingPaidRegistrations PendingPaidRegistration[]
 
   @@index([billingStatus])
   @@map("companies")
 }
 
+model PendingPaidRegistration {
+  id                      String    @id @default(uuid())
+  username                String
+  email                   String
+  passwordHash            String    @map("password_hash")
+  companyName             String    @map("company_name")
+  stripeCheckoutSessionId String?   @unique @map("stripe_checkout_session_id")
+  stripeCustomerId        String?   @map("stripe_customer_id")
+  stripeSubscriptionId    String?   @map("stripe_subscription_id")
+  companyId               String?   @map("company_id")
+  userId                  String?   @map("user_id")
+  expiresAt               DateTime  @map("expires_at")
+  completedAt             DateTime? @map("completed_at")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([username])
+  @@index([expiresAt])
+  @@map("pending_paid_registrations")
+}
+
+model ProcessedStripeWebhookEvent {
+  id        String   @id
+  type      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("processed_stripe_webhook_events")
+}
+
 model User {
-  id         String  @id @default(uuid())
-  username   String  @unique
-  email      String  @unique
+  id         String @id @default(uuid())
+  username   String @unique
+  email      String @unique
   password   String
   role       String
-  hourlyWage Float?  @map("hourly_wage")
-  companyId  String  @map("company_id")
+  hourlyWage Float? @map("hourly_wage")
+  companyId  String @map("company_id")
 
-  company               Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  workPoints            WorkPoint[]
-  invitations           Invitation[]     @relation("InvitedBy")
-  assignedWorkPoints    WorkPoint[]      @relation("WorkPointWorkers")
-  attendances           Attendance[]
-  chatParticipants      ChatParticipant[]
-  sentMessages          Message[]
-  workerDocuments       WorkerDocument[] @relation("WorkerDocuments")
-  uploadedDocuments     WorkerDocument[] @relation("UploadedWorkerDocuments")
+  company                    Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workPoints                 WorkPoint[]
+  invitations                Invitation[]        @relation("InvitedBy")
+  assignedWorkPoints         WorkPoint[]         @relation("WorkPointWorkers")
+  attendances                Attendance[]
+  chatParticipants           ChatParticipant[]
+  sentMessages               Message[]
+  workerDocuments            WorkerDocument[]    @relation("WorkerDocuments")
+  uploadedDocuments          WorkerDocument[]    @relation("UploadedWorkerDocuments")
   uploadedWorkPointDocuments WorkPointDocument[] @relation("UploadedWorkPointDocuments")
-  refreshTokens         RefreshToken[]
-  pushDevices           PushDevice[]
-  leaveRequests         LeaveRequest[]   @relation("LeaveRequestUser")
-  reviewedLeaveRequests LeaveRequest[]   @relation("LeaveRequestReviewer")
+  refreshTokens              RefreshToken[]
+  pushDevices                PushDevice[]
+  leaveRequests              LeaveRequest[]      @relation("LeaveRequestUser")
+  reviewedLeaveRequests      LeaveRequest[]      @relation("LeaveRequestReviewer")
 
   @@index([companyId])
 }
 
 model WorkPoint {
-  id          String   @id @default(uuid())
+  id          String              @id @default(uuid())
   name        String
   address     String
   lat         Float?
   lng         Float?
   description String?
-  userId      String?       @map("user_id")
-  uploadedAt  DateTime      @default(now())
+  userId      String?             @map("user_id")
+  uploadedAt  DateTime            @default(now())
   deadline    DateTime?
-  qrToken     String        @unique @default(uuid()) @map("qr_token")
-  companyId   String        @map("company_id")
-  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user        User?         @relation(fields: [userId], references: [id])
-  workers               User[]     @relation("WorkPointWorkers")
-  attendances           Attendance[]
-  documents             WorkPointDocument[]
-  chat                  Chat?
+  qrToken     String              @unique @default(uuid()) @map("qr_token")
+  companyId   String              @map("company_id")
+  company     Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user        User?               @relation(fields: [userId], references: [id])
+  workers     User[]              @relation("WorkPointWorkers")
+  attendances Attendance[]
+  documents   WorkPointDocument[]
+  chat        Chat?
 
   @@index([companyId])
 }
@@ -103,8 +138,8 @@ model Invitation {
   revokedAt   DateTime? @map("revoked_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invitedBy   User?     @relation("InvitedBy", fields: [invitedById], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invitedBy User?   @relation("InvitedBy", fields: [invitedById], references: [id])
 
   @@index([companyId])
   @@index([companyId, email])
@@ -112,17 +147,17 @@ model Invitation {
 }
 
 model Attendance {
-  id            String    @id @default(uuid())
-  workerId      String    @map("worker_id")
-  workPointId   String    @map("work_point_id")
-  date          DateTime  @db.Date @map("date")
-  checkedInAt   DateTime  @default(now()) @map("checked_in_at")
-  checkedOutAt  DateTime? @map("checked_out_at")
+  id             String    @id @default(uuid())
+  workerId       String    @map("worker_id")
+  workPointId    String    @map("work_point_id")
+  date           DateTime  @map("date") @db.Date
+  checkedInAt    DateTime  @default(now()) @map("checked_in_at")
+  checkedOutAt   DateTime? @map("checked_out_at")
   checkoutSource String?   @map("checkout_source")
-  source        String
+  source         String
 
-  worker      User      @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  workPoint   WorkPoint @relation(fields: [workPointId], references: [id], onDelete: Cascade)
+  worker    User      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  workPoint WorkPoint @relation(fields: [workPointId], references: [id], onDelete: Cascade)
 
   @@unique([workerId, workPointId, date])
   @@index([workPointId, date])
@@ -211,8 +246,8 @@ model LeaveRequest {
   id         String             @id @default(uuid())
   userId     String             @map("user_id")
   type       LeaveRequestType
-  startDate  DateTime           @db.Date @map("start_date")
-  endDate    DateTime           @db.Date @map("end_date")
+  startDate  DateTime           @map("start_date") @db.Date
+  endDate    DateTime           @map("end_date") @db.Date
   status     LeaveRequestStatus @default(PENDING)
   createdAt  DateTime           @default(now()) @map("created_at")
   reviewedAt DateTime?          @map("reviewed_at")
@@ -236,19 +271,19 @@ enum ChatType {
 }
 
 model Chat {
-  id            String            @id @default(uuid())
+  id            String    @id @default(uuid())
   type          ChatType
   name          String?
-  workPointId   String?           @unique @map("work_point_id")
-  companyId     String            @map("company_id")
-  createdAt     DateTime          @default(now()) @map("created_at")
-  updatedAt     DateTime          @updatedAt @map("updated_at")
-  lastMessageAt DateTime?         @map("last_message_at")
+  workPointId   String?   @unique @map("work_point_id")
+  companyId     String    @map("company_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastMessageAt DateTime? @map("last_message_at")
 
-  company       Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  workPoint     WorkPoint?        @relation(fields: [workPointId], references: [id], onDelete: Cascade)
-  participants  ChatParticipant[]
-  messages      Message[]
+  company      Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workPoint    WorkPoint?        @relation(fields: [workPointId], references: [id], onDelete: Cascade)
+  participants ChatParticipant[]
+  messages     Message[]
 
   @@index([companyId])
   @@index([lastMessageAt])
@@ -262,8 +297,8 @@ model ChatParticipant {
   joinedAt   DateTime  @default(now()) @map("joined_at")
   lastReadAt DateTime? @map("last_read_at")
 
-  chat       Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([chatId, userId])
   @@index([userId])
@@ -282,10 +317,10 @@ model Message {
   createdAt      DateTime  @default(now()) @map("created_at")
   editedAt       DateTime? @map("edited_at")
 
-  chat           Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender         User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  replyTo        Message?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
-  replies        Message[] @relation("MessageReply")
+  chat    Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender  User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo Message?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies Message[] @relation("MessageReply")
 
   @@index([chatId, createdAt])
   @@map("messages")

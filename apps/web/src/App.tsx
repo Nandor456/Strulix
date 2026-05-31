@@ -10,7 +10,9 @@ import MessagingPage from "./pages/MessagingPage";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import SignupSuccessPage from "./pages/SignupSuccessPage";
 import InvitationsPage from "./pages/InvitationsPage";
+import BillingPage from "./pages/BillingPage";
 import WorkerManagementPage from "./pages/WorkerManagementPage";
 import WorkpointPage from "./pages/WorkpointPage";
 import WorkpointDetailPage from "./pages/WorkpointDetailPage";
@@ -115,8 +117,17 @@ function App() {
                                 </RequireRoles>
                             }
                         />
+                        <Route
+                            path="/billing"
+                            element={
+                                <RequireRoles roles={["ADMIN"]}>
+                                    <BillingPage />
+                                </RequireRoles>
+                            }
+                        />
                         <Route path="/login" element={<Navigate to="/" replace />} />
                         <Route path="/register" element={<Navigate to="/" replace />} />
+                        <Route path="/register/success" element={<Navigate to="/" replace />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </SideBar>
@@ -125,6 +136,7 @@ function App() {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/register/success" element={<SignupSuccessPage />} />
                     <Route path="/checkin/:qrToken" element={<CheckinPage />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

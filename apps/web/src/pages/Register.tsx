@@ -15,11 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { useI18n } from "@/hooks/useI18n";
 import { translateApiErrorMessage } from "@/lib/apiErrors";
-import {
-  isExternalRequestAccessUrl,
-  REQUEST_ACCESS_URL,
-} from "@/lib/publicLinks";
 import { api } from "@/services/api/axios";
+import { billingAPI } from "@/services/api/billingApi";
 import { resetUserScopedQueries } from "../services/queryClient";
 import buildPulseLogo from "@/assets/buildpulselogo.png";
 
@@ -41,7 +38,10 @@ export default function Register() {
   const isBootstrapMode =
     searchParams.get("bootstrap") === "1" ||
     searchParams.get("bootstrap") === "true";
-  const showRegistrationForm = Boolean(token) || isBootstrapMode;
+  const isPaidSignupMode =
+    searchParams.get("paid") === "1" ||
+    searchParams.get("paid") === "true";
+  const showRegistrationForm = Boolean(token) || isBootstrapMode || isPaidSignupMode;
 
   const [username, setUsername] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -70,7 +70,7 @@ export default function Register() {
     }
 
     const trimmedCompanyName = companyName.trim();
-    if (isBootstrapMode && !trimmedCompanyName) {
+    if ((isBootstrapMode || isPaidSignupMode) && !trimmedCompanyName) {
       setError(t("Company name is required."));
       return;
     }
@@ -84,6 +84,17 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
+      if (isPaidSignupMode) {
+        const { url } = await billingAPI.createCompanySignupCheckout({
+          username: trimmedUsername,
+          email: trimmedEmail,
+          password,
+          companyName: trimmedCompanyName,
+        });
+        window.location.href = url;
+        return;
+      }
+
       await api.post<RegisterResponse>("/auth/register", {
         username: trimmedUsername,
         email: trimmedEmail,
@@ -99,7 +110,15 @@ export default function Register() {
       if (error instanceof AxiosError) {
         const data = error.response?.data as RegisterResponse | undefined;
         if (data && !("id" in data)) {
-          setError(translateApiErrorMessage(data, t("Registration failed"), t));
+          setError(
+            translateApiErrorMessage(
+              data,
+              isPaidSignupMode
+                ? t("Failed to start checkout")
+                : t("Registration failed"),
+              t,
+            ),
+          );
           return;
         }
       }
@@ -125,9 +144,11 @@ export default function Register() {
           />
           <h1 className="text-center text-xl font-bold">{t("Create your account")}</h1>
           <p className="text-center text-sm text-muted-foreground">
-            {isBootstrapMode
-              ? t("Create the first company administrator")
-              : t("Join the Construction ERP system")}
+            {isPaidSignupMode
+              ? t("Create your company workspace")
+              : isBootstrapMode
+                ? t("Create the first company administrator")
+                : t("Join the Construction ERP system")}
           </p>
         </div>
 
@@ -135,6 +156,11 @@ export default function Register() {
           {token && (
             <Alert className="mb-5">
               {t("You're accepting an invitation. Your role will be assigned automatically.")}
+            </Alert>
+          )}
+          {isPaidSignupMode && (
+            <Alert className="mb-5">
+              {t("Your subscription starts at €3 per active user each month after checkout.")}
             </Alert>
           )}
           {isBootstrapMode && (
@@ -156,7 +182,7 @@ export default function Register() {
               />
             </div>
 
-            {isBootstrapMode && (
+            {(isBootstrapMode || isPaidSignupMode) && (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="register-company">{t("Company name")}</Label>
                 <Input
@@ -215,7 +241,13 @@ export default function Register() {
               className="w-full py-2.5 font-semibold"
             >
               {isSubmitting && <Spinner className="mr-2" />}
-              {isSubmitting ? t("Creating account…") : t("Create account")}
+              {isSubmitting
+                ? isPaidSignupMode
+                  ? t("Opening checkout…")
+                  : t("Creating account…")
+                : isPaidSignupMode
+                  ? t("Continue to payment")
+                  : t("Create account")}
             </Button>
           </form>
         </div>
@@ -236,8 +268,6 @@ export default function Register() {
 
 function InviteOnlyRegistrationNotice() {
   const { t } = useI18n();
-  const hasRequestAccessUrl = REQUEST_ACCESS_URL.length > 0;
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PublicHeader />
@@ -253,7 +283,7 @@ function InviteOnlyRegistrationNotice() {
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {t(
-              "New company registration will open after payment is available. For now, use an invitation link or request access.",
+              "New companies can start with paid signup. Invited users should use their invitation link.",
             )}
           </p>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -262,6 +292,11 @@ function InviteOnlyRegistrationNotice() {
             )}
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button asChild size="lg">
+              <RouterLink to="/register?paid=1">
+                {t("Start paid signup")}
+              </RouterLink>
+            </Button>
             <Button asChild variant="secondary" size="lg">
               <RouterLink to="/register?bootstrap=1">
                 {t("Create first administrator")}
@@ -270,21 +305,6 @@ function InviteOnlyRegistrationNotice() {
             <Button asChild variant="outline" size="lg">
               <RouterLink to="/login">{t("Login")}</RouterLink>
             </Button>
-            {hasRequestAccessUrl ? (
-              <Button asChild size="lg">
-                <a
-                  href={REQUEST_ACCESS_URL}
-                  target={isExternalRequestAccessUrl() ? "_blank" : undefined}
-                  rel={isExternalRequestAccessUrl() ? "noreferrer" : undefined}
-                >
-                  {t("Request access")}
-                </a>
-              </Button>
-            ) : (
-              <Button type="button" size="lg" disabled>
-                {t("Request access")}
-              </Button>
-            )}
           </div>
         </section>
       </main>

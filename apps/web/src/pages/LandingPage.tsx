@@ -1,9 +1,7 @@
 import {
-  BadgeCheck,
   Building2,
-  CalendarDays,
+  CreditCard,
   FileText,
-  MessageSquare,
   QrCode,
   ShieldCheck,
   Users,
@@ -13,11 +11,9 @@ import { Link } from "react-router-dom";
 import { PublicHeader } from "@/components/public-header";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/hooks/useI18n";
-import {
-  isExternalRequestAccessUrl,
-  REQUEST_ACCESS_URL,
-} from "@/lib/publicLinks";
 import { cn } from "@/lib/utils";
+import Viewer from "@/components/3dlogo";
+
 
 const features = [
   {
@@ -50,14 +46,13 @@ const operations = [
 
 export default function LandingPage() {
   const { t } = useI18n();
-  const hasRequestAccessUrl = REQUEST_ACCESS_URL.length > 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PublicHeader />
       <main>
         <section className="relative isolate min-h-[86svh] overflow-hidden border-b border-border bg-slate-950 text-white dark:bg-black">
-          <HeroBackdrop />
+          <Viewer />
           <div className="relative z-10 mx-auto flex min-h-[86svh] w-full max-w-7xl flex-col justify-center px-4 py-16 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-1 text-sm text-white/90 backdrop-blur">
@@ -73,27 +68,48 @@ export default function LandingPage() {
                 )}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                {hasRequestAccessUrl ? (
-                  <Button asChild size="lg" className="h-11 bg-white text-slate-950 hover:bg-slate-100">
-                    <a
-                      href={REQUEST_ACCESS_URL}
-                      target={isExternalRequestAccessUrl() ? "_blank" : undefined}
-                      rel={isExternalRequestAccessUrl() ? "noreferrer" : undefined}
-                    >
-                      {t("Request access")}
-                    </a>
-                  </Button>
-                ) : (
-                  <Button type="button" size="lg" className="h-11 bg-white text-slate-950" disabled>
-                    {t("Request access")}
-                  </Button>
-                )}
+                <Button asChild size="lg" className="h-11 bg-white text-slate-950 hover:bg-slate-100">
+                  <Link to="/register?paid=1">{t("Start for €3/user/month")}</Link>
+                </Button>
                 <Button asChild variant="outline" size="lg" className="h-11 border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
                   <Link to="/register">{t("Register")}</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-11 border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
                   <Link to="/login">{t("Login")}</Link>
                 </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-border bg-background px-4 py-12 sm:px-6 lg:px-8">
+          <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <h2 className="text-2xl font-semibold sm:text-3xl">
+                {t("Simple per-user billing")}
+              </h2>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+                {t("Start with one admin seat, then pay monthly only for users who accept invitations and join your company.")}
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-md border bg-card p-5">
+                <CreditCard className="h-6 w-6 text-primary" />
+                <p className="mt-4 text-sm text-muted-foreground">{t("Monthly price")}</p>
+                <p className="mt-2 text-3xl font-semibold">€3</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("per active user")}</p>
+              </div>
+              <div className="rounded-md border bg-card p-5">
+                <Users className="h-6 w-6 text-primary" />
+                <p className="mt-4 text-sm text-muted-foreground">{t("Seat updates")}</p>
+                <p className="mt-2 text-lg font-semibold">{t("Automatic")}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("when invitees join or users are removed")}</p>
+              </div>
+              <div className="rounded-md border bg-card p-5">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+                <p className="mt-4 text-sm text-muted-foreground">{t("Billing")}</p>
+                <p className="mt-2 text-lg font-semibold">Stripe</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("secure checkout and tax handling")}</p>
               </div>
             </div>
           </div>
@@ -142,86 +158,6 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-    </div>
-  );
-}
-
-function HeroBackdrop() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-slate-950" />
-      <div className="absolute -right-20 top-16 hidden w-[720px] max-w-[58vw] rotate-2 lg:block">
-        <div className="rounded-md border border-white/15 bg-slate-900/90 p-4 shadow-2xl">
-          <div className="grid gap-3">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div>
-                <div className="h-3 w-28 rounded-sm bg-white/60" />
-                <div className="mt-2 h-2 w-40 rounded-sm bg-white/20" />
-              </div>
-              <div className="flex gap-2">
-                <span className="h-8 w-8 rounded-md bg-emerald-400/25" />
-                <span className="h-8 w-8 rounded-md bg-amber-400/25" />
-                <span className="h-8 w-8 rounded-md bg-blue-400/25" />
-              </div>
-            </div>
-            <div className="grid grid-cols-[1.1fr_0.9fr] gap-3">
-              <div className="space-y-3 rounded-md border border-white/10 bg-white/5 p-3">
-                {[0, 1, 2, 3].map((item) => (
-                  <div key={item} className="grid grid-cols-[1fr_80px_70px] items-center gap-3 rounded-md bg-white/5 p-3">
-                    <div>
-                      <div className="h-2.5 w-32 rounded-sm bg-white/50" />
-                      <div className="mt-2 h-2 w-48 rounded-sm bg-white/15" />
-                    </div>
-                    <div className="h-2 rounded-sm bg-emerald-300/60" />
-                    <div className="h-7 rounded-md bg-white/10" />
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3 rounded-md border border-white/10 bg-white/5 p-3">
-                <div className="flex items-center gap-3 rounded-md bg-white/5 p-3">
-                  <QrCode className="h-14 w-14 text-white/70" />
-                  <div className="flex-1">
-                    <div className="h-2.5 w-24 rounded-sm bg-white/50" />
-                    <div className="mt-2 h-2 w-32 rounded-sm bg-white/15" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-md bg-blue-400/20 p-4">
-                    <CalendarDays className="h-5 w-5 text-blue-200" />
-                    <div className="mt-5 h-2 w-16 rounded-sm bg-white/40" />
-                  </div>
-                  <div className="rounded-md bg-rose-400/20 p-4">
-                    <MessageSquare className="h-5 w-5 text-rose-200" />
-                    <div className="mt-5 h-2 w-16 rounded-sm bg-white/40" />
-                  </div>
-                </div>
-                <div className="rounded-md bg-amber-400/20 p-4">
-                  <BadgeCheck className="h-5 w-5 text-amber-200" />
-                  <div className="mt-5 h-2 w-40 rounded-sm bg-white/40" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="absolute bottom-8 right-4 grid w-[260px] gap-3 sm:right-8 lg:hidden">
-        <div className="rounded-md border border-white/15 bg-slate-900/90 p-4 shadow-2xl">
-          <div className="flex items-center gap-3">
-            <QrCode className="h-10 w-10 text-emerald-200" />
-            <div className="flex-1">
-              <div className="h-2.5 w-24 rounded-sm bg-white/50" />
-              <div className="mt-2 h-2 w-32 rounded-sm bg-white/15" />
-            </div>
-          </div>
-        </div>
-        <div className="rounded-md border border-white/15 bg-slate-900/90 p-4 shadow-2xl">
-          <div className="grid grid-cols-3 gap-2">
-            <span className="h-8 rounded-md bg-blue-400/25" />
-            <span className="h-8 rounded-md bg-emerald-400/25" />
-            <span className="h-8 rounded-md bg-amber-400/25" />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

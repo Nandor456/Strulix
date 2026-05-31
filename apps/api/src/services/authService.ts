@@ -7,6 +7,7 @@ import {
   type CreateUserInput,
 } from "./userService.js";
 import { consumeInvitationToken } from "./invitationService.js";
+import { syncCompanySeatQuantity } from "./billingService.js";
 
 type User = {
   id: string;
@@ -87,7 +88,7 @@ export async function register(
 
       const passwordHash = await bcrypt.hash(password, 10);
       const company = await tx.company.create({
-        data: { name: trimmedCompanyName },
+        data: { name: trimmedCompanyName, billingStatus: "ACTIVE" },
         select: { id: true },
       });
 
@@ -112,7 +113,11 @@ export async function register(
     role,
     companyId,
   };
-  return createUser(user);
+  const createdUser = await createUser(user);
+  void syncCompanySeatQuantity(companyId).catch((error) => {
+    console.error("Failed to sync Stripe seat quantity after registration:", error);
+  });
+  return createdUser;
 }
 
 export async function validateCredentials(

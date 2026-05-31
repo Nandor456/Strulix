@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   ensureAuthenticated,
+  ensureActiveBillingForWrites,
   ensureRole,
 } from "../middlewares/authMiddleware.js";
 import { validate } from "../middlewares/validate.js";
@@ -32,7 +33,13 @@ import {
 const router = Router();
 
 // Any authenticated user can check in/out via QR
-router.post("/checkin", ensureAuthenticated, validate(checkinSchema), checkinController);
+router.post(
+  "/checkin",
+  ensureAuthenticated,
+  ensureActiveBillingForWrites,
+  validate(checkinSchema),
+  checkinController,
+);
 
 // Any authenticated user can read their own stats
 router.get("/me/daily", ensureAuthenticated, validate(myStatsSchema), getMyDailyStatsController);
@@ -43,12 +50,12 @@ const workPointAccess = [ensureAuthenticated, ensureRole("ADMIN", "LEADER")];
 const adminAccess = [ensureAuthenticated, ensureRole("ADMIN")];
 
 router.get("/workpoint/:id", workPointAccess, validate(listAttendanceSchema), listAttendanceController);
-router.post("/workpoint/:id/manual", workPointAccess, validate(manualMarkSchema), manualMarkController);
-router.patch("/:id/checkout", adminAccess, validate(updateCheckoutSchema), updateCheckoutController);
-router.patch("/:id/times", adminAccess, validate(updateAttendanceTimesSchema), updateAttendanceTimesController);
-router.delete("/:id", workPointAccess, validate(deleteAttendanceSchema), deleteAttendanceController);
+router.post("/workpoint/:id/manual", workPointAccess, ensureActiveBillingForWrites, validate(manualMarkSchema), manualMarkController);
+router.patch("/:id/checkout", adminAccess, ensureActiveBillingForWrites, validate(updateCheckoutSchema), updateCheckoutController);
+router.patch("/:id/times", adminAccess, ensureActiveBillingForWrites, validate(updateAttendanceTimesSchema), updateAttendanceTimesController);
+router.delete("/:id", workPointAccess, ensureActiveBillingForWrites, validate(deleteAttendanceSchema), deleteAttendanceController);
 router.get("/workpoint/:id/qr", workPointAccess, validate(qrSchema), getQrController);
-router.post("/workpoint/:id/qr/rotate", workPointAccess, validate(qrSchema), rotateQrController);
+router.post("/workpoint/:id/qr/rotate", workPointAccess, ensureActiveBillingForWrites, validate(qrSchema), rotateQrController);
 router.get("/workpoint/:id/export", workPointAccess, validate(exportSchema), exportAttendanceController);
 
 export default router;

@@ -19,6 +19,7 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 - Production should set `FRONTEND_BASE_URL`, `APP_BASE_URL`, and `CORS_ALLOWED_ORIGINS`
 - Optional env: `PORT` (default 4000), `ATTENDANCE_TIMEZONE`, `AUTH_COOKIE_SAME_SITE`, `FIREBASE_SERVICE_ACCOUNT_JSON`, SMTP vars for mail
 - Optional bootstrap env: `ALLOW_BOOTSTRAP_REGISTRATION=true` permits the first company/admin signup only when no companies exist; keep it off otherwise
+- Stripe billing env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, `STRIPE_TAX_ENABLED=true`
 - CORS uses `CORS_ALLOWED_ORIGINS`/`FRONTEND_BASE_URL` and still allows localhost origins outside production
 - If the frontend calls the API from a different site in production, set `AUTH_COOKIE_SAME_SITE=none` so auth cookies can be sent cross-site
 - Refresh tokens are stored hashed in Postgres
@@ -48,6 +49,25 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 
 `POST /api/auth/logout`
 - Revokes the active refresh token when possible and clears auth cookies.
+
+## Billing routes
+
+`POST /api/billing/company-signup/checkout`
+- Starts Stripe Checkout for `{ username, email, password, companyName }`.
+
+`POST /api/billing/company-signup/complete`
+- Finalizes paid company/admin signup after Checkout with `{ sessionId }` and sets auth cookies.
+
+`POST /api/billing/webhook`
+- Stripe webhook endpoint mounted with a raw request body.
+
+`GET /api/billing/status`
+- Returns company billing status and seat counts.
+
+`POST /api/billing/portal` (ADMIN)
+- Creates a Stripe Customer Portal session.
+
+Operational write routes return `402 { code: "billing_required" }` unless company billing is `ACTIVE` or `TRIALING`.
 
 ## Invitation routes (ADMIN/LEADER)
 

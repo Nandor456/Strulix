@@ -3,7 +3,10 @@ import multer from "multer";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { ensureAuthenticated } from "../middlewares/authMiddleware.js";
+import {
+  ensureAuthenticated,
+  ensureActiveBillingForWrites,
+} from "../middlewares/authMiddleware.js";
 import { validate } from "../middlewares/validate.js";
 import {
   listChatsController,
@@ -47,6 +50,7 @@ router.use(ensureAuthenticated);
 router.get("/chats", listChatsController);
 router.post(
   "/chats/direct",
+  ensureActiveBillingForWrites,
   validate(createDirectChatSchema),
   createDirectChatController,
 );
@@ -57,15 +61,22 @@ router.get(
 );
 router.post(
   "/chats/:chatId/messages",
+  ensureActiveBillingForWrites,
   validate(sendMessageSchema),
   sendMessageController,
 );
 router.post(
   "/chats/:chatId/read",
+  ensureActiveBillingForWrites,
   validate(markReadSchema),
   markReadController,
 );
-router.post("/chats/:chatId/attachment", upload.single("file"), uploadAttachmentController);
+router.post(
+  "/chats/:chatId/attachment",
+  ensureActiveBillingForWrites,
+  upload.single("file"),
+  uploadAttachmentController,
+);
 router.get("/users", listUsersController);
 
 export default router;

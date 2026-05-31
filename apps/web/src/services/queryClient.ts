@@ -47,6 +47,9 @@ export const QUERY_KEYS = {
     messages: (chatId: string) => ["messaging", "messages", chatId] as const,
     users: ["messaging", "users"] as const,
   },
+  billing: {
+    status: ["billing", "status"] as const,
+  },
 } as const;
 
 const USER_SCOPED_QUERY_PREFIXES = [
@@ -60,6 +63,7 @@ const USER_SCOPED_QUERY_PREFIXES = [
   QUERY_KEYS.workPointDocuments.all,
   QUERY_KEYS.messaging.chats,
   QUERY_KEYS.messaging.users,
+  QUERY_KEYS.billing.status,
 ] as const satisfies readonly QueryKey[];
 
 export const queryClient = new QueryClient({
