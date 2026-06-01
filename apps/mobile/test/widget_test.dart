@@ -14,6 +14,7 @@ import 'package:mobile/core/leave_dates.dart';
 import 'package:mobile/core/models.dart';
 import 'package:mobile/core/theme_controller.dart';
 import 'package:mobile/messaging/messaging_controller.dart';
+import 'package:mobile/settings/settings_page.dart';
 
 const _testApiBaseUrl = 'http://localhost:4000/api';
 
@@ -43,6 +44,43 @@ void main() {
       find.widgetWithText(TextFormField, 'worker@example.com'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('forgot password screen renders email form', (tester) async {
+    await tester.pumpWidget(_host(const ForgotPasswordPage()));
+
+    expect(find.text('Forgot password?'), findsWidgets);
+    expect(find.byKey(const Key('forgot-email')), findsOneWidget);
+    expect(find.byKey(const Key('forgot-submit')), findsOneWidget);
+  });
+
+  testWidgets('settings shows admin billing controls', (tester) async {
+    final api = _FakeBuildPulseApi()
+      ..currentUserValue = const User(
+        id: 'admin-1',
+        username: 'admin',
+        email: 'admin@example.com',
+        role: UserRole.admin,
+      )
+      ..billingStatusValue = const BillingStatusResponse(
+        billingStatus: 'ACTIVE',
+        paymentProvider: 'stripe',
+        hasStripeCustomer: true,
+        hasStripeSubscription: true,
+        paidSeatCount: 2,
+        activeUserCount: 2,
+        paidUntil: null,
+      );
+
+    await tester.pumpWidget(await _hostWithApi(api, const SettingsPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Settings'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Billing'), findsOneWidget);
+    expect(find.text('Manage billing'), findsOneWidget);
   });
 
   test('route guard redirects unauthenticated users to login', () {
@@ -82,6 +120,16 @@ void main() {
       ),
       isNull,
     );
+  });
+
+  test('route guard allows unauthenticated forgot password route', () {
+    final redirect = buildPulseRedirect(
+      isAuthenticated: false,
+      role: null,
+      uri: Uri.parse('/forgot-password'),
+    );
+
+    expect(redirect, isNull);
   });
 
   test('formatters and user model mirror web behavior', () {
@@ -255,12 +303,38 @@ Widget _host(Widget child) {
   );
 }
 
+Future<Widget> _hostWithApi(BuildPulseApi api, Widget child) async {
+  final auth = AuthController(api);
+  await auth.bootstrap();
+  final messaging = MessagingController(api, auth);
+  final theme = ThemeController();
+  final language = LanguageController(systemLocale: const Locale('en'));
+
+  return AppScope(
+    api: api,
+    auth: auth,
+    messaging: messaging,
+    theme: theme,
+    language: language,
+    child: MaterialApp(home: child),
+  );
+}
+
 class _FakeBuildPulseApi extends BuildPulseApi {
   _FakeBuildPulseApi() : super(ApiClient.inMemory(baseUrl: _testApiBaseUrl));
 
   User? currentUserValue;
   List<ChatListItem> chatsValue = const [];
   Completer<void>? logoutCompleter;
+  BillingStatusResponse billingStatusValue = const BillingStatusResponse(
+    billingStatus: 'UNPAID',
+    paymentProvider: null,
+    hasStripeCustomer: false,
+    hasStripeSubscription: false,
+    paidSeatCount: 0,
+    activeUserCount: 0,
+    paidUntil: null,
+  );
   MessagesPage messagesPageValue = const MessagesPage(
     messages: [],
     hasMore: false,
@@ -278,6 +352,12 @@ class _FakeBuildPulseApi extends BuildPulseApi {
 
   @override
   Future<List<ChatListItem>> listChats() async => chatsValue;
+
+  @override
+  Future<BillingStatusResponse> billingStatus() async => billingStatusValue;
+
+  @override
+  Future<void> requestPasswordReset(String email) async {}
 
   @override
   Future<MessagesPage> getMessages(

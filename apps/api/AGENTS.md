@@ -50,6 +50,14 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 `POST /api/auth/logout`
 - Revokes the active refresh token when possible and clears auth cookies.
 
+`POST /api/auth/forgot-password`
+- Body: `{ email }`
+- Always returns `{ ok: true }` and sends a password reset email when the address belongs to a user.
+
+`POST /api/auth/reset-password`
+- Body: `{ token, password }`
+- Consumes a valid reset token, updates the password, and revokes active refresh tokens for that user.
+
 ## Billing routes
 
 `POST /api/billing/company-signup/checkout`
@@ -61,7 +69,7 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 `POST /api/billing/webhook`
 - Stripe webhook endpoint mounted with a raw request body.
 
-`GET /api/billing/status`
+`GET /api/billing/status` (ADMIN)
 - Returns company billing status and seat counts.
 
 `POST /api/billing/portal` (ADMIN)

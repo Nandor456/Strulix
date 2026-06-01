@@ -12,7 +12,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SignupSuccessPage from "./pages/SignupSuccessPage";
 import InvitationsPage from "./pages/InvitationsPage";
-import BillingPage from "./pages/BillingPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import SettingsPage from "./pages/SettingsPage";
 import WorkerManagementPage from "./pages/WorkerManagementPage";
 import WorkpointPage from "./pages/WorkpointPage";
 import WorkpointDetailPage from "./pages/WorkpointDetailPage";
@@ -59,6 +61,7 @@ function App() {
                 <SideBar>
                     <Routes>
                         <Route path="/" element={<Home />} />
+                        <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/messages" element={<MessagingPage />} />
                         <Route
                             path="/leave-calendar"
@@ -121,7 +124,7 @@ function App() {
                             path="/billing"
                             element={
                                 <RequireRoles roles={["ADMIN"]}>
-                                    <BillingPage />
+                                    <Navigate to="/settings" replace />
                                 </RequireRoles>
                             }
                         />
@@ -135,6 +138,8 @@ function App() {
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/register/success" element={<SignupSuccessPage />} />
                     <Route path="/checkin/:qrToken" element={<CheckinPage />} />

@@ -543,6 +543,36 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Your subscription starts at €3 per active user each month after checkout.":
       "Abonamentul începe după checkout la 3 € pe utilizator activ pe lună.",
     "€3 per active user each month": "3 € pe utilizator activ în fiecare lună",
+    "Back to sign in": "Înapoi la autentificare",
+    "Choose a new password for your BuildPulse account.":
+      "Alege o parolă nouă pentru contul tău BuildPulse.",
+    "Choose how BuildPulse looks on this device.":
+      "Alege cum arată BuildPulse pe acest dispozitiv.",
+    "Choose the language used across the app.":
+      "Alege limba folosită în aplicație.",
+    "Enter your email and we will send a password reset link.":
+      "Introdu emailul și îți vom trimite un link de resetare a parolei.",
+    "Forgot password?": "Ai uitat parola?",
+    "If an account exists, we sent a password reset link.":
+      "Dacă există un cont, am trimis un link de resetare a parolei.",
+    "Language": "Limbă",
+    "Manage your account preferences and workspace settings.":
+      "Gestionează preferințele contului și setările spațiului de lucru.",
+    "New password": "Parolă nouă",
+    "Password reset failed": "Resetarea parolei a eșuat",
+    "Password reset link is invalid or expired.":
+      "Linkul de resetare a parolei este invalid sau expirat.",
+    "Password reset token is required.":
+      "Tokenul de resetare a parolei este obligatoriu.",
+    "Profile": "Profil",
+    "Reset password": "Resetează parola",
+    "Send reset link": "Trimite linkul de resetare",
+    "Settings": "Setări",
+    "Theme": "Temă",
+    "Update password": "Actualizează parola",
+    "Updating…": "Se actualizează…",
+    "Your password has been updated. You can sign in with the new password.":
+      "Parola a fost actualizată. Te poți autentifica folosind noua parolă.",
   },
   hu: {
     "ADMIN": "Adminisztrátor",
@@ -1077,6 +1107,36 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Your subscription starts at €3 per active user each month after checkout.":
       "Az előfizetés checkout után havi 3 € aktív felhasználónként.",
     "€3 per active user each month": "3 € aktív felhasználónként havonta",
+    "Back to sign in": "Vissza a bejelentkezéshez",
+    "Choose a new password for your BuildPulse account.":
+      "Válassz új jelszót a BuildPulse fiókodhoz.",
+    "Choose how BuildPulse looks on this device.":
+      "Válaszd ki, hogyan jelenjen meg a BuildPulse ezen az eszközön.",
+    "Choose the language used across the app.":
+      "Válaszd ki az alkalmazás nyelvét.",
+    "Enter your email and we will send a password reset link.":
+      "Add meg az emailed, és elküldjük a jelszó-visszaállító linket.",
+    "Forgot password?": "Elfelejtetted a jelszavad?",
+    "If an account exists, we sent a password reset link.":
+      "Ha létezik fiók, elküldtük a jelszó-visszaállító linket.",
+    "Language": "Nyelv",
+    "Manage your account preferences and workspace settings.":
+      "Kezeld a fiókbeállításaidat és a munkaterület beállításait.",
+    "New password": "Új jelszó",
+    "Password reset failed": "A jelszó-visszaállítás sikertelen",
+    "Password reset link is invalid or expired.":
+      "A jelszó-visszaállító link érvénytelen vagy lejárt.",
+    "Password reset token is required.":
+      "A jelszó-visszaállító token kötelező.",
+    "Profile": "Profil",
+    "Reset password": "Jelszó visszaállítása",
+    "Send reset link": "Visszaállító link küldése",
+    "Settings": "Beállítások",
+    "Theme": "Téma",
+    "Update password": "Jelszó frissítése",
+    "Updating…": "Frissítés…",
+    "Your password has been updated. You can sign in with the new password.":
+      "A jelszavad frissült. Bejelentkezhetsz az új jelszóval.",
   },
 };
 

@@ -9,7 +9,7 @@
 - API access defaults to same-origin `/api` in the browser; Vite proxies `/api`, `/socket.io`, and `/uploads` to the backend in dev
 - Env loading: Vite mode files are used normally (`.env.development`, `.env.production`); `VITE_API_PROXY_TARGET` is read in `vite.config.ts` and `VITE_API_BASE_URL` is read in browser code
 - Public landing includes a Stripe signup CTA; `VITE_REQUEST_ACCESS_URL` is still available for request-access links
-- Admin billing management lives at `/billing`
+- Authenticated user settings live at `/settings`; admin billing management is inside Settings, while `/billing` redirects there for older links
 - Worker QR attendance uses `@zxing/browser` for camera scanning and the browser Geolocation API for a one-time scan location; production needs HTTPS for camera/geolocation
 - Web localization lives in `src/lib/i18n.ts` and `src/context/i18n-context.ts`; use `useI18n()` for copy/labels and `src/lib/format.ts` for locale-aware date, money, and size formatting
 - Leave calendar lives at `/leave-calendar`; WORKER and LEADER can create requests, ADMIN and LEADER can review requests; live updates come through the existing socket provider via `leave-request:changed`

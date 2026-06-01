@@ -9,6 +9,7 @@ import '../documents/documents_page.dart';
 import '../invitations/invitations_page.dart';
 import '../leave/leave_calendar_page.dart';
 import '../messaging/messaging_page.dart';
+import '../settings/settings_page.dart';
 import '../workers/workers_page.dart';
 import '../workpoints/workpoint_detail_page.dart';
 import '../workpoints/workpoints_page.dart';
@@ -44,6 +45,11 @@ GoRouter createAppRouter(AuthController auth) {
         ),
       ),
       GoRoute(
+        path: '/forgot-password',
+        pageBuilder: (context, state) =>
+            _buildPage(state, const ForgotPasswordPage()),
+      ),
+      GoRoute(
         path: '/checkin/:qrToken',
         pageBuilder: (context, state) => _buildPage(
           state,
@@ -70,6 +76,11 @@ GoRouter createAppRouter(AuthController auth) {
             path: '/leave-calendar',
             pageBuilder: (context, state) =>
                 _buildPage(state, const LeaveCalendarPage()),
+          ),
+          GoRoute(
+            path: '/settings',
+            pageBuilder: (context, state) =>
+                _buildPage(state, const SettingsPage()),
           ),
           GoRoute(
             path: '/documents',
@@ -124,7 +135,8 @@ String? buildPulseRedirect({
   required Uri uri,
 }) {
   final path = uri.path;
-  final isAuthRoute = path == '/login' || path == '/register';
+  final isAuthRoute =
+      path == '/login' || path == '/register' || path == '/forgot-password';
 
   if (!isAuthenticated) {
     if (isAuthRoute) return null;

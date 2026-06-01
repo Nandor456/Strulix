@@ -537,6 +537,42 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Submitted': 'Submitted',
     'Approve': 'Approve',
     'Reject': 'Reject',
+    'ACTIVE': 'Active',
+    'TRIALING': 'Trialing',
+    'UNPAID': 'Unpaid',
+    'PAST_DUE': 'Past due',
+    'CANCELED': 'Canceled',
+    'Active users': 'Active users',
+    'Back to sign in': 'Back to sign in',
+    'Billing': 'Billing',
+    'Choose how BuildPulse looks on this device.':
+        'Choose how BuildPulse looks on this device.',
+    'Choose the language used across the app.':
+        'Choose the language used across the app.',
+    'Could not open billing portal.': 'Could not open billing portal.',
+    'Enter your email and we will send a password reset link.':
+        'Enter your email and we will send a password reset link.',
+    'Failed to load billing status.': 'Failed to load billing status.',
+    'Failed to open billing portal': 'Failed to open billing portal',
+    'Forgot password?': 'Forgot password?',
+    'If an account exists, we sent a password reset link.':
+        'If an account exists, we sent a password reset link.',
+    'Language': 'Language',
+    'Manage billing': 'Manage billing',
+    'Manage your account preferences and workspace settings.':
+        'Manage your account preferences and workspace settings.',
+    'Manage your BuildPulse subscription and user-based billing.':
+        'Manage your BuildPulse subscription and user-based billing.',
+    'No payment provider': 'No payment provider',
+    'Paid seats': 'Paid seats',
+    'Password reset failed': 'Password reset failed',
+    'Profile': 'Profile',
+    'Send reset link': 'Send reset link',
+    'Settings': 'Settings',
+    'System theme': 'System theme',
+    'Theme': 'Theme',
+    'Your subscription is not active. Operational changes are paused until billing is fixed.':
+        'Your subscription is not active. Operational changes are paused until billing is fixed.',
   },
   AppLanguage.romanian: {
     'Address': 'Adresă',
@@ -982,6 +1018,42 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Submitted': 'Trimisă',
     'Approve': 'Aprobă',
     'Reject': 'Respinge',
+    'ACTIVE': 'Activ',
+    'TRIALING': 'În perioadă de probă',
+    'UNPAID': 'Neplătit',
+    'PAST_DUE': 'Restant',
+    'CANCELED': 'Anulat',
+    'Active users': 'Utilizatori activi',
+    'Back to sign in': 'Înapoi la autentificare',
+    'Billing': 'Facturare',
+    'Choose how BuildPulse looks on this device.':
+        'Alege cum arată BuildPulse pe acest dispozitiv.',
+    'Choose the language used across the app.':
+        'Alege limba folosită în aplicație.',
+    'Could not open billing portal.': 'Nu s-a putut deschide portalul de facturare.',
+    'Enter your email and we will send a password reset link.':
+        'Introdu emailul și îți vom trimite un link de resetare a parolei.',
+    'Failed to load billing status.': 'Nu s-a putut încărca statusul facturării.',
+    'Failed to open billing portal': 'Nu s-a putut deschide portalul de facturare',
+    'Forgot password?': 'Ai uitat parola?',
+    'If an account exists, we sent a password reset link.':
+        'Dacă există un cont, am trimis un link de resetare a parolei.',
+    'Language': 'Limbă',
+    'Manage billing': 'Gestionează facturarea',
+    'Manage your account preferences and workspace settings.':
+        'Gestionează preferințele contului și setările spațiului de lucru.',
+    'Manage your BuildPulse subscription and user-based billing.':
+        'Gestionează abonamentul BuildPulse și facturarea pe utilizatori.',
+    'No payment provider': 'Niciun furnizor de plată',
+    'Paid seats': 'Locuri plătite',
+    'Password reset failed': 'Resetarea parolei a eșuat',
+    'Profile': 'Profil',
+    'Send reset link': 'Trimite linkul de resetare',
+    'Settings': 'Setări',
+    'System theme': 'Tema sistemului',
+    'Theme': 'Temă',
+    'Your subscription is not active. Operational changes are paused until billing is fixed.':
+        'Abonamentul nu este activ. Modificările operaționale sunt suspendate până la rezolvarea facturării.',
   },
   AppLanguage.hungarian: {
     'Address': 'Cím',
@@ -1422,6 +1494,42 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Submitted': 'Beküldve',
     'Approve': 'Jóváhagy',
     'Reject': 'Elutasít',
+    'ACTIVE': 'Aktív',
+    'TRIALING': 'Próbaidőszak',
+    'UNPAID': 'Nincs fizetve',
+    'PAST_DUE': 'Lejárt',
+    'CANCELED': 'Lemondva',
+    'Active users': 'Aktív felhasználók',
+    'Back to sign in': 'Vissza a bejelentkezéshez',
+    'Billing': 'Számlázás',
+    'Choose how BuildPulse looks on this device.':
+        'Válaszd ki, hogyan jelenjen meg a BuildPulse ezen az eszközön.',
+    'Choose the language used across the app.':
+        'Válaszd ki az alkalmazás nyelvét.',
+    'Could not open billing portal.': 'Nem sikerült megnyitni a számlázási portált.',
+    'Enter your email and we will send a password reset link.':
+        'Add meg az emailed, és elküldjük a jelszó-visszaállító linket.',
+    'Failed to load billing status.': 'Nem sikerült betölteni a számlázási állapotot.',
+    'Failed to open billing portal': 'Nem sikerült megnyitni a számlázási portált',
+    'Forgot password?': 'Elfelejtetted a jelszavad?',
+    'If an account exists, we sent a password reset link.':
+        'Ha létezik fiók, elküldtük a jelszó-visszaállító linket.',
+    'Language': 'Nyelv',
+    'Manage billing': 'Számlázás kezelése',
+    'Manage your account preferences and workspace settings.':
+        'Kezeld a fiókbeállításaidat és a munkaterület beállításait.',
+    'Manage your BuildPulse subscription and user-based billing.':
+        'Kezeld a BuildPulse előfizetést és a felhasználóalapú számlázást.',
+    'No payment provider': 'Nincs fizetési szolgáltató',
+    'Paid seats': 'Fizetett helyek',
+    'Password reset failed': 'A jelszó-visszaállítás sikertelen',
+    'Profile': 'Profil',
+    'Send reset link': 'Visszaállító link küldése',
+    'Settings': 'Beállítások',
+    'System theme': 'Rendszertéma',
+    'Theme': 'Téma',
+    'Your subscription is not active. Operational changes are paused until billing is fixed.':
+        'Az előfizetés nem aktív. Az operatív módosítások szünetelnek, amíg a számlázás nincs rendezve.',
   },
 };
 

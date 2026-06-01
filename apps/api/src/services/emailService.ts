@@ -79,3 +79,31 @@ export function buildInvitationEmail(params: {
   `;
   return { to: email, subject, html, text };
 }
+
+export function buildPasswordResetEmail(params: {
+  email: string;
+  username: string;
+  resetUrl: string;
+}): SendEmailInput {
+  const { email, username, resetUrl } = params;
+  const subject = "Reset your BuildPulse password";
+  const text = `Hi ${username},\n\nUse this link to reset your BuildPulse password:\n${resetUrl}\n\nThis link expires in 1 hour. If you did not request a password reset, you can ignore this email.`;
+  const html = `
+    <div style="font-family:Inter,Roboto,Arial,sans-serif;color:#0F172A;">
+      <h2 style="margin:0 0 12px 0;">Reset your BuildPulse password</h2>
+      <p>Hi ${username},</p>
+      <p>Use the button below to choose a new password.</p>
+      <p>
+        <a href="${resetUrl}"
+           style="display:inline-block;padding:10px 18px;background:#1976D2;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+          Reset password
+        </a>
+      </p>
+      <p style="color:#64748B;font-size:12px;">
+        Or paste this link into your browser:<br/>${resetUrl}
+      </p>
+      <p style="color:#64748B;font-size:12px;">This link expires in 1 hour. If you did not request this email for ${email}, you can ignore it.</p>
+    </div>
+  `;
+  return { to: email, subject, html, text };
+}

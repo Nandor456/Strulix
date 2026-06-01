@@ -173,7 +173,7 @@ useGLTF.preload("/buildpulse.glb");
 
 const Viewer = () => {
     return (
-        <div className="absolute inset-y-0 right-20 z-20 hidden pointer-events-auto lg:block lg:w-[42%] xl:w-[38%]">
+        <div className="h-full w-full pointer-events-auto">
             <Canvas
                 className="w-full h-full cursor-grab active:cursor-grabbing"
                 style={{

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Download,
   ExternalLink,
@@ -89,17 +89,6 @@ export function WorkPointDocumentsDialog({
       null,
     [documents, selectedDocumentId],
   );
-
-  useEffect(() => {
-    if (!open) return;
-    if (!selectedDocument) {
-      setSelectedDocumentId(null);
-      return;
-    }
-    if (selectedDocumentId !== selectedDocument.id) {
-      setSelectedDocumentId(selectedDocument.id);
-    }
-  }, [open, selectedDocument, selectedDocumentId]);
 
   function resetUploadState() {
     setDocumentFile(null);

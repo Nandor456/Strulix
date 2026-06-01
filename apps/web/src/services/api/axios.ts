@@ -16,8 +16,10 @@ type AuthRefreshConfig = AxiosRequestConfig & {
 };
 
 const AUTH_REFRESH_SKIPPED_PATHS = new Set([
+  "/auth/forgot-password",
   "/auth/login",
   "/auth/register",
+  "/auth/reset-password",
   "/auth/refresh",
   "/auth/logout",
 ]);

@@ -303,3 +303,13 @@ export async function revokeRefreshToken(refreshTokenValue: string | undefined) 
     throw error;
   }
 }
+
+export async function revokeRefreshTokensForUser(userId: string) {
+  await prisma.refreshToken.updateMany({
+    where: {
+      userId,
+      revokedAt: null,
+    },
+    data: { revokedAt: new Date() },
+  });
+}

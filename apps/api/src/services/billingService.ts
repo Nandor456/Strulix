@@ -509,7 +509,7 @@ export async function createBillingPortalSession(params: {
 
   const session = await getStripeClient().billingPortal.sessions.create({
     customer: company.paymentCustomerId,
-    return_url: params.returnUrl?.trim() || `${getFrontendBaseUrl()}/billing`,
+    return_url: params.returnUrl?.trim() || `${getFrontendBaseUrl()}/settings`,
   });
 
   return { url: session.url };

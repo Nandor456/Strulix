@@ -17,55 +17,37 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = AppScope.authOf(context);
-    final theme = AppScope.themeOf(context);
     final l10n = context.l10n;
     final user = auth.user;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('BuildPulse')),
-        actions: [
-          const AppLanguageMenuButton(),
-          IconButton(
-            tooltip: l10n.t(theme.isDark ? 'Light theme' : 'Dark theme'),
-            onPressed: theme.toggle,
-            icon: Icon(theme.isDark ? Icons.light_mode : Icons.dark_mode),
-          ),
-        ],
       ),
       drawer: Drawer(
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/buildpulselogo.png',
-                      width: 48,
-                      height: 48,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.t('BuildPulse'),
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          if (user != null)
-                            Text(
-                              '${user.username} · ${l10n.roleLabel(user.role.wireName)}',
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+              ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                leading: Image.asset(
+                  'assets/images/buildpulselogo.png',
+                  width: 48,
+                  height: 48,
                 ),
+                title: Text(
+                  l10n.t('BuildPulse'),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                subtitle: user == null
+                    ? null
+                    : Text(
+                        '${user.username} · ${l10n.roleLabel(user.role.wireName)}',
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                trailing: const Icon(Icons.settings_outlined),
+                onTap: () => _go(context, '/settings'),
               ),
               Expanded(
                 child: ListView(

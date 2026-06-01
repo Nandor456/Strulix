@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,15 @@ export default function Login() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-password">{t("Password")}</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="login-password">{t("Password")}</Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  {t("Forgot password?")}
+                </Link>
+              </div>
               <Input
                 id="login-password"
                 value={password}

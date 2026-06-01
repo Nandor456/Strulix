@@ -110,6 +110,38 @@ class User {
   }
 }
 
+class BillingStatusResponse {
+  const BillingStatusResponse({
+    required this.billingStatus,
+    required this.paymentProvider,
+    required this.hasStripeCustomer,
+    required this.hasStripeSubscription,
+    required this.paidSeatCount,
+    required this.activeUserCount,
+    required this.paidUntil,
+  });
+
+  final String billingStatus;
+  final String? paymentProvider;
+  final bool hasStripeCustomer;
+  final bool hasStripeSubscription;
+  final int paidSeatCount;
+  final int activeUserCount;
+  final String? paidUntil;
+
+  factory BillingStatusResponse.fromJson(JsonMap json) {
+    return BillingStatusResponse(
+      billingStatus: _string(json['billingStatus']),
+      paymentProvider: _nullableString(json['paymentProvider']),
+      hasStripeCustomer: _bool(json['hasStripeCustomer']),
+      hasStripeSubscription: _bool(json['hasStripeSubscription']),
+      paidSeatCount: _int(json['paidSeatCount']),
+      activeUserCount: _int(json['activeUserCount']),
+      paidUntil: _nullableString(json['paidUntil']),
+    );
+  }
+}
+
 class PublicUserSummary {
   const PublicUserSummary({
     required this.id,

@@ -4,6 +4,11 @@ import {
   RegistrationError,
   validateCredentials,
 } from "../services/authService.js";
+import {
+  PasswordResetError,
+  requestPasswordReset,
+  resetPassword,
+} from "../services/passwordResetService.js";
 import { log } from "node:console";
 import { getUserById } from "../services/userService.js";
 import type { AuthenticatedRequest } from "../types/AuthRequest.js";
@@ -51,6 +56,29 @@ export async function loginController(req: Request, res: Response) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Login failed";
     res.status(500).json({ error: message });
+  }
+}
+
+export async function forgotPasswordController(req: Request, res: Response) {
+  const { email } = req.body as { email: string };
+  try {
+    await requestPasswordReset(email);
+    res.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Password reset failed";
+    res.status(500).json({ error: message });
+  }
+}
+
+export async function resetPasswordController(req: Request, res: Response) {
+  const { token, password } = req.body as { token: string; password: string };
+  try {
+    await resetPassword(token, password);
+    res.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Password reset failed";
+    const status = error instanceof PasswordResetError ? error.statusCode : 500;
+    res.status(status).json({ error: message });
   }
 }
 

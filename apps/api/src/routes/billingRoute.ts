@@ -27,7 +27,12 @@ router.post(
   validate(companySignupCompleteSchema),
   completeCompanySignupController,
 );
-router.get("/status", ensureAuthenticated, billingStatusController);
+router.get(
+  "/status",
+  ensureAuthenticated,
+  ensureRole("ADMIN"),
+  billingStatusController,
+);
 router.post(
   "/portal",
   ensureAuthenticated,

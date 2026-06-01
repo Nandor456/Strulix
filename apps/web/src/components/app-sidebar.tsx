@@ -10,7 +10,6 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
-    useSidebar,
 } from "@/components/ui/sidebar"
 import buildPulseLogo from "@/assets/buildpulselogo.png";
 import {
@@ -21,33 +20,18 @@ import {
     MessageSquare,
     Users,
     ChevronDown,
-    ChevronsUpDown,
-    Moon,
-    Sun,
     LogOut,
     QrCode,
-    Languages,
     Mail,
     BadgeCheck,
-    CreditCard,
+    Settings,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useThemeMode } from "@/theme/useThemeMode";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useI18n } from "@/hooks/useI18n";
 import { Button } from "@/components/ui/button";
-import { APP_LANGUAGES } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { isBillingActive } from "@/lib/billing";
 
@@ -58,10 +42,7 @@ function getUserInitials(username?: string) {
 export function AppSidebar() {
     const location = useLocation();
     const { user, logout } = useAuth();
-    const { isMobile } = useSidebar();
-    const { mode, toggleMode } = useThemeMode();
-    const { language, setLanguage, t, roleLabel } = useI18n();
-    const isDarkMode = mode === "dark";
+    const { t, roleLabel } = useI18n();
 
     const canManageWorkPoints = user?.role === "ADMIN" || user?.role === "LEADER";
     const canManageUsers = user?.role === "ADMIN" || user?.role === "LEADER";
@@ -151,14 +132,6 @@ export function AppSidebar() {
                             />
                         )}
 
-                        {canManageBilling && (
-                            <NavItem
-                                to="/billing"
-                                label={t("Billing")}
-                                icon={<CreditCard className="h-4 w-4" />}
-                                active={location.pathname.startsWith("/billing")}
-                            />
-                        )}
                     </SidebarMenu>
                 </SidebarGroup>
 
@@ -263,7 +236,7 @@ export function AppSidebar() {
                             {t("Operational changes are paused until billing is fixed.")}
                         </p>
                         <Button asChild size="sm" variant="outline" className="mt-3 h-8 w-full">
-                            <Link to="/billing">{t("Manage billing")}</Link>
+                            <Link to="/settings">{t("Manage billing")}</Link>
                         </Button>
                     </div>
                 )}
@@ -273,117 +246,46 @@ export function AppSidebar() {
             <SidebarFooter className="border-t border-sidebar-border px-2 py-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton
-                                    size="lg"
-                                    className={cn(
-                                        "h-auto gap-2.5 rounded-lg px-2 py-2",
-                                        "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
-                                    )}
-                                >
-                                    {/* Square-rounded avatar matching brand logo style */}
-                                    <Avatar className="h-7 w-7 rounded-lg shrink-0">
-                                        <AvatarFallback className="rounded-lg bg-blue-100 text-blue-700 text-[11px] font-medium dark:bg-blue-950 dark:text-blue-300">
-                                            {getUserInitials(user?.username)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                                        <span className="truncate text-[12.5px] font-medium">
-                                            {user?.username}
-                                        </span>
-                                        <span className="truncate text-[11px] text-muted-foreground">
-                                            {user?.role ? roleLabel(user.role) : ""}
-                                        </span>
-                                    </div>
-                                    <ChevronsUpDown className="ml-auto h-3.5 w-3.5 text-muted-foreground group-data-[collapsible=icon]:hidden" />
-                                </SidebarMenuButton>
-                            </DropdownMenuTrigger>
-
-                            <DropdownMenuContent
-                                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                                side={isMobile ? "bottom" : "right"}
-                                align="end"
-                                sideOffset={6}
-                            >
-                                {/* User info header */}
-                                <DropdownMenuLabel className="p-0 font-normal">
-                                    <div className="flex items-center gap-2.5 px-2 py-2">
-                                        <Avatar className="h-8 w-8 rounded-lg shrink-0">
-                                            <AvatarFallback className="rounded-lg bg-blue-100 text-blue-700 text-[11px] font-medium dark:bg-blue-950 dark:text-blue-300">
-                                                {getUserInitials(user?.username)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="grid flex-1 text-left leading-tight">
-                                            <span className="truncate text-[13px] font-medium">
-                                                {user?.username}
-                                            </span>
-                                            <span className="truncate text-[11px] text-muted-foreground">
-                                                {user?.email}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </DropdownMenuLabel>
-
-                                <DropdownMenuSeparator />
-
-                                {/* Language picker */}
-                                <DropdownMenuGroup>
-                                    <div className="px-2 py-1.5">
-                                        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-                                            <Languages className="h-3.5 w-3.5" />
-                                            <span>{t("Change language")}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            {APP_LANGUAGES.map((value) => {
-                                                const isActive = language === value;
-                                                return (
-                                                    <Button
-                                                        key={value}
-                                                        type="button"
-                                                        size="sm"
-                                                        variant={isActive ? "secondary" : "ghost"}
-                                                        className={cn(
-                                                            "h-7 min-w-10 flex-1 rounded-md px-0 text-[11px] uppercase font-medium",
-                                                            !isActive && "text-muted-foreground",
-                                                        )}
-                                                        aria-pressed={isActive}
-                                                        onClick={() => setLanguage(value)}
-                                                    >
-                                                        {value}
-                                                    </Button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    <DropdownMenuSeparator />
-
-                                    {/* Theme toggle */}
-                                    <DropdownMenuItem onSelect={toggleMode}>
-                                        {isDarkMode ? (
-                                            <Sun className="h-4 w-4" />
-                                        ) : (
-                                            <Moon className="h-4 w-4" />
-                                        )}
-                                        {isDarkMode ? t("Light theme") : t("Dark theme")}
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-
-                                <DropdownMenuSeparator />
-
-                                <DropdownMenuItem
-                                    onSelect={() => {
-                                        if (!window.confirm(t("Are you sure you want to log out?"))) return;
-                                        void logout();
-                                    }}
-                                    className="text-destructive focus:text-destructive"
-                                >
-                                    <LogOut className="h-4 w-4" />
-                                    {t("Log out")}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <SidebarMenuButton
+                            asChild
+                            size="lg"
+                            isActive={location.pathname.startsWith("/settings")}
+                            className={cn(
+                                "h-auto gap-2.5 rounded-lg px-2 py-2",
+                                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                location.pathname.startsWith("/settings") &&
+                                "bg-sidebar-accent text-sidebar-accent-foreground",
+                            )}
+                        >
+                            <Link to="/settings">
+                                <Avatar className="h-7 w-7 rounded-lg shrink-0">
+                                    <AvatarFallback className="rounded-lg bg-blue-100 text-blue-700 text-[11px] font-medium dark:bg-blue-950 dark:text-blue-300">
+                                        {getUserInitials(user?.username)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+                                    <span className="truncate text-[12.5px] font-medium">
+                                        {user?.username}
+                                    </span>
+                                    <span className="truncate text-[11px] text-muted-foreground">
+                                        {user?.role ? roleLabel(user.role) : ""}
+                                    </span>
+                                </div>
+                                <Settings className="ml-auto h-3.5 w-3.5 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            className="h-8 gap-2.5 rounded-md px-2 text-[13px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => {
+                                if (!window.confirm(t("Are you sure you want to log out?"))) return;
+                                void logout();
+                            }}
+                        >
+                            <LogOut className="h-4 w-4" />
+                            <span className="group-data-[collapsible=icon]:hidden">{t("Log out")}</span>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarFooter>

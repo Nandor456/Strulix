@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const passwordSchema = z
+  .string()
+  .regex(/^[A-Z]/, "Password must start with an uppercase letter.")
+  .min(6, "Password must be at least 6 characters.")
+  .max(100, "Password must be at most 100 characters.");
+
 export const registerSchema = z.object({
   body: z.object({
     username: z
@@ -13,11 +19,7 @@ export const registerSchema = z.object({
       .min(1, "Email is required.")
       .email("Please enter a valid email address.")
       .max(254, "Email must be at most 254 characters."),
-    password: z
-      .string()
-      .regex(/^[A-Z]/, "Password must start with an uppercase letter.")
-      .min(6, "Password must be at least 6 characters.")
-      .max(100, "Password must be at most 100 characters."),
+    password: passwordSchema,
     companyName: z
       .string()
       .trim()
@@ -41,5 +43,27 @@ export const loginSchema = z.object({
       .min(3, "Username must be at least 3 characters.")
       .max(50, "Username must be at most 50 characters."),
     password: z.string().min(1, "Password is required."),
+  }),
+});
+
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email is required.")
+      .email("Please enter a valid email address.")
+      .max(254, "Email must be at most 254 characters."),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    token: z
+      .string()
+      .trim()
+      .min(1, "Password reset token is required.")
+      .max(300, "Password reset token is too long."),
+    password: passwordSchema,
   }),
 });

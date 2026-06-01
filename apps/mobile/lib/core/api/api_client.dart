@@ -83,8 +83,10 @@ class ApiClient {
     if (options.extra['skipAuthRefresh'] == true) return true;
     final path = Uri.tryParse(options.path)?.path ?? options.path;
     return const {
+      '/auth/forgot-password',
       '/auth/login',
       '/auth/register',
+      '/auth/reset-password',
       '/auth/refresh',
       '/auth/logout',
     }.any(path.endsWith);

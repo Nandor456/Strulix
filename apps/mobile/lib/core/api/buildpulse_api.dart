@@ -65,12 +65,44 @@ class BuildPulseApi {
     );
   }
 
+  Future<void> requestPasswordReset(String email) async {
+    await client.post<dynamic>(
+      '/auth/forgot-password',
+      data: {'email': email},
+    );
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+  }) async {
+    await client.post<dynamic>(
+      '/auth/reset-password',
+      data: {'token': token, 'password': password},
+    );
+  }
+
   Future<void> logout() async {
     try {
       await client.post<dynamic>('/auth/logout');
     } finally {
       await client.clearCookies();
     }
+  }
+
+  Future<BillingStatusResponse> billingStatus() async {
+    final response = await client.get<dynamic>('/billing/status');
+    return BillingStatusResponse.fromJson(_responseMap(response));
+  }
+
+  Future<String> createBillingPortalSession([String? returnUrl]) async {
+    final response = await client.post<dynamic>(
+      '/billing/portal',
+      data: {
+        if (returnUrl != null && returnUrl.isNotEmpty) 'returnUrl': returnUrl,
+      },
+    );
+    return _responseMap(response)['url'].toString();
   }
 
   Future<List<WorkPointSummary>> listWorkPoints() async {

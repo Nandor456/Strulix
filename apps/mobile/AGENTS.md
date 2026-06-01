@@ -7,6 +7,7 @@
 - Routing: `go_router` in `lib/core/app_router.dart`
 - Mobile has no public landing page or public self-registration; `/register` is for invitation links
 - Feature folders under `lib/`: `auth`, `attendance`, `documents`, `invitations`, `messaging`, `worker_home`, `workers`, `workpoints`
+- Authenticated user settings live at `/settings`; admin billing management is inside Settings
 - Shared app infrastructure lives under `lib/core/`
 - Mobile localization lives in `lib/core/i18n.dart`; prefer `context.l10n.t(...)` for user-facing copy and keep formatter locale sync through `configureFormatters(...)`
 

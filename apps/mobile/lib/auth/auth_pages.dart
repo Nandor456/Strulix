@@ -100,11 +100,120 @@ class _LoginPageState extends State<LoginPage> {
                 _isSubmitting ? l10n.t('Signing in...') : l10n.t('Sign in'),
               ),
             ),
+            TextButton(
+              onPressed: _isSubmitting ? null : () => context.go('/forgot-password'),
+              child: Text(l10n.t('Forgot password?')),
+            ),
             const SizedBox(height: 8),
             Text(
               l10n.t('Ask your company administrator for an invitation.'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ForgotPasswordPage extends StatefulWidget {
+  const ForgotPasswordPage({super.key});
+
+  @override
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  bool _isSubmitting = false;
+  String? _error;
+  bool _sent = false;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isSubmitting = true;
+      _error = null;
+      _sent = false;
+    });
+    try {
+      await AppScope.apiOf(context).requestPasswordReset(_email.text.trim());
+      if (mounted) setState(() => _sent = true);
+    } catch (error) {
+      setState(() => _error = errorMessage(error, 'Password reset failed'));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return _AuthScaffold(
+      title: l10n.t('Forgot password?'),
+      subtitle: l10n.t('Enter your email and we will send a password reset link.'),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              key: const Key('forgot-email'),
+              controller: _email,
+              autofillHints: const [AutofillHints.email],
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(labelText: l10n.t('Email address')),
+              validator: (value) => (value ?? '').trim().contains('@')
+                  ? null
+                  : l10n.t('Please enter a valid email address.'),
+              onFieldSubmitted: (_) => _submit(),
+            ),
+            if (_sent) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.t('If an account exists, we sent a password reset link.'),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 14),
+              ErrorBanner(_error!),
+            ],
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              key: const Key('forgot-submit'),
+              onPressed: _isSubmitting ? null : _submit,
+              icon: _isSubmitting
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.mail_outline),
+              label: Text(
+                _isSubmitting ? l10n.t('Sending...') : l10n.t('Send reset link'),
+              ),
+            ),
+            TextButton(
+              onPressed: _isSubmitting ? null : () => context.go('/login'),
+              child: Text(l10n.t('Back to sign in')),
             ),
           ],
         ),
