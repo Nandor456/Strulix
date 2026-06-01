@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sidebar"
 import buildPulseLogo from "@/assets/buildpulselogo.png";
 import {
+    Activity,
     Building2,
     CalendarDays,
     FileText,
@@ -124,12 +125,20 @@ export function AppSidebar() {
                         />
 
                         {canManageWorkPoints && (
-                            <NavItem
-                                to="/workpoints"
-                                label={t("Workpoints")}
-                                icon={<Building2 className="h-4 w-4" />}
-                                active={location.pathname.startsWith("/workpoints")}
-                            />
+                            <>
+                                <NavItem
+                                    to="/live-follow"
+                                    label={t("Live Follow")}
+                                    icon={<Activity className="h-4 w-4" />}
+                                    active={location.pathname.startsWith("/live-follow")}
+                                />
+                                <NavItem
+                                    to="/workpoints"
+                                    label={t("Workpoints")}
+                                    icon={<Building2 className="h-4 w-4" />}
+                                    active={location.pathname.startsWith("/workpoints")}
+                                />
+                            </>
                         )}
 
                     </SidebarMenu>

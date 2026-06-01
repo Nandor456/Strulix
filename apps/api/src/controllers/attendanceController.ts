@@ -12,6 +12,7 @@ import {
   rotateQrToken,
   getAttendanceSummary,
   getAttendanceObserverUserIds,
+  getLiveFollowSnapshot,
   getMyDailyStats,
   getMyMonthlySummary,
   computeBillableHours,
@@ -125,6 +126,24 @@ export async function listAttendanceController(
     res.json(records);
   } catch (err) {
     console.error("listAttendanceController error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function liveFollowController(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const limit = Number(req.query.limit ?? 5);
+
+  try {
+    const snapshot = await getLiveFollowSnapshot({
+      companyId: req.auth!.companyId,
+      limit,
+    });
+    res.json(snapshot);
+  } catch (err) {
+    console.error("liveFollowController error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 }

@@ -17,10 +17,12 @@ import {
   exportAttendanceController,
   getMyDailyStatsController,
   getMyMonthlySummaryController,
+  liveFollowController,
 } from "../controllers/attendanceController.js";
 import {
   checkinSchema,
   listAttendanceSchema,
+  liveFollowSchema,
   manualMarkSchema,
   deleteAttendanceSchema,
   updateAttendanceTimesSchema,
@@ -49,6 +51,7 @@ router.get("/me/monthly", ensureAuthenticated, validate(myStatsSchema), getMyMon
 const workPointAccess = [ensureAuthenticated, ensureRole("ADMIN", "LEADER")];
 const adminAccess = [ensureAuthenticated, ensureRole("ADMIN")];
 
+router.get("/live-follow", workPointAccess, validate(liveFollowSchema), liveFollowController);
 router.get("/workpoint/:id", workPointAccess, validate(listAttendanceSchema), listAttendanceController);
 router.post("/workpoint/:id/manual", workPointAccess, ensureActiveBillingForWrites, validate(manualMarkSchema), manualMarkController);
 router.patch("/:id/checkout", adminAccess, ensureActiveBillingForWrites, validate(updateCheckoutSchema), updateCheckoutController);

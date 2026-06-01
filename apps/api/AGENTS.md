@@ -109,6 +109,9 @@ Admin/leader routes:
 `GET /api/attendance/workpoint/:id?from=YYYY-MM-DD&to=YYYY-MM-DD`
 - Returns list of attendance records.
 
+`GET /api/attendance/live-follow?limit=5`
+- ADMIN/LEADER aggregate live snapshot for all company workpoints, including current open check-ins, latest activity, recent check-in/check-out events, and active/inactive/warning status.
+
 `POST /api/attendance/workpoint/:id/manual`
 - Body: `{ workerId, date: "YYYY-MM-DD", checkedInAt?, checkedOutAt? }`
 

@@ -13,6 +13,7 @@
 - Worker QR attendance uses `@zxing/browser` for camera scanning and the browser Geolocation API for a one-time scan location; production needs HTTPS for camera/geolocation
 - Web localization lives in `src/lib/i18n.ts` and `src/context/i18n-context.ts`; use `useI18n()` for copy/labels and `src/lib/format.ts` for locale-aware date, money, and size formatting
 - Leave calendar lives at `/leave-calendar`; WORKER and LEADER can create requests, ADMIN and LEADER can review requests; live updates come through the existing socket provider via `leave-request:changed`
+- Live Follow lives at `/live-follow` with a fullscreen TV route at `/live-follow/display`; ADMIN and LEADER only; attendance changes refresh through the existing socket provider plus polling fallback
 
 ## Commands
 

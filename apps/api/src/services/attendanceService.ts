@@ -1,4 +1,5 @@
 import { prisma } from "../../database/prisma.js";
+import { Prisma } from "../../database/generated/prisma/client.js";
 import {
   ATTENDANCE_TIMEZONE,
   attendanceDateTimeToUtc,
@@ -72,16 +73,141 @@ export type MonthlySummary = {
   hourlyWage: number | null;
 };
 
+export type LiveFollowStatus = "ACTIVE" | "INACTIVE" | "WARNING";
+export type LiveFollowWarningReason = "STALE_OPEN_CHECKIN" | "AUTO_CHECKOUT";
+export type LiveFollowEventType = "CHECK_IN" | "CHECK_OUT";
+
+export type LiveFollowActiveCheckIn = {
+  attendanceId: string;
+  workerId: string;
+  workerUsername: string;
+  workerEmail: string;
+  checkedInAt: string;
+  source: string;
+};
+
+export type LiveFollowRecentEvent = {
+  attendanceId: string;
+  workerId: string;
+  workerUsername: string;
+  workerEmail: string;
+  event: LiveFollowEventType;
+  occurredAt: string;
+  source: string;
+  checkoutSource: string | null;
+};
+
+export type LiveFollowWorkPoint = {
+  id: string;
+  name: string;
+  address: string;
+  assignedWorkerCount: number;
+  activeWorkerCount: number;
+  status: LiveFollowStatus;
+  warningReasons: LiveFollowWarningReason[];
+  latestActivityAt: string | null;
+  activeCheckIns: LiveFollowActiveCheckIn[];
+  recentEvents: LiveFollowRecentEvent[];
+};
+
+export type LiveFollowSnapshot = {
+  generatedAt: string;
+  totals: {
+    workpoints: number;
+    activeWorkers: number;
+    activeWorkpoints: number;
+    warnings: number;
+  };
+  workPoints: LiveFollowWorkPoint[];
+};
+
 const GEOFENCE_RADIUS_METERS = 200;
 const EARTH_RADIUS_METERS = 6_371_000;
 const QUARTER_HOUR_MS = 15 * 60 * 1000;
 const ATTENDANCE_RECORDING_START_HOUR = 6;
 const ATTENDANCE_RECORDING_END_HOUR = 22;
+const LIVE_FOLLOW_DEFAULT_EVENT_LIMIT = 5;
+const LIVE_FOLLOW_MAX_EVENT_LIMIT = 10;
+const LIVE_FOLLOW_STALE_OPEN_MS = 10 * 60 * 60 * 1000;
+
+type LiveFollowRecentEventRow = {
+  attendanceId: string;
+  workPointId: string;
+  workerId: string;
+  workerUsername: string;
+  workerEmail: string;
+  event: LiveFollowEventType;
+  occurredAt: Date;
+  source: string;
+  checkoutSource: string | null;
+};
 
 type Coordinates = {
   lat: number;
   lng: number;
 };
+
+export function normalizeLiveFollowEventLimit(limit?: number): number {
+  if (!Number.isInteger(limit) || limit == null || limit < 1) {
+    return LIVE_FOLLOW_DEFAULT_EVENT_LIMIT;
+  }
+
+  return Math.min(limit, LIVE_FOLLOW_MAX_EVENT_LIMIT);
+}
+
+function eventSortWeight(event: LiveFollowEventType): number {
+  return event === "CHECK_OUT" ? 1 : 0;
+}
+
+export function limitLiveFollowEvents<T extends {
+  event: LiveFollowEventType;
+  occurredAt: Date | string;
+}>(events: T[], limit?: number): T[] {
+  const normalizedLimit = normalizeLiveFollowEventLimit(limit);
+
+  return [...events]
+    .sort((a, b) => {
+      const timeDiff =
+        new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime();
+      if (timeDiff !== 0) return timeDiff;
+
+      return eventSortWeight(b.event) - eventSortWeight(a.event);
+    })
+    .slice(0, normalizedLimit);
+}
+
+export function evaluateLiveFollowStatus(params: {
+  now: Date;
+  activeCheckIns: Array<{ checkedInAt: Date | string }>;
+  latestEvent?: { event: LiveFollowEventType; checkoutSource: string | null } | null;
+}): { status: LiveFollowStatus; warningReasons: LiveFollowWarningReason[] } {
+  const warningReasons: LiveFollowWarningReason[] = [];
+  const hasStaleOpenCheckIn = params.activeCheckIns.some((checkIn) => {
+    const checkedInAt = new Date(checkIn.checkedInAt);
+    return params.now.getTime() - checkedInAt.getTime() >= LIVE_FOLLOW_STALE_OPEN_MS;
+  });
+
+  if (hasStaleOpenCheckIn) {
+    warningReasons.push("STALE_OPEN_CHECKIN");
+  }
+
+  if (
+    params.latestEvent?.event === "CHECK_OUT" &&
+    params.latestEvent.checkoutSource === "AUTO"
+  ) {
+    warningReasons.push("AUTO_CHECKOUT");
+  }
+
+  if (warningReasons.length > 0) {
+    return { status: "WARNING", warningReasons };
+  }
+
+  if (params.activeCheckIns.length > 0) {
+    return { status: "ACTIVE", warningReasons };
+  }
+
+  return { status: "INACTIVE", warningReasons };
+}
 
 export function computeBillableHours(checkedInAt: Date, checkedOutAt: Date): number {
   const ms = Math.max(0, checkedOutAt.getTime() - checkedInAt.getTime());
@@ -388,6 +514,170 @@ export async function listAttendance(params: {
     },
     orderBy: [{ date: "desc" }, { checkedInAt: "desc" }],
   });
+}
+
+export async function getLiveFollowSnapshot(params: {
+  companyId: string;
+  limit?: number;
+}): Promise<LiveFollowSnapshot> {
+  await autoCloseOpenAttendances();
+
+  const eventLimit = normalizeLiveFollowEventLimit(params.limit);
+  const now = new Date();
+
+  const [workPoints, recentEventRows] = await Promise.all([
+    prisma.workPoint.findMany({
+      where: { companyId: params.companyId },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        _count: { select: { workers: true } },
+        attendances: {
+          where: { checkedOutAt: null },
+          select: {
+            id: true,
+            workerId: true,
+            checkedInAt: true,
+            source: true,
+            worker: { select: { id: true, username: true, email: true } },
+          },
+          orderBy: [{ checkedInAt: "asc" }, { id: "asc" }],
+        },
+      },
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+    }),
+    prisma.$queryRaw<LiveFollowRecentEventRow[]>(Prisma.sql`
+      WITH live_events AS (
+        SELECT
+          a.id AS "attendanceId",
+          a.work_point_id AS "workPointId",
+          a.worker_id AS "workerId",
+          u.username AS "workerUsername",
+          u.email AS "workerEmail",
+          'CHECK_IN'::text AS "event",
+          a.checked_in_at AS "occurredAt",
+          a.source AS "source",
+          a.checkout_source AS "checkoutSource"
+        FROM attendances a
+        INNER JOIN "WorkPoint" wp ON wp.id = a.work_point_id
+        INNER JOIN "User" u ON u.id = a.worker_id
+        WHERE wp.company_id = ${params.companyId}
+
+        UNION ALL
+
+        SELECT
+          a.id AS "attendanceId",
+          a.work_point_id AS "workPointId",
+          a.worker_id AS "workerId",
+          u.username AS "workerUsername",
+          u.email AS "workerEmail",
+          'CHECK_OUT'::text AS "event",
+          a.checked_out_at AS "occurredAt",
+          a.source AS "source",
+          a.checkout_source AS "checkoutSource"
+        FROM attendances a
+        INNER JOIN "WorkPoint" wp ON wp.id = a.work_point_id
+        INNER JOIN "User" u ON u.id = a.worker_id
+        WHERE wp.company_id = ${params.companyId}
+          AND a.checked_out_at IS NOT NULL
+      ),
+      ranked_events AS (
+        SELECT
+          *,
+          ROW_NUMBER() OVER (
+            PARTITION BY "workPointId"
+            ORDER BY
+              "occurredAt" DESC,
+              CASE WHEN "event" = 'CHECK_OUT' THEN 1 ELSE 0 END DESC
+          ) AS "eventRank"
+        FROM live_events
+      )
+      SELECT
+        "attendanceId",
+        "workPointId",
+        "workerId",
+        "workerUsername",
+        "workerEmail",
+        "event",
+        "occurredAt",
+        "source",
+        "checkoutSource"
+      FROM ranked_events
+      WHERE "eventRank" <= ${eventLimit}
+      ORDER BY
+        "workPointId" ASC,
+        "occurredAt" DESC,
+        CASE WHEN "event" = 'CHECK_OUT' THEN 1 ELSE 0 END DESC
+    `),
+  ]);
+
+  const eventsByWorkPoint = new Map<string, LiveFollowRecentEvent[]>();
+  for (const row of recentEventRows) {
+    const events = eventsByWorkPoint.get(row.workPointId) ?? [];
+    events.push({
+      attendanceId: row.attendanceId,
+      workerId: row.workerId,
+      workerUsername: row.workerUsername,
+      workerEmail: row.workerEmail,
+      event: row.event,
+      occurredAt: row.occurredAt.toISOString(),
+      source: row.source,
+      checkoutSource: row.checkoutSource,
+    });
+    eventsByWorkPoint.set(row.workPointId, events);
+  }
+
+  const liveWorkPoints = workPoints.map((workPoint): LiveFollowWorkPoint => {
+    const activeCheckIns = workPoint.attendances.map((attendance) => ({
+      attendanceId: attendance.id,
+      workerId: attendance.workerId,
+      workerUsername: attendance.worker.username,
+      workerEmail: attendance.worker.email,
+      checkedInAt: attendance.checkedInAt.toISOString(),
+      source: attendance.source,
+    }));
+    const recentEvents = limitLiveFollowEvents(
+      eventsByWorkPoint.get(workPoint.id) ?? [],
+      eventLimit,
+    );
+    const latestEvent = recentEvents[0] ?? null;
+    const status = evaluateLiveFollowStatus({
+      now,
+      activeCheckIns,
+      latestEvent,
+    });
+
+    return {
+      id: workPoint.id,
+      name: workPoint.name,
+      address: workPoint.address,
+      assignedWorkerCount: workPoint._count.workers,
+      activeWorkerCount: activeCheckIns.length,
+      status: status.status,
+      warningReasons: status.warningReasons,
+      latestActivityAt: latestEvent?.occurredAt ?? null,
+      activeCheckIns,
+      recentEvents,
+    };
+  });
+
+  return {
+    generatedAt: now.toISOString(),
+    totals: {
+      workpoints: liveWorkPoints.length,
+      activeWorkers: liveWorkPoints.reduce(
+        (total, workPoint) => total + workPoint.activeWorkerCount,
+        0,
+      ),
+      activeWorkpoints: liveWorkPoints.filter(
+        (workPoint) => workPoint.activeWorkerCount > 0,
+      ).length,
+      warnings: liveWorkPoints.filter((workPoint) => workPoint.status === "WARNING")
+        .length,
+    },
+    workPoints: liveWorkPoints,
+  };
 }
 
 export async function manualMark(params: {

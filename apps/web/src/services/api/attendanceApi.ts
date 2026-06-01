@@ -59,6 +59,54 @@ export interface MonthlySummary {
   hourlyWage: number | null;
 }
 
+export type LiveFollowStatus = "ACTIVE" | "INACTIVE" | "WARNING";
+export type LiveFollowWarningReason = "STALE_OPEN_CHECKIN" | "AUTO_CHECKOUT";
+export type LiveFollowEventType = "CHECK_IN" | "CHECK_OUT";
+
+export interface LiveFollowActiveCheckIn {
+  attendanceId: string;
+  workerId: string;
+  workerUsername: string;
+  workerEmail: string;
+  checkedInAt: string;
+  source: "QR" | "MANUAL" | string;
+}
+
+export interface LiveFollowRecentEvent {
+  attendanceId: string;
+  workerId: string;
+  workerUsername: string;
+  workerEmail: string;
+  event: LiveFollowEventType;
+  occurredAt: string;
+  source: "QR" | "MANUAL" | string;
+  checkoutSource: CheckoutSource | null;
+}
+
+export interface LiveFollowWorkPoint {
+  id: string;
+  name: string;
+  address: string;
+  assignedWorkerCount: number;
+  activeWorkerCount: number;
+  status: LiveFollowStatus;
+  warningReasons: LiveFollowWarningReason[];
+  latestActivityAt: string | null;
+  activeCheckIns: LiveFollowActiveCheckIn[];
+  recentEvents: LiveFollowRecentEvent[];
+}
+
+export interface LiveFollowSnapshot {
+  generatedAt: string;
+  totals: {
+    workpoints: number;
+    activeWorkers: number;
+    activeWorkpoints: number;
+    warnings: number;
+  };
+  workPoints: LiveFollowWorkPoint[];
+}
+
 export interface ScanLocation {
   lat: number;
   lng: number;
@@ -82,6 +130,13 @@ export const attendanceAPI = {
       `/attendance/workpoint/${workPointId}`,
       { params },
     );
+    return res.data;
+  },
+
+  async getLiveFollow(limit = 5): Promise<LiveFollowSnapshot> {
+    const res = await api.get<LiveFollowSnapshot>("/attendance/live-follow", {
+      params: { limit },
+    });
     return res.data;
   },
 

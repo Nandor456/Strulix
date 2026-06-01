@@ -12,6 +12,15 @@ export const useWorkPointAttendance = (
     enabled: Boolean(workPointId),
   });
 
+export const useLiveFollow = (limit = 5) =>
+  useQuery({
+    queryKey: QUERY_KEYS.attendance.liveFollow,
+    queryFn: () => attendanceAPI.getLiveFollow(limit),
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+  });
+
 export const useWorkPointQr = (workPointId: string) =>
   useQuery({
     queryKey: QUERY_KEYS.attendance.qr(workPointId),

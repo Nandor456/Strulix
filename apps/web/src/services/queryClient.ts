@@ -32,6 +32,7 @@ export const QUERY_KEYS = {
   },
   attendance: {
     all: ["attendance"] as const,
+    liveFollow: ["attendance", "live-follow"] as const,
     byWorkPoint: (workPointId: string) =>
       ["attendance", "workpoint", workPointId] as const,
     forWorkPoint: (workPointId: string, params?: object) =>

@@ -159,6 +159,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
                 queryKey: QUERY_KEYS.workPoints.detail(workPointId),
             });
             void qc.invalidateQueries({ queryKey: QUERY_KEYS.workPoints.all });
+            void qc.invalidateQueries({ queryKey: QUERY_KEYS.attendance.liveFollow });
 
             if (!workerId || workerId === user?.id) {
                 void qc.invalidateQueries({ queryKey: ["attendance", "me"] });

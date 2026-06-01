@@ -18,6 +18,12 @@ export const listAttendanceSchema = z.object({
   }),
 });
 
+export const liveFollowSchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().min(1).max(10).default(5),
+  }),
+});
+
 export const manualMarkSchema = z.object({
   params: z.object({ id: uuidSchema }),
   body: z.object({

@@ -3,6 +3,7 @@ import {
     Routes,
     Route,
     Navigate,
+    useLocation,
 } from "react-router-dom";
 import type { ReactNode } from "react";
 import SideBar from "./layout/SideBar";
@@ -20,6 +21,7 @@ import WorkpointPage from "./pages/WorkpointPage";
 import WorkpointDetailPage from "./pages/WorkpointDetailPage";
 import CheckinPage from "./pages/CheckinPage";
 import LeaveCalendarPage from "./pages/LeaveCalendarPage";
+import LiveFollowPage from "./pages/LiveFollowPage";
 import WorkerHomePage from "./pages/WorkerHomePage";
 import WorkerDocumentsPage from "./pages/WorkerDocumentsPage";
 import ScanPage from "./pages/ScanPage";
@@ -48,6 +50,110 @@ function RequireRoles({ roles, children }: { roles: UserRole[]; children: ReactN
     return <>{children}</>;
 }
 
+function AuthenticatedRoutes() {
+    const location = useLocation();
+    const isDisplayRoute = location.pathname === "/live-follow/display";
+
+    const routes = (
+        <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/messages" element={<MessagingPage />} />
+            <Route
+                path="/live-follow"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER"]}>
+                        <LiveFollowPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/live-follow/display"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER"]}>
+                        <LiveFollowPage displayMode="fullscreen" />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/leave-calendar"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER", "WORKER"]}>
+                        <LeaveCalendarPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/documents"
+                element={
+                    <RequireRoles roles={["WORKER"]}>
+                        <WorkerDocumentsPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/scan"
+                element={
+                    <RequireRoles roles={["WORKER"]}>
+                        <ScanPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/workpoints"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER"]}>
+                        <WorkpointPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/workpoints/:id"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER"]}>
+                        <WorkpointDetailPage />
+                    </RequireRoles>
+                }
+            />
+            <Route path="/checkin/:qrToken" element={<CheckinPage />} />
+            <Route
+                path="/invitations"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER"]}>
+                        <InvitationsPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/workers"
+                element={
+                    <RequireRoles roles={["ADMIN", "LEADER"]}>
+                        <WorkerManagementPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
+                path="/billing"
+                element={
+                    <RequireRoles roles={["ADMIN"]}>
+                        <Navigate to="/settings" replace />
+                    </RequireRoles>
+                }
+            />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/register" element={<Navigate to="/" replace />} />
+            <Route path="/register/success" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
+
+    if (isDisplayRoute) {
+        return routes;
+    }
+
+    return <SideBar>{routes}</SideBar>;
+}
+
 function App() {
     const { isAuthenticated, isLoading } = useAuth();
 
@@ -58,82 +164,7 @@ function App() {
     return (
         <Router>
             {isAuthenticated ? (
-                <SideBar>
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/settings" element={<SettingsPage />} />
-                        <Route path="/messages" element={<MessagingPage />} />
-                        <Route
-                            path="/leave-calendar"
-                            element={
-                                <RequireRoles roles={["ADMIN", "LEADER", "WORKER"]}>
-                                    <LeaveCalendarPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route
-                            path="/documents"
-                            element={
-                                <RequireRoles roles={["WORKER"]}>
-                                    <WorkerDocumentsPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route
-                            path="/scan"
-                            element={
-                                <RequireRoles roles={["WORKER"]}>
-                                    <ScanPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route
-                            path="/workpoints"
-                            element={
-                                <RequireRoles roles={["ADMIN", "LEADER"]}>
-                                    <WorkpointPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route
-                            path="/workpoints/:id"
-                            element={
-                                <RequireRoles roles={["ADMIN", "LEADER"]}>
-                                    <WorkpointDetailPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route path="/checkin/:qrToken" element={<CheckinPage />} />
-                        <Route
-                            path="/invitations"
-                            element={
-                                <RequireRoles roles={["ADMIN", "LEADER"]}>
-                                    <InvitationsPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route
-                            path="/workers"
-                            element={
-                                <RequireRoles roles={["ADMIN", "LEADER"]}>
-                                    <WorkerManagementPage />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route
-                            path="/billing"
-                            element={
-                                <RequireRoles roles={["ADMIN"]}>
-                                    <Navigate to="/settings" replace />
-                                </RequireRoles>
-                            }
-                        />
-                        <Route path="/login" element={<Navigate to="/" replace />} />
-                        <Route path="/register" element={<Navigate to="/" replace />} />
-                        <Route path="/register/success" element={<Navigate to="/" replace />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </SideBar>
+                <AuthenticatedRoutes />
             ) : (
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
