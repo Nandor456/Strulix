@@ -6,6 +6,7 @@ import '../core/formatters.dart';
 import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
+import 'workpoint_deadline.dart';
 
 class WorkpointsPage extends StatefulWidget {
   const WorkpointsPage({super.key});
@@ -197,8 +198,7 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
     super.initState();
     final deadline = widget.workPoint?.deadline;
     if (deadline != null) {
-      _deadline =
-          DateTime.tryParse(deadline)?.toIso8601String().substring(0, 10) ?? '';
+      _deadline = workPointDeadlineToInput(deadline);
     }
   }
 
@@ -236,9 +236,7 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
       'description': _description.text.trim().isEmpty
           ? null
           : _description.text.trim(),
-      'deadline': _deadline.isEmpty
-          ? null
-          : DateTime.parse('${_deadline}T00:00:00').toIso8601String(),
+      'deadline': workPointDeadlineToApi(_deadline),
       if (widget.workPoint == null) 'workerIds': _workerIds.toList(),
     };
 
