@@ -94,11 +94,6 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
             subtitle: l10n.t(
               'Attendance, hours, assigned workpoints, and wage-based earnings.',
             ),
-            trailing: IconButton.outlined(
-              tooltip: l10n.t('Refresh'),
-              onPressed: _load,
-              icon: const Icon(Icons.refresh),
-            ),
             child: Column(
               children: [
                 Row(
@@ -232,7 +227,8 @@ class _AssignedWorkpoints extends StatelessWidget {
   final List<DailyStatRow> rows;
   final bool hasWage;
   final double? hourlyWage;
-  final Future<void> Function(AssignedWorkPointSummary workPoint) onOpenDocuments;
+  final Future<void> Function(AssignedWorkPointSummary workPoint)
+  onOpenDocuments;
 
   @override
   Widget build(BuildContext context) {

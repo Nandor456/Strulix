@@ -11,6 +11,7 @@ import '../core/formatters.dart';
 import '../core/i18n.dart';
 import '../core/models.dart';
 import '../core/widgets.dart';
+import 'messaging_controller.dart';
 
 class MessagingPage extends StatefulWidget {
   const MessagingPage({this.initialChatId, super.key});
@@ -23,6 +24,13 @@ class MessagingPage extends StatefulWidget {
 
 class _MessagingPageState extends State<MessagingPage> {
   final _search = TextEditingController();
+  MessagingController? _messaging;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messaging = AppScope.messagingOf(context);
+  }
 
   @override
   void initState() {
@@ -45,6 +53,7 @@ class _MessagingPageState extends State<MessagingPage> {
 
   @override
   void dispose() {
+    _messaging?.clearActiveChat();
     _search.dispose();
     super.dispose();
   }

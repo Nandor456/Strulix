@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,7 +8,7 @@ import 'app_scope.dart';
 import 'i18n.dart';
 import 'widgets.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({required this.location, required this.child, super.key});
 
   final String location;
@@ -15,15 +17,66 @@ class AppShell extends StatelessWidget {
   static AuthController auth(BuildContext context) => AppScope.authOf(context);
 
   @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  String? _primedMessagingUserId;
+  bool _primeScheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleMessagingPrime();
+  }
+
+  @override
+  void didUpdateWidget(covariant AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _scheduleMessagingPrime();
+  }
+
+  void _scheduleMessagingPrime() {
+    if (_primeScheduled) return;
+    _primeScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _primeScheduled = false;
+      if (mounted) _primeMessaging();
+    });
+  }
+
+  void _primeMessaging() {
+    final auth = AppScope.authOf(context);
+    final userId = auth.user?.id;
+    if (userId == null) {
+      _primedMessagingUserId = null;
+      return;
+    }
+    if (_primedMessagingUserId == userId) return;
+    _primedMessagingUserId = userId;
+    unawaited(_loadMessagingFor(userId));
+  }
+
+  Future<void> _loadMessagingFor(String userId) async {
+    final messaging = AppScope.messagingOf(context);
+    try {
+      await messaging.connect();
+      await messaging.loadChats();
+    } catch (error) {
+      debugPrint('Failed to prime messaging state: $error');
+      if (_primedMessagingUserId == userId) _primedMessagingUserId = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final auth = AppScope.authOf(context);
+    final messaging = AppScope.messagingOf(context);
     final l10n = context.l10n;
     final user = auth.user;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('BuildPulse')),
-      ),
+      appBar: AppBar(title: Text(l10n.t('BuildPulse'))),
       drawer: Drawer(
         child: SafeArea(
           child: Column(
@@ -57,54 +110,58 @@ class AppShell extends StatelessWidget {
                       _NavTile(
                         icon: Icons.home_outlined,
                         label: l10n.t('Home'),
-                        selected: location == '/',
+                        selected: widget.location == '/',
                         onTap: () => _go(context, '/'),
                       ),
                     if (auth.isWorker)
                       _NavTile(
                         icon: Icons.qr_code_scanner,
                         label: l10n.t('Scan QR'),
-                        selected: location.startsWith('/scan'),
+                        selected: widget.location.startsWith('/scan'),
                         onTap: () => _go(context, '/scan'),
                       ),
                     if (auth.isWorker)
                       _NavTile(
                         icon: Icons.description_outlined,
                         label: l10n.t('Documents'),
-                        selected: location.startsWith('/documents'),
+                        selected: widget.location.startsWith('/documents'),
                         onTap: () => _go(context, '/documents'),
                       ),
                     _NavTile(
                       icon: Icons.event_available_outlined,
                       label: l10n.t('Leave Calendar'),
-                      selected: location.startsWith('/leave-calendar'),
+                      selected: widget.location.startsWith('/leave-calendar'),
                       onTap: () => _go(context, '/leave-calendar'),
                     ),
-                    _NavTile(
-                      icon: Icons.chat_bubble_outline,
-                      label: l10n.t('Messages'),
-                      selected: location.startsWith('/messages'),
-                      onTap: () => _go(context, '/messages'),
+                    AnimatedBuilder(
+                      animation: messaging,
+                      builder: (context, _) => _NavTile(
+                        icon: Icons.chat_bubble_outline,
+                        label: l10n.t('Messages'),
+                        selected: widget.location.startsWith('/messages'),
+                        badgeCount: messaging.totalUnreadCount,
+                        onTap: () => _go(context, '/messages'),
+                      ),
                     ),
                     if (auth.canManageWorkPoints)
                       _NavTile(
                         icon: Icons.business_outlined,
                         label: l10n.t('Workpoints'),
-                        selected: location.startsWith('/workpoints'),
+                        selected: widget.location.startsWith('/workpoints'),
                         onTap: () => _go(context, '/workpoints'),
                       ),
                     if (auth.canViewWorkers)
                       _NavTile(
                         icon: Icons.groups_outlined,
                         label: l10n.t('Workers'),
-                        selected: location.startsWith('/workers'),
+                        selected: widget.location.startsWith('/workers'),
                         onTap: () => _go(context, '/workers'),
                       ),
                     if (auth.canManageUsers)
                       _NavTile(
                         icon: Icons.mail_outline,
                         label: l10n.t('User Invitations'),
-                        selected: location.startsWith('/invitations'),
+                        selected: widget.location.startsWith('/invitations'),
                         onTap: () => _go(context, '/invitations'),
                       ),
                   ],
@@ -133,7 +190,7 @@ class AppShell extends StatelessWidget {
           ),
         ),
       ),
-      body: child,
+      body: widget.child,
     );
   }
 
@@ -149,18 +206,23 @@ class _NavTile extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.badgeCount = 0,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon),
       title: Text(label),
+      trailing: badgeCount > 0
+          ? Badge(label: Text(badgeCount > 99 ? '99+' : '$badgeCount'))
+          : null,
       selected: selected,
       selectedTileColor: Theme.of(
         context,

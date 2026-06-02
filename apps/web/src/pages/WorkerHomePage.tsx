@@ -148,7 +148,6 @@ export default function WorkerHomePage() {
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 overflow-hidden rounded-3xl border bg-card">
         <div className="relative isolate p-6 sm:p-8">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.18),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.08),transparent_45%)]" />
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <Badge variant="outline" className="mb-3 bg-background/70">

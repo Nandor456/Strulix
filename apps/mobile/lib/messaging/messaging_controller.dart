@@ -44,6 +44,9 @@ class MessagingController extends ChangeNotifier {
 
   List<ChatListItem> get chats => _chats;
 
+  int get totalUnreadCount =>
+      _chats.fold<int>(0, (sum, chat) => sum + chat.unreadCount);
+
   int get leaveRequestChangeVersion => _leaveRequestChangeVersion;
 
   LeaveRequestChange? get latestLeaveRequestChange => _latestLeaveRequestChange;

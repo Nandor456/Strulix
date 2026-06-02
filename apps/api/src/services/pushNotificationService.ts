@@ -68,11 +68,13 @@ export async function notifyMessageRecipients(message: MessagePayload) {
   const tokens = [...new Set(devices.map((device) => device.token))];
   if (tokens.length === 0) return;
 
+  const title = message.senderUsername;
+  const body = previewForMessage(message);
   const response = await messaging.sendEachForMulticast({
     tokens,
     notification: {
-      title: message.senderUsername,
-      body: previewForMessage(message),
+      title,
+      body,
     },
     data: {
       type: "message",
@@ -82,17 +84,36 @@ export async function notifyMessageRecipients(message: MessagePayload) {
     android: {
       priority: "high",
       notification: {
+        title,
+        body,
         channelId: "buildpulse_messages",
+        priority: "high",
+        sound: "default",
       },
     },
     apns: {
+      headers: {
+        "apns-priority": "10",
+        "apns-push-type": "alert",
+      },
       payload: {
         aps: {
+          alert: {
+            title,
+            body,
+          },
           sound: "default",
+          threadId: message.chatId,
         },
       },
     },
   });
+
+  if (response.failureCount > 0) {
+    console.warn(
+      `[push] ${response.failureCount}/${tokens.length} message notifications failed.`,
+    );
+  }
 
   const invalidTokens = response.responses
     .map((result, index) =>
