@@ -204,11 +204,29 @@ class _ThreadViewState extends State<_ThreadView> {
   Timer? _typingTimer;
   Message? _replyTo;
   bool _isSendingAttachment = false;
+  bool _isNearBottom = true;
+  String? _lastMessageId;
+  int _lastMessageCount = 0;
+  double? _pendingPrependScrollOffset;
+  double? _pendingPrependMaxScrollExtent;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_handleScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ThreadView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.chat.id == oldWidget.chat.id) return;
+    _replyTo = null;
+    _body.clear();
+    _isNearBottom = true;
+    _lastMessageId = null;
+    _lastMessageCount = 0;
+    _pendingPrependScrollOffset = null;
+    _pendingPrependMaxScrollExtent = null;
   }
 
   @override
@@ -220,9 +238,55 @@ class _ThreadViewState extends State<_ThreadView> {
   }
 
   void _handleScroll() {
-    if (_scroll.position.pixels < 80) {
-      AppScope.messagingOf(context).loadOlderMessages(widget.chat.id);
+    if (!_scroll.hasClients) return;
+
+    final position = _scroll.position;
+    _isNearBottom = position.maxScrollExtent - position.pixels < 120;
+
+    final messaging = AppScope.messagingOf(context);
+    if (position.pixels < 80 &&
+        messaging.hasMoreMessages(widget.chat.id) &&
+        !messaging.isLoadingOlder(widget.chat.id)) {
+      _pendingPrependScrollOffset = position.pixels;
+      _pendingPrependMaxScrollExtent = position.maxScrollExtent;
+      messaging.loadOlderMessages(widget.chat.id);
     }
+  }
+
+  void _scrollToBottom({required bool animated}) {
+    _isNearBottom = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final target = _scroll.position.maxScrollExtent;
+      if (animated) {
+        _scroll.animateTo(
+          target,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scroll.jumpTo(target);
+      }
+    });
+  }
+
+  void _restoreScrollAfterPrepend() {
+    final previousOffset = _pendingPrependScrollOffset;
+    final previousMaxScrollExtent = _pendingPrependMaxScrollExtent;
+    if (previousOffset == null || previousMaxScrollExtent == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final delta = _scroll.position.maxScrollExtent - previousMaxScrollExtent;
+      final nextOffset = (previousOffset + delta).clamp(
+        0.0,
+        _scroll.position.maxScrollExtent,
+      );
+      _scroll.jumpTo(nextOffset.toDouble());
+    });
+
+    _pendingPrependScrollOffset = null;
+    _pendingPrependMaxScrollExtent = null;
   }
 
   Future<void> _send() async {
@@ -379,6 +443,20 @@ class _ThreadViewState extends State<_ThreadView> {
       animation: messaging,
       builder: (context, _) {
         final messages = messaging.messagesFor(widget.chat.id);
+        final latestMessageId = messages.isEmpty ? null : messages.last.id;
+        if (latestMessageId != null && latestMessageId != _lastMessageId) {
+          _pendingPrependScrollOffset = null;
+          _pendingPrependMaxScrollExtent = null;
+          if (_lastMessageId == null || _isNearBottom) {
+            _scrollToBottom(animated: _lastMessageId != null);
+          }
+        } else if (messages.length != _lastMessageCount &&
+            latestMessageId == _lastMessageId &&
+            _pendingPrependScrollOffset != null) {
+          _restoreScrollAfterPrepend();
+        }
+        _lastMessageId = latestMessageId;
+        _lastMessageCount = messages.length;
         return Column(
           children: [
             Material(

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
@@ -30,9 +30,13 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottom = useRef(true);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const pendingPrependAdjustmentRef = useRef<{
+    scrollHeight: number;
+    scrollTop: number;
+  } | null>(null);
 
-  const messages =
-    data?.pages.flatMap((p) => p.messages) ?? [];
+  const messages = useMemo(() => data?.pages.flatMap((p) => p.messages) ?? [], [data]);
 
   // Join the chat room on mount
   useEffect(() => {
@@ -65,12 +69,35 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
     });
   }, [chat.id, currentUserId, onTyping]);
 
-  // Auto-scroll to bottom on new messages
-  useEffect(() => {
-    if (isNearBottom.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const latestMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
+    const previousLatestMessageId = lastMessageIdRef.current;
+    const pendingPrependAdjustment = pendingPrependAdjustmentRef.current;
+
+    if (
+      pendingPrependAdjustment &&
+      latestMessageId === previousLatestMessageId &&
+      messages.length > 0
+    ) {
+      const delta = el.scrollHeight - pendingPrependAdjustment.scrollHeight;
+      el.scrollTop = pendingPrependAdjustment.scrollTop + delta;
+      pendingPrependAdjustmentRef.current = null;
+    } else if (latestMessageId && latestMessageId !== previousLatestMessageId) {
+      pendingPrependAdjustmentRef.current = null;
+      if (previousLatestMessageId === null) {
+        isNearBottom.current = true;
+        el.scrollTop = el.scrollHeight;
+      } else if (isNearBottom.current) {
+        isNearBottom.current = true;
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
     }
-  }, [messages.length]);
+
+    lastMessageIdRef.current = latestMessageId;
+  }, [messages]);
 
   // Track if near bottom for auto-scroll
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -80,7 +107,11 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
 
     // Infinite scroll (load older messages on scroll to top)
     if (el.scrollTop < 80 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      pendingPrependAdjustmentRef.current = {
+        scrollHeight: el.scrollHeight,
+        scrollTop: el.scrollTop,
+      };
+      void fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -95,7 +126,10 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
     sendMessage({ chatId: chat.id, ...opts });
     setReplyTo(null);
     markRead(chat.id);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+    setTimeout(() => {
+      isNearBottom.current = true;
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   }
 
   async function handleUpload(file: File) {
