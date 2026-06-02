@@ -428,7 +428,7 @@ class _LeaveCalendarPageState extends State<LeaveCalendarPage> {
           else
             LayoutBuilder(
               builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 900;
+                final wide = constraints.maxWidth >= 1400;
                 final calendar = _CalendarMonthView(
                   monthDate: _monthDate,
                   requests: _visibleRequests,
