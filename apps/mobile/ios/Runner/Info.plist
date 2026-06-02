@@ -33,8 +33,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Strulix uses the camera to scan attendance QR codes.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Strulix uses your location only when scanning attendance to confirm you are at the workpoint.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Strulix uses your location once when scanning attendance to confirm you are at the workpoint.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Strulix needs access to your photo library so you can choose photos to upload as attachments and work documents.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
