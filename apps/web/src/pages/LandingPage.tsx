@@ -82,7 +82,7 @@ const steps = [
 const testimonials = [
   {
     quote:
-      "BuildPulse cut our daily attendance tracking from 40 minutes to under 5. The QR system just works.",
+      "Strulix cut our daily attendance tracking from 40 minutes to under 5. The QR system just works.",
     author: "Andrei Moldovan",
     role: "Site Manager",
     company: "ConstructPro SRL",
@@ -117,7 +117,7 @@ function MockWorkpointDashboard() {
         <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
         <div className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
         <span className="ml-3 truncate text-xs text-muted-foreground">
-          BuildPulse — Workpoints
+          Strulix — Workpoints
         </span>
       </div>
 
@@ -197,7 +197,7 @@ function MockAttendanceDashboard() {
         <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
         <div className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
         <span className="ml-3 truncate text-xs text-muted-foreground">
-          BuildPulse — Attendance
+          Strulix — Attendance
         </span>
       </div>
 
@@ -265,7 +265,7 @@ function MockDocumentsDashboard() {
         <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
         <div className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
         <span className="ml-3 truncate text-xs text-muted-foreground">
-          BuildPulse — Documents
+          Strulix — Documents
         </span>
       </div>
 
@@ -350,7 +350,7 @@ export default function LandingPage() {
           <div className="mx-auto grid min-h-[86svh] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] lg:gap-12 lg:px-8 lg:py-16">
             <div className="order-2 flex flex-col justify-center lg:order-1">
               {/* sr-only h1 for accessibility; ThreeDText is the visual title */}
-              <h1 className="sr-only">{t("BuildPulse")}</h1>
+              <h1 className="sr-only">{t("Strulix")}</h1>
 
               {/*
                 Explicit height container so the Three.js canvas has
@@ -361,7 +361,7 @@ export default function LandingPage() {
               <div className="bp-animate bp-delay-2 h-[40px] w-full overflow-hidden sm:h-[100px] lg:h-[120px]">
                 <ThreeDText
                   className="h-full w-full"
-                  text="BuildPulse"
+                  text="Strulix"
                   position={[0, 0, 0]}
                   cameraPosition={[0, 0, 2]}
                 />
@@ -600,7 +600,7 @@ export default function LandingPage() {
               </h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground sm:mt-3 sm:text-base">
                 {t(
-                  "BuildPulse keeps field work, office review, and worker self-service connected without adding another messy spreadsheet."
+                  "Strulix keeps field work, office review, and worker self-service connected without adding another messy spreadsheet."
                 )}
               </p>
             </div>

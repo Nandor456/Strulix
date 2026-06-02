@@ -1,11 +1,11 @@
 {
-    "name": "BuildPulse",
-    "short_name": "BuildPulse",
+    "name": "Strulix",
+    "short_name": "Strulix",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "BuildPulse construction workforce monitoring.",
+    "description": "Strulix construction workforce monitoring.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

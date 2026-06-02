@@ -154,7 +154,7 @@ export default function WorkerHomePage() {
                 {t("Worker dashboard")}
               </Badge>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                {t("Your BuildPulse home")}
+                {t("Your Strulix home")}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground sm:text-base">
                 {t(

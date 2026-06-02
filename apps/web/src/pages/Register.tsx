@@ -139,7 +139,7 @@ export default function Register() {
         <div className="mb-8 flex flex-col items-center gap-2">
           <img
             src={buildPulseLogo}
-            alt={t("BuildPulse logo")}
+            alt={t("Strulix logo")}
             className="h-24 w-24"
           />
           <h1 className="text-center text-xl font-bold">{t("Create your account")}</h1>
@@ -275,7 +275,7 @@ function InviteOnlyRegistrationNotice() {
         <section className="w-full max-w-lg rounded-md border bg-card p-6 text-center shadow-sm sm:p-8">
           <img
             src={buildPulseLogo}
-            alt={t("BuildPulse logo")}
+            alt={t("Strulix logo")}
             className="mx-auto h-20 w-20 rounded-md"
           />
           <h1 className="mt-6 text-2xl font-semibold">

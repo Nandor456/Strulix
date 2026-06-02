@@ -28,7 +28,7 @@ export default function BillingPage() {
         <div>
           <h1 className="text-3xl font-semibold">{t("Billing")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("Manage your BuildPulse subscription and user-based billing.")}
+            {t("Manage your Strulix subscription and user-based billing.")}
           </p>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function BillingPage() {
               {t("€3 per active user each month")}
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              {t("BuildPulse updates Stripe when invited users accept or when users are removed, including prorated monthly changes.")}
+              {t("Strulix updates Stripe when invited users accept or when users are removed, including prorated monthly changes.")}
             </p>
           </section>
         </div>

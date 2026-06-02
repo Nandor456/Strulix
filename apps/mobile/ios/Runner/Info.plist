@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>BuildPulse</string>
+	<string>Strulix</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>BuildPulse</string>
+	<string>Strulix</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -32,9 +32,9 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>BuildPulse uses the camera to scan attendance QR codes.</string>
+	<string>Strulix uses the camera to scan attendance QR codes.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>BuildPulse uses your location once when scanning attendance to confirm you are at the workpoint.</string>
+	<string>Strulix uses your location once when scanning attendance to confirm you are at the workpoint.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

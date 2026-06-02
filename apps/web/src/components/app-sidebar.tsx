@@ -65,7 +65,7 @@ export function AppSidebar() {
                         <div className="flex items-center gap-3">
                             <img
                                 src={buildPulseLogo}
-                                alt={t("BuildPulse")}
+                                alt={t("Strulix")}
                                 className="relative h-8 w-8 rounded-xl ring-1 ring-white/10"
                             />
 
@@ -73,7 +73,7 @@ export function AppSidebar() {
                             <div className="flex flex-col gap-0.5 group-data-[collapsible=icon]:hidden">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] font-semibold tracking-tight text-sidebar-foreground">
-                                        {t("BuildPulse")}
+                                        {t("Strulix")}
                                     </span>
 
                                 </div>

@@ -235,8 +235,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Role": "Rol",
     "Save": "Salvează",
     "Saving...": "Se salvează...",
-    "Scan a BuildPulse attendance QR code.":
-      "Scanează un cod QR de prezență BuildPulse.",
+    "Scan a Strulix attendance QR code.":
+      "Scanează un cod QR de prezență Strulix.",
     "Scan attendance": "Scanează prezența",
     "Scan QR": "Scanează QR",
     "Scan result": "Rezultatul scanării",
@@ -275,7 +275,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Username must be at least 3 characters.":
       "Numele de utilizator trebuie să aibă cel puțin 3 caractere.",
     "Users": "Utilizatori",
-    "Welcome back to BuildPulse": "Bine ai revenit la BuildPulse",
+    "Welcome back to Strulix": "Bine ai revenit la Strulix",
     "Workpoint": "Punct de lucru",
     "Workpoints": "Puncte de lucru",
     "WORKER": "Muncitor",
@@ -287,7 +287,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Muncitorii scanează pe șantier, iar managerii verifică orele, ieșirile lipsă și exporturile Excel.",
     "Workpoint control": "Controlul punctelor de lucru",
     "Your company": "Compania ta",
-    "Your BuildPulse home": "Panoul tău BuildPulse",
+    "Your Strulix home": "Panoul tău Strulix",
     "Your documents": "Documentele tale",
     "Your own check-ins and check-outs for {periodLabel}.":
       "Intrările și ieșirile tale pentru {periodLabel}.",
@@ -302,10 +302,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Attachment": "Atașament",
     "Automatically closed at 22:00. Edit to mark reviewed.":
       "Închisă automat la 22:00. Editează pentru a marca verificarea.",
-    "BuildPulse": "BuildPulse",
-    "BuildPulse logo": "Sigla BuildPulse",
-    "BuildPulse keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.":
-      "BuildPulse conectează munca de pe șantier, verificarea din birou și autoservirea muncitorilor fără încă un tabel dezordonat.",
+    "Strulix": "Strulix",
+    "Strulix logo": "Sigla Strulix",
+    "Strulix keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.":
+      "Strulix conectează munca de pe șantier, verificarea din birou și autoservirea muncitorilor fără încă un tabel dezordonat.",
     "Bootstrap registration only works when it is enabled on the API and no company exists yet.":
       "Înregistrarea bootstrap funcționează doar când este activată în API și nu există încă nicio companie.",
     "Built for the daily rhythm of construction work":
@@ -496,8 +496,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Billing attention needed": "Facturarea necesită atenție",
     "Billing is required to continue.":
       "Facturarea este necesară pentru a continua.",
-    "BuildPulse updates Stripe when invited users accept or when users are removed, including prorated monthly changes.":
-      "BuildPulse actualizează Stripe când utilizatorii invitați acceptă sau când utilizatorii sunt eliminați, inclusiv ajustările lunare proporționale.",
+    "Strulix updates Stripe when invited users accept or when users are removed, including prorated monthly changes.":
+      "Strulix actualizează Stripe când utilizatorii invitați acceptă sau când utilizatorii sunt eliminați, inclusiv ajustările lunare proporționale.",
     "Checkout session is required.": "Sesiunea de checkout este obligatorie.",
     "Completing your signup": "Se finalizează înregistrarea",
     "Continue to payment": "Continuă la plată",
@@ -510,8 +510,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Starea facturării nu a putut fi încărcată.",
     "Failed to start checkout": "Checkout-ul nu a putut fi pornit",
     "Manage billing": "Gestionează facturarea",
-    "Manage your BuildPulse subscription and user-based billing.":
-      "Gestionează abonamentul BuildPulse și facturarea pe utilizator.",
+    "Manage your Strulix subscription and user-based billing.":
+      "Gestionează abonamentul Strulix și facturarea pe utilizator.",
     "Monthly price": "Preț lunar",
     "New companies can start with paid signup. Invited users should use their invitation link.":
       "Companiile noi pot începe cu înregistrarea plătită. Utilizatorii invitați trebuie să folosească linkul de invitație.",
@@ -566,10 +566,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Warnings": "Avertizări",
     "Workers checked in": "Muncitori prezenți",
     "Back to sign in": "Înapoi la autentificare",
-    "Choose a new password for your BuildPulse account.":
-      "Alege o parolă nouă pentru contul tău BuildPulse.",
-    "Choose how BuildPulse looks on this device.":
-      "Alege cum arată BuildPulse pe acest dispozitiv.",
+    "Choose a new password for your Strulix account.":
+      "Alege o parolă nouă pentru contul tău Strulix.",
+    "Choose how Strulix looks on this device.":
+      "Alege cum arată Strulix pe acest dispozitiv.",
     "Choose the language used across the app.":
       "Alege limba folosită în aplicație.",
     "Enter your email and we will send a password reset link.":
@@ -821,8 +821,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Role": "Szerepkör",
     "Save": "Mentés",
     "Saving...": "Mentés folyamatban...",
-    "Scan a BuildPulse attendance QR code.":
-      "Szkennelj be egy BuildPulse jelenléti QR-kódot.",
+    "Scan a Strulix attendance QR code.":
+      "Szkennelj be egy Strulix jelenléti QR-kódot.",
     "Scan attendance": "Jelenlét szkennelése",
     "Scan QR": "QR szkennelése",
     "Scan result": "Szkennelés eredménye",
@@ -861,7 +861,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Username must be at least 3 characters.":
       "A felhasználónévnek legalább 3 karakteresnek kell lennie.",
     "Users": "Felhasználók",
-    "Welcome back to BuildPulse": "Üdvözöl újra a BuildPulse-ban",
+    "Welcome back to Strulix": "Üdvözöl újra a Strulix-ban",
     "Workpoint": "Munkapont",
     "Workpoints": "Munkapontok",
     "WORKER": "Munkás",
@@ -873,7 +873,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "A dolgozók a helyszínen szkennelnek, miközben a vezetők ellenőrzik az órákat, hiányzó kilépéseket és Excel-exportokat.",
     "Workpoint control": "Munkapont-irányítás",
     "Your company": "A céged",
-    "Your BuildPulse home": "A BuildPulse kezdőlapod",
+    "Your Strulix home": "A Strulix kezdőlapod",
     "Your documents": "Saját dokumentumok",
     "Your own check-ins and check-outs for {periodLabel}.":
       "A saját belépéseid és kilépéseid a(z) {periodLabel} időszakban.",
@@ -888,10 +888,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Attachment": "Melléklet",
     "Automatically closed at 22:00. Edit to mark reviewed.":
       "Automatikusan lezárva 22:00-kor. Szerkeszd az ellenőrzöttként jelöléshez.",
-    "BuildPulse": "BuildPulse",
-    "BuildPulse logo": "BuildPulse logo",
-    "BuildPulse keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.":
-      "A BuildPulse összeköti a terepi munkát, az irodai ellenőrzést és a dolgozói önkiszolgálást egy újabb rendezetlen táblázat nélkül.",
+    "Strulix": "Strulix",
+    "Strulix logo": "Strulix logo",
+    "Strulix keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.":
+      "A Strulix összeköti a terepi munkát, az irodai ellenőrzést és a dolgozói önkiszolgálást egy újabb rendezetlen táblázat nélkül.",
     "Bootstrap registration only works when it is enabled on the API and no company exists yet.":
       "A bootstrap regisztráció csak akkor működik, ha engedélyezve van az API-ban, és még nem létezik cég.",
     "Built for the daily rhythm of construction work":
@@ -1082,8 +1082,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Billing attention needed": "Számlázási teendő szükséges",
     "Billing is required to continue.":
       "A folytatáshoz rendezett számlázás szükséges.",
-    "BuildPulse updates Stripe when invited users accept or when users are removed, including prorated monthly changes.":
-      "A BuildPulse frissíti a Stripe-ot, amikor a meghívott felhasználók csatlakoznak vagy felhasználókat törölnek, beleértve az időarányos havi módosításokat.",
+    "Strulix updates Stripe when invited users accept or when users are removed, including prorated monthly changes.":
+      "A Strulix frissíti a Stripe-ot, amikor a meghívott felhasználók csatlakoznak vagy felhasználókat törölnek, beleértve az időarányos havi módosításokat.",
     "Checkout session is required.": "A checkout munkamenet kötelező.",
     "Completing your signup": "A regisztráció befejezése",
     "Continue to payment": "Tovább a fizetéshez",
@@ -1096,8 +1096,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Nem sikerült betölteni a számlázási állapotot.",
     "Failed to start checkout": "Nem sikerült elindítani a checkoutot",
     "Manage billing": "Számlázás kezelése",
-    "Manage your BuildPulse subscription and user-based billing.":
-      "Kezeld a BuildPulse előfizetést és a felhasználóalapú számlázást.",
+    "Manage your Strulix subscription and user-based billing.":
+      "Kezeld a Strulix előfizetést és a felhasználóalapú számlázást.",
     "Monthly price": "Havi ár",
     "New companies can start with paid signup. Invited users should use their invitation link.":
       "Az új cégek fizetett regisztrációval indulhatnak. A meghívott felhasználók használják a meghívólinkjüket.",
@@ -1152,10 +1152,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Warnings": "Figyelmeztetések",
     "Workers checked in": "Belépett dolgozók",
     "Back to sign in": "Vissza a bejelentkezéshez",
-    "Choose a new password for your BuildPulse account.":
-      "Válassz új jelszót a BuildPulse fiókodhoz.",
-    "Choose how BuildPulse looks on this device.":
-      "Válaszd ki, hogyan jelenjen meg a BuildPulse ezen az eszközön.",
+    "Choose a new password for your Strulix account.":
+      "Válassz új jelszót a Strulix fiókodhoz.",
+    "Choose how Strulix looks on this device.":
+      "Válaszd ki, hogyan jelenjen meg a Strulix ezen az eszközön.",
     "Choose the language used across the app.":
       "Válaszd ki az alkalmazás nyelvét.",
     "Enter your email and we will send a password reset link.":

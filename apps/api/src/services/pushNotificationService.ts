@@ -16,6 +16,11 @@ const INVALID_TOKEN_ERROR_CODES = new Set([
 let firebaseMessaging: Messaging | null | undefined;
 let warnedMissingFirebaseConfig = false;
 
+function maskToken(token: string) {
+  if (token.length <= 12) return token;
+  return `${token.slice(0, 6)}...${token.slice(-6)}`;
+}
+
 function getFirebaseMessaging(): Messaging | null {
   if (firebaseMessaging !== undefined) return firebaseMessaging;
 
@@ -35,6 +40,9 @@ function getFirebaseMessaging(): Messaging | null {
     const serviceAccount = JSON.parse(rawServiceAccount);
     if (getApps().length === 0) {
       initializeApp({ credential: cert(serviceAccount) });
+      console.info(
+        `[push] Firebase Admin initialized for project ${serviceAccount.project_id ?? "<unknown>"}.`,
+      );
     }
     firebaseMessaging = getMessaging();
   } catch (error) {
@@ -113,6 +121,14 @@ export async function notifyMessageRecipients(message: MessagePayload) {
     console.warn(
       `[push] ${response.failureCount}/${tokens.length} message notifications failed.`,
     );
+    response.responses.forEach((result, index) => {
+      if (result.success) return;
+      const errorCode = result.error?.code ?? "<unknown>";
+      const errorMessage = result.error?.message ?? "Unknown Firebase error";
+      console.warn(
+        `[push] delivery failure token=${maskToken(tokens[index] ?? "")} code=${errorCode} message=${errorMessage}`,
+      );
+    });
   }
 
   const invalidTokens = response.responses

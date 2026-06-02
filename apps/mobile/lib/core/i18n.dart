@@ -277,7 +277,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'REVOKED': 'Revoked',
     'Scan result': 'Scan result',
     'Scan a BuildPulse attendance QR code.':
-        'Scan a BuildPulse attendance QR code.',
+        'Scan a Strulix attendance QR code.',
     'Place the attendance QR code inside the frame.':
         'Place the attendance QR code inside the frame.',
     'EXPIRED': 'Expired',
@@ -312,7 +312,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Username must be at least 3 characters.':
         'Username must be at least 3 characters.',
     'View and manage workpoints': 'View and manage workpoints',
-    'Welcome back to BuildPulse': 'Welcome back to BuildPulse',
+    'Welcome back to BuildPulse': 'Welcome back to Strulix',
     'WORKER': 'Worker',
     'Workers': 'Workers',
     'Workpoint': 'Workpoint',
@@ -328,7 +328,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Your own check-ins and check-outs for {periodLabel}.',
     'Your assignments will show up here.':
         'Your assignments will show up here.',
-    'Your BuildPulse home': 'Your BuildPulse home',
+    'Your BuildPulse home': 'Your Strulix home',
     'Your documents': 'Your documents',
     'You are accepting an invitation. Your role will be assigned.':
         'You are accepting an invitation. Your role will be assigned.',
@@ -349,7 +349,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attachment link is invalid.': 'Attachment link is invalid.',
     'Attachment: {name}': 'Attachment: {name}',
     'Back': 'Back',
-    'BuildPulse': 'BuildPulse',
+    'BuildPulse': 'Strulix',
     'Cancel reply': 'Cancel reply',
     'Check in': 'Check in',
     'Check out': 'Check out',
@@ -546,7 +546,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Back to sign in': 'Back to sign in',
     'Billing': 'Billing',
     'Choose how BuildPulse looks on this device.':
-        'Choose how BuildPulse looks on this device.',
+        'Choose how Strulix looks on this device.',
     'Choose the language used across the app.':
         'Choose the language used across the app.',
     'Could not open billing portal.': 'Could not open billing portal.',
@@ -562,7 +562,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Manage your account preferences and workspace settings.':
         'Manage your account preferences and workspace settings.',
     'Manage your BuildPulse subscription and user-based billing.':
-        'Manage your BuildPulse subscription and user-based billing.',
+        'Manage your Strulix subscription and user-based billing.',
     'No payment provider': 'No payment provider',
     'Paid seats': 'Paid seats',
     'Password reset failed': 'Password reset failed',
@@ -749,7 +749,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'REVOKED': 'Revocată',
     'Scan result': 'Rezultatul scanării',
     'Scan a BuildPulse attendance QR code.':
-        'Scanează un cod QR de prezență BuildPulse.',
+        'Scanează un cod QR de prezență Strulix.',
     'Place the attendance QR code inside the frame.':
         'Așază codul QR de prezență în interiorul cadrului.',
     'EXPIRED': 'Expirată',
@@ -785,7 +785,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Username must be at least 3 characters.':
         'Numele de utilizator trebuie să aibă cel puțin 3 caractere.',
     'View and manage workpoints': 'Vezi și gestionează punctele de lucru',
-    'Welcome back to BuildPulse': 'Bine ai revenit la BuildPulse',
+    'Welcome back to BuildPulse': 'Bine ai revenit la Strulix',
     'WORKER': 'Muncitor',
     'Workers': 'Muncitori',
     'Workpoint': 'Punct de lucru',
@@ -800,7 +800,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Your own check-ins and check-outs for {periodLabel}.':
         'Intrările și ieșirile tale pentru {periodLabel}.',
     'Your assignments will show up here.': 'Atribuirile tale vor apărea aici.',
-    'Your BuildPulse home': 'Panoul tău BuildPulse',
+    'Your BuildPulse home': 'Panoul tău Strulix',
     'Your documents': 'Documentele tale',
     'You are accepting an invitation. Your role will be assigned.':
         'Accepți o invitație. Rolul tău va fi atribuit automat.',
@@ -821,7 +821,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attachment link is invalid.': 'Linkul atașamentului este invalid.',
     'Attachment: {name}': 'Atașament: {name}',
     'Back': 'Înapoi',
-    'BuildPulse': 'BuildPulse',
+    'BuildPulse': 'Strulix',
     'Cancel reply': 'Anulează răspunsul',
     'Check in': 'Intrare',
     'Check out': 'Ieșire',
@@ -1027,7 +1027,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Back to sign in': 'Înapoi la autentificare',
     'Billing': 'Facturare',
     'Choose how BuildPulse looks on this device.':
-        'Alege cum arată BuildPulse pe acest dispozitiv.',
+        'Alege cum arată Strulix pe acest dispozitiv.',
     'Choose the language used across the app.':
         'Alege limba folosită în aplicație.',
     'Could not open billing portal.': 'Nu s-a putut deschide portalul de facturare.',
@@ -1043,7 +1043,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Manage your account preferences and workspace settings.':
         'Gestionează preferințele contului și setările spațiului de lucru.',
     'Manage your BuildPulse subscription and user-based billing.':
-        'Gestionează abonamentul BuildPulse și facturarea pe utilizatori.',
+        'Gestionează abonamentul Strulix și facturarea pe utilizatori.',
     'No payment provider': 'Niciun furnizor de plată',
     'Paid seats': 'Locuri plătite',
     'Password reset failed': 'Resetarea parolei a eșuat',
@@ -1226,7 +1226,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'REVOKED': 'Visszavonva',
     'Scan result': 'Szkennelés eredménye',
     'Scan a BuildPulse attendance QR code.':
-        'Szkennelj be egy BuildPulse jelenléti QR-kódot.',
+        'Szkennelj be egy Strulix jelenléti QR-kódot.',
     'Place the attendance QR code inside the frame.':
         'Helyezd a jelenléti QR-kódot a keretbe.',
     'EXPIRED': 'Lejárt',
@@ -1262,7 +1262,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Username must be at least 3 characters.':
         'A felhasználónévnek legalább 3 karakteresnek kell lennie.',
     'View and manage workpoints': 'Munkapontok megtekintése és kezelése',
-    'Welcome back to BuildPulse': 'Üdvözöl újra a BuildPulse-ban',
+    'Welcome back to BuildPulse': 'Üdvözöl újra a Strulix-ban',
     'WORKER': 'Munkás',
     'Workers': 'Dolgozók',
     'Workpoint': 'Munkapont',
@@ -1278,7 +1278,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'A saját belépéseid és kilépéseid {periodLabel} időszakban.',
     'Your assignments will show up here.':
         'A hozzárendeléseid itt fognak megjelenni.',
-    'Your BuildPulse home': 'A te BuildPulse kezdőlapod',
+    'Your BuildPulse home': 'A te Strulix kezdőlapod',
     'Your documents': 'Saját dokumentumok',
     'You are accepting an invitation. Your role will be assigned.':
         'Egy meghívót fogadsz el. A szerepköröd automatikusan be lesz állítva.',
@@ -1299,7 +1299,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attachment link is invalid.': 'A csatolmány hivatkozása érvénytelen.',
     'Attachment: {name}': 'Csatolmány: {name}',
     'Back': 'Vissza',
-    'BuildPulse': 'BuildPulse',
+    'BuildPulse': 'Strulix',
     'Cancel reply': 'Válasz megszakítása',
     'Check in': 'Belépés',
     'Check out': 'Kilépés',
@@ -1503,7 +1503,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Back to sign in': 'Vissza a bejelentkezéshez',
     'Billing': 'Számlázás',
     'Choose how BuildPulse looks on this device.':
-        'Válaszd ki, hogyan jelenjen meg a BuildPulse ezen az eszközön.',
+        'Válaszd ki, hogyan jelenjen meg a Strulix ezen az eszközön.',
     'Choose the language used across the app.':
         'Válaszd ki az alkalmazás nyelvét.',
     'Could not open billing portal.': 'Nem sikerült megnyitni a számlázási portált.',
@@ -1519,7 +1519,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Manage your account preferences and workspace settings.':
         'Kezeld a fiókbeállításaidat és a munkaterület beállításait.',
     'Manage your BuildPulse subscription and user-based billing.':
-        'Kezeld a BuildPulse előfizetést és a felhasználóalapú számlázást.',
+        'Kezeld a Strulix előfizetést és a felhasználóalapú számlázást.',
     'No payment provider': 'Nincs fizetési szolgáltató',
     'Paid seats': 'Fizetett helyek',
     'Password reset failed': 'A jelszó-visszaállítás sikertelen',

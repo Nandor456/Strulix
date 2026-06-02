@@ -62,12 +62,12 @@ export default function ResetPasswordPage() {
         <div className="mb-8 flex flex-col items-center gap-2">
           <img
             src={buildPulseLogo}
-            alt={t("BuildPulse logo")}
+            alt={t("Strulix logo")}
             className="h-24 w-24"
           />
           <h1 className="text-center text-xl font-bold">{t("Reset password")}</h1>
           <p className="text-center text-sm text-muted-foreground">
-            {t("Choose a new password for your BuildPulse account.")}
+            {t("Choose a new password for your Strulix account.")}
           </p>
         </div>
 

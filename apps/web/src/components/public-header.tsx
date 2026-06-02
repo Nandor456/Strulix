@@ -17,10 +17,10 @@ export function PublicHeader() {
         <Link to="/" className="flex min-w-0 items-center gap-2">
           <img
             src={buildPulseLogo}
-            alt={t("BuildPulse logo")}
+            alt={t("Strulix logo")}
             className="h-9 w-9 shrink-0 rounded-md"
           />
-          <span className="truncate text-base font-semibold">{t("BuildPulse")}</span>
+          <span className="truncate text-base font-semibold">{t("Strulix")}</span>
         </Link>
 
         <div className="ml-auto flex items-center gap-2">

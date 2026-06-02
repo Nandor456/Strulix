@@ -85,7 +85,7 @@ export default function ScanPage() {
                 lastInvalidRef.current = rawValue;
                 setScannerState({
                   status: "scanning",
-                  message: t("Scan a BuildPulse attendance QR code."),
+                  message: t("Scan a Strulix attendance QR code."),
                 });
               }
               return;

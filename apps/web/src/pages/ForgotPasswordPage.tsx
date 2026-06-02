@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
         <div className="mb-8 flex flex-col items-center gap-2">
           <img
             src={buildPulseLogo}
-            alt={t("BuildPulse logo")}
+            alt={t("Strulix logo")}
             className="h-24 w-24"
           />
           <h1 className="text-center text-xl font-bold">{t("Forgot password?")}</h1>

@@ -76,12 +76,12 @@ export default function Login() {
         <div className="mb-8 flex flex-col items-center gap-2">
           <img
             src={buildPulseLogo}
-            alt={t("BuildPulse logo")}
+            alt={t("Strulix logo")}
             className="h-24 w-24"
           />
           <h1 className="text-center text-xl font-bold">{t("Sign in")}</h1>
           <p className="text-center text-sm text-muted-foreground">
-            {t("Welcome back to BuildPulse")}
+            {t("Welcome back to Strulix")}
           </p>
         </div>
 

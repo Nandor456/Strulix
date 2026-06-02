@@ -60,7 +60,7 @@ export default function SettingsPage() {
             <div>
               <h2 className="text-lg font-semibold">{t("Theme")}</h2>
               <p className="text-sm text-muted-foreground">
-                {t("Choose how BuildPulse looks on this device.")}
+                {t("Choose how Strulix looks on this device.")}
               </p>
             </div>
           </div>
@@ -124,7 +124,7 @@ function BillingSettingsSection() {
         <div>
           <h2 className="text-lg font-semibold">{t("Billing")}</h2>
           <p className="text-sm text-muted-foreground">
-            {t("Manage your BuildPulse subscription and user-based billing.")}
+            {t("Manage your Strulix subscription and user-based billing.")}
           </p>
         </div>
       </div>
@@ -202,7 +202,7 @@ function BillingSettingsSection() {
             </h3>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               {t(
-                "BuildPulse updates Stripe when invited users accept or when users are removed, including prorated monthly changes.",
+                "Strulix updates Stripe when invited users accept or when users are removed, including prorated monthly changes.",
               )}
             </p>
           </div>

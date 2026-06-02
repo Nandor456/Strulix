@@ -143,7 +143,9 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
               mainAxisSpacing: 10,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.25,
+              childAspectRatio: MediaQuery.sizeOf(context).width > 640
+                  ? 1.35
+                  : 1.05,
               children: [
                 StatTile(
                   label: l10n.t('Earnings'),
