@@ -14,8 +14,6 @@ import {
   QrCode,
   RotateCcw,
   Trash2,
-  UserMinus,
-  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -66,9 +64,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkPoint } from "@/hooks/useWorkPoints";
 import {
-  useAssignWorker,
-  useRemoveWorker,
-  useWorkers,
+  useAttendanceWorkers,
   useWorkPointWorkers,
 } from "@/hooks/useWorkers";
 import { attendanceAPI, type AttendanceRecord } from "@/services/api/attendanceApi";
@@ -134,16 +130,8 @@ export default function WorkpointDetailPage() {
   const currentBounds = getMonthBounds(currentPeriod);
 
   const { data: workPoint, isLoading, error } = useWorkPoint(workPointId ?? null);
-  const { data: workers = [] } = useWorkers();
+  const { data: attendanceWorkers = [] } = useAttendanceWorkers(workPointId ?? null);
   const { data: assignedWorkers = [] } = useWorkPointWorkers(workPointId ?? null);
-
-  const assignmentIds = useMemo(
-    () => new Set(assignedWorkers.map((worker) => worker.id)),
-    [assignedWorkers],
-  );
-  const availableWorkers = workers.filter((worker) => !assignmentIds.has(worker.id));
-  const assignWorker = useAssignWorker(workPointId ?? null);
-  const removeWorker = useRemoveWorker(workPointId ?? null);
 
   const [from, setFrom] = useState(currentBounds.from);
   const [to, setTo] = useState(currentBounds.to);
@@ -162,7 +150,6 @@ export default function WorkpointDetailPage() {
   const [manualCheckedOutAt, setManualCheckedOutAt] = useState("");
   const [manualError, setManualError] = useState<string | null>(null);
   const [isManualAttendanceOpen, setIsManualAttendanceOpen] = useState(false);
-  const [assignWorkerId, setAssignWorkerId] = useState("");
   const [attendanceTimeRecord, setAttendanceTimeRecord] =
     useState<AttendanceRecord | null>(null);
   const [attendanceCheckedInValue, setAttendanceCheckedInValue] = useState("");
@@ -173,15 +160,6 @@ export default function WorkpointDetailPage() {
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
 
   const scanUrl = qr ? `${window.location.origin}/checkin/${qr.qrToken}` : "";
-
-  async function handleAssignWorker(workerId: string) {
-    await assignWorker.mutateAsync(workerId);
-    setAssignWorkerId("");
-  }
-
-  async function handleRemoveWorker(workerId: string) {
-    await removeWorker.mutateAsync(workerId);
-  }
 
   function resetManualAttendanceForm() {
     const today = getTodayInputValue();
@@ -301,7 +279,7 @@ export default function WorkpointDetailPage() {
           <div>
             <h1 className="text-3xl font-semibold">{t("Workpoint details")}</h1>
             <p className="text-sm text-muted-foreground">
-              {t("Manage assignments, attendance, QR access, and exports for this site.")}
+              {t("Manage attendance, QR access, documents, and exports for this site.")}
             </p>
           </div>
         </div>
@@ -388,39 +366,12 @@ export default function WorkpointDetailPage() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">{t("Assigned workers")}</h3>
+                <h3 className="font-semibold">{t("Workers")}</h3>
               </div>
             </div>
 
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-              <Select
-                value={assignWorkerId}
-                onValueChange={setAssignWorkerId}
-                disabled={availableWorkers.length === 0 || assignWorker.isPending}
-              >
-                <SelectTrigger className="sm:flex-1">
-                  <SelectValue placeholder={t("Assign worker")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableWorkers.map((worker) => (
-                    <SelectItem key={worker.id} value={worker.id}>
-                      {worker.username} ({worker.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                onClick={() => void handleAssignWorker(assignWorkerId)}
-                disabled={!assignWorkerId || assignWorker.isPending}
-              >
-                <UserPlus className="h-4 w-4" />
-                {t("Assign")}
-              </Button>
-            </div>
-
             {assignedWorkers.length === 0 ? (
-              <Alert>{t("No workers assigned to this workpoint.")}</Alert>
+              <Alert>{t("No workers have checked in to this workpoint yet.")}</Alert>
             ) : (
               <div className="space-y-2">
                 {assignedWorkers.map((worker) => (
@@ -431,10 +382,13 @@ export default function WorkpointDetailPage() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{worker.username}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {worker.email}
+                        {worker.email} · {worker.company.name}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {worker.affiliation === "SUBCONTRACTOR" && (
+                        <Badge variant="secondary">{t("Subcontractor")}</Badge>
+                      )}
                       <Badge variant="outline">
                         {worker.hourlyWage == null
                           ? t("No wage")
@@ -442,21 +396,6 @@ export default function WorkpointDetailPage() {
                             amount: worker.hourlyWage.toFixed(2),
                           })}
                       </Badge>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => void handleRemoveWorker(worker.id)}
-                            disabled={removeWorker.isPending}
-                            aria-label={t("Remove worker")}
-                          >
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t("Remove worker")}</TooltipContent>
-                      </Tooltip>
                     </div>
                   </div>
                 ))}
@@ -559,7 +498,7 @@ export default function WorkpointDetailPage() {
                     setManualError(null);
                     setIsManualAttendanceOpen(true);
                   }}
-                  disabled={assignedWorkers.length === 0}
+                  disabled={attendanceWorkers.length === 0}
                 >
                   <Plus className="h-4 w-4" />
                   {t("Manual mark")}
@@ -593,7 +532,19 @@ export default function WorkpointDetailPage() {
                       return (
                         <TableRow key={record.id}>
                           <TableCell className="font-medium">
-                            {record.worker.username}
+                            <div className="min-w-[180px]">
+                              <div className="flex items-center gap-2">
+                                <span>{record.worker.username}</span>
+                                {record.worker.affiliation === "SUBCONTRACTOR" && (
+                                  <Badge variant="secondary">
+                                    {t("Subcontractor")}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs font-normal text-muted-foreground">
+                                {record.worker.company.name}
+                              </p>
+                            </div>
                           </TableCell>
                           <TableCell className="text-sm">
                             {formatDate(record.date)}
@@ -686,7 +637,7 @@ export default function WorkpointDetailPage() {
           <DialogHeader>
             <DialogTitle>{t("Manual attendance")}</DialogTitle>
             <DialogDescription>
-              {t("Add a check-in and optional check-out for an assigned worker.")}
+              {t("Add a check-in and optional check-out for a worker.")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(event) => void handleManualAttendance(event)} className="space-y-4">
@@ -698,9 +649,11 @@ export default function WorkpointDetailPage() {
                     <SelectValue placeholder={t("Choose worker")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {assignedWorkers.map((worker) => (
+                    {attendanceWorkers.map((worker) => (
                       <SelectItem key={worker.id} value={worker.id}>
-                        {worker.username}
+                        {worker.affiliation === "SUBCONTRACTOR"
+                          ? `${worker.username} (${worker.company.name})`
+                          : worker.username}
                       </SelectItem>
                     ))}
                   </SelectContent>

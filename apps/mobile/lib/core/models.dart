@@ -2,7 +2,8 @@ import 'attendance_math.dart';
 
 typedef JsonMap = Map<String, dynamic>;
 
-String _string(dynamic value, [String fallback = '']) => value?.toString() ?? fallback;
+String _string(dynamic value, [String fallback = '']) =>
+    value?.toString() ?? fallback;
 
 String? _nullableString(dynamic value) => value?.toString();
 
@@ -172,9 +173,13 @@ class WorkPointWorker extends PublicUserSummary {
     required super.email,
     required super.role,
     required this.hourlyWage,
+    required this.company,
+    required this.affiliation,
   });
 
   final double? hourlyWage;
+  final CompanySummary company;
+  final String affiliation;
 
   factory WorkPointWorker.fromJson(JsonMap json) {
     return WorkPointWorker(
@@ -183,6 +188,8 @@ class WorkPointWorker extends PublicUserSummary {
       email: _string(json['email']),
       role: _string(json['role']),
       hourlyWage: _nullableDouble(json['hourlyWage']),
+      company: CompanySummary.fromJson(_map(json['company'])),
+      affiliation: _string(json['affiliation'], 'OWN_COMPANY'),
     );
   }
 }
@@ -190,6 +197,7 @@ class WorkPointWorker extends PublicUserSummary {
 class WorkPointSummary {
   const WorkPointSummary({
     required this.id,
+    required this.company,
     required this.name,
     required this.address,
     required this.lat,
@@ -200,10 +208,13 @@ class WorkPointSummary {
     required this.deadline,
     required this.owner,
     required this.workerCount,
+    required this.ownWorkerCount,
+    required this.subcontractorWorkerCount,
     required this.attendanceCount,
   });
 
   final String id;
+  final CompanySummary company;
   final String name;
   final String address;
   final double? lat;
@@ -214,11 +225,14 @@ class WorkPointSummary {
   final String? deadline;
   final PublicUserSummary? owner;
   final int workerCount;
+  final int ownWorkerCount;
+  final int subcontractorWorkerCount;
   final int attendanceCount;
 
   factory WorkPointSummary.fromJson(JsonMap json) {
     return WorkPointSummary(
       id: _string(json['id']),
+      company: CompanySummary.fromJson(_map(json['company'])),
       name: _string(json['name']),
       address: _string(json['address']),
       lat: _nullableDouble(json['lat']),
@@ -227,8 +241,12 @@ class WorkPointSummary {
       userId: _nullableString(json['userId']),
       uploadedAt: _string(json['uploadedAt']),
       deadline: _nullableString(json['deadline']),
-      owner: json['owner'] == null ? null : PublicUserSummary.fromJson(_map(json['owner'])),
+      owner: json['owner'] == null
+          ? null
+          : PublicUserSummary.fromJson(_map(json['owner'])),
       workerCount: _int(json['workerCount']),
+      ownWorkerCount: _int(json['ownWorkerCount']),
+      subcontractorWorkerCount: _int(json['subcontractorWorkerCount']),
       attendanceCount: _int(json['attendanceCount']),
     );
   }
@@ -237,6 +255,7 @@ class WorkPointSummary {
 class AssignedWorkPointSummary {
   const AssignedWorkPointSummary({
     required this.id,
+    required this.company,
     required this.name,
     required this.address,
     required this.lat,
@@ -246,9 +265,11 @@ class AssignedWorkPointSummary {
     required this.uploadedAt,
     required this.deadline,
     required this.owner,
+    required this.affiliation,
   });
 
   final String id;
+  final CompanySummary company;
   final String name;
   final String address;
   final double? lat;
@@ -258,10 +279,12 @@ class AssignedWorkPointSummary {
   final String uploadedAt;
   final String? deadline;
   final PublicUserSummary? owner;
+  final String affiliation;
 
   factory AssignedWorkPointSummary.fromJson(JsonMap json) {
     return AssignedWorkPointSummary(
       id: _string(json['id']),
+      company: CompanySummary.fromJson(_map(json['company'])),
       name: _string(json['name']),
       address: _string(json['address']),
       lat: _nullableDouble(json['lat']),
@@ -270,7 +293,10 @@ class AssignedWorkPointSummary {
       userId: _nullableString(json['userId']),
       uploadedAt: _string(json['uploadedAt']),
       deadline: _nullableString(json['deadline']),
-      owner: json['owner'] == null ? null : PublicUserSummary.fromJson(_map(json['owner'])),
+      owner: json['owner'] == null
+          ? null
+          : PublicUserSummary.fromJson(_map(json['owner'])),
+      affiliation: _string(json['affiliation'], 'OWN_COMPANY'),
     );
   }
 }
@@ -278,6 +304,7 @@ class AssignedWorkPointSummary {
 class WorkPointDetail extends WorkPointSummary {
   const WorkPointDetail({
     required super.id,
+    required super.company,
     required super.name,
     required super.address,
     required super.lat,
@@ -288,6 +315,8 @@ class WorkPointDetail extends WorkPointSummary {
     required super.deadline,
     required super.owner,
     required super.workerCount,
+    required super.ownWorkerCount,
+    required super.subcontractorWorkerCount,
     required super.attendanceCount,
     required this.workers,
   });
@@ -297,6 +326,7 @@ class WorkPointDetail extends WorkPointSummary {
   factory WorkPointDetail.fromJson(JsonMap json) {
     return WorkPointDetail(
       id: _string(json['id']),
+      company: CompanySummary.fromJson(_map(json['company'])),
       name: _string(json['name']),
       address: _string(json['address']),
       lat: _nullableDouble(json['lat']),
@@ -305,8 +335,12 @@ class WorkPointDetail extends WorkPointSummary {
       userId: _nullableString(json['userId']),
       uploadedAt: _string(json['uploadedAt']),
       deadline: _nullableString(json['deadline']),
-      owner: json['owner'] == null ? null : PublicUserSummary.fromJson(_map(json['owner'])),
+      owner: json['owner'] == null
+          ? null
+          : PublicUserSummary.fromJson(_map(json['owner'])),
       workerCount: _int(json['workerCount']),
+      ownWorkerCount: _int(json['ownWorkerCount']),
+      subcontractorWorkerCount: _int(json['subcontractorWorkerCount']),
       attendanceCount: _int(json['attendanceCount']),
       workers: _mapList(json['workers']).map(WorkPointWorker.fromJson).toList(),
     );
@@ -321,6 +355,8 @@ class WorkerSummary {
     required this.role,
     required this.assignedWorkPointCount,
     required this.hourlyWage,
+    required this.company,
+    required this.affiliation,
   });
 
   final String id;
@@ -329,6 +365,8 @@ class WorkerSummary {
   final String role;
   final int assignedWorkPointCount;
   final double? hourlyWage;
+  final CompanySummary company;
+  final String affiliation;
 
   factory WorkerSummary.fromJson(JsonMap json) {
     return WorkerSummary(
@@ -338,6 +376,33 @@ class WorkerSummary {
       role: _string(json['role']),
       assignedWorkPointCount: _int(json['assignedWorkPointCount']),
       hourlyWage: _nullableDouble(json['hourlyWage']),
+      company: CompanySummary.fromJson(_map(json['company'])),
+      affiliation: _string(json['affiliation'], 'OWN_COMPANY'),
+    );
+  }
+}
+
+class AttendanceWorkerSummary extends PublicUserSummary {
+  const AttendanceWorkerSummary({
+    required super.id,
+    required super.username,
+    required super.email,
+    required super.role,
+    required this.company,
+    required this.affiliation,
+  });
+
+  final CompanySummary company;
+  final String affiliation;
+
+  factory AttendanceWorkerSummary.fromJson(JsonMap json) {
+    return AttendanceWorkerSummary(
+      id: _string(json['id']),
+      username: _string(json['username']),
+      email: _string(json['email']),
+      role: _string(json['role']),
+      company: CompanySummary.fromJson(_map(json['company'])),
+      affiliation: _string(json['affiliation'], 'OWN_COMPANY'),
     );
   }
 }
@@ -380,6 +445,49 @@ class Invitation {
   }
 }
 
+class SubcontractorAccess {
+  const SubcontractorAccess({
+    required this.id,
+    required this.ownerCompany,
+    required this.subcontractorCompany,
+    required this.invitedAdminEmail,
+    required this.status,
+    required this.expiresAt,
+    required this.acceptedAt,
+    required this.revokedAt,
+    required this.createdAt,
+    required this.acceptUrl,
+  });
+
+  final String id;
+  final CompanySummary ownerCompany;
+  final CompanySummary subcontractorCompany;
+  final String invitedAdminEmail;
+  final String status;
+  final String expiresAt;
+  final String? acceptedAt;
+  final String? revokedAt;
+  final String createdAt;
+  final String acceptUrl;
+
+  factory SubcontractorAccess.fromJson(JsonMap json) {
+    return SubcontractorAccess(
+      id: _string(json['id']),
+      ownerCompany: CompanySummary.fromJson(_map(json['ownerCompany'])),
+      subcontractorCompany: CompanySummary.fromJson(
+        _map(json['subcontractorCompany']),
+      ),
+      invitedAdminEmail: _string(json['invitedAdminEmail']),
+      status: _string(json['status']),
+      expiresAt: _string(json['expiresAt']),
+      acceptedAt: _nullableString(json['acceptedAt']),
+      revokedAt: _nullableString(json['revokedAt']),
+      createdAt: _string(json['createdAt']),
+      acceptUrl: _string(json['acceptUrl']),
+    );
+  }
+}
+
 class AttendanceRecord {
   const AttendanceRecord({
     required this.id,
@@ -401,7 +509,7 @@ class AttendanceRecord {
   final String? checkedOutAt;
   final String? checkoutSource;
   final String source;
-  final PublicUserSummary worker;
+  final AttendanceWorkerSummary worker;
 
   factory AttendanceRecord.fromJson(JsonMap json) {
     return AttendanceRecord(
@@ -413,7 +521,7 @@ class AttendanceRecord {
       checkedOutAt: _nullableString(json['checkedOutAt']),
       checkoutSource: _nullableString(json['checkoutSource']),
       source: _string(json['source']),
-      worker: PublicUserSummary.fromJson(_map(json['worker'])),
+      worker: AttendanceWorkerSummary.fromJson(_map(json['worker'])),
     );
   }
 
@@ -432,7 +540,10 @@ class QrData {
   final String qrPng;
 
   factory QrData.fromJson(JsonMap json) {
-    return QrData(qrToken: _string(json['qrToken']), qrPng: _string(json['qrPng']));
+    return QrData(
+      qrToken: _string(json['qrToken']),
+      qrPng: _string(json['qrPng']),
+    );
   }
 }
 
@@ -690,8 +801,9 @@ class WorkerDocumentSummary {
       mimeType: _string(json['mimeType']),
       sizeBytes: _int(json['sizeBytes']),
       createdAt: _string(json['createdAt']),
-      uploadedBy:
-          json['uploadedBy'] == null ? null : PublicUserSummary.fromJson(_map(json['uploadedBy'])),
+      uploadedBy: json['uploadedBy'] == null
+          ? null
+          : PublicUserSummary.fromJson(_map(json['uploadedBy'])),
     );
   }
 }
@@ -741,7 +853,10 @@ class ChatParticipant {
   final String username;
 
   factory ChatParticipant.fromJson(JsonMap json) {
-    return ChatParticipant(id: _string(json['id']), username: _string(json['username']));
+    return ChatParticipant(
+      id: _string(json['id']),
+      username: _string(json['username']),
+    );
   }
 }
 
@@ -821,18 +936,25 @@ class ChatListItem {
       type: _string(json['type']),
       name: _string(json['name']),
       workPointId: _nullableString(json['workPointId']),
-      lastMessage:
-          json['lastMessage'] == null ? null : LastMessage.fromJson(_map(json['lastMessage'])),
+      lastMessage: json['lastMessage'] == null
+          ? null
+          : LastMessage.fromJson(_map(json['lastMessage'])),
       lastMessageAt: _nullableString(json['lastMessageAt']),
       unreadCount: _int(json['unreadCount']),
-      participants: _mapList(json['participants']).map(ChatParticipant.fromJson).toList(),
+      participants: _mapList(
+        json['participants'],
+      ).map(ChatParticipant.fromJson).toList(),
       otherUserId: _nullableString(json['otherUserId']),
     );
   }
 }
 
 class ReplyTo {
-  const ReplyTo({required this.id, required this.body, required this.senderUsername});
+  const ReplyTo({
+    required this.id,
+    required this.body,
+    required this.senderUsername,
+  });
 
   final String id;
   final String body;
@@ -910,7 +1032,9 @@ class Message {
       attachmentName: _nullableString(json['attachmentName']),
       attachmentType: _nullableString(json['attachmentType']),
       replyToId: _nullableString(json['replyToId']),
-      replyTo: json['replyTo'] == null ? null : ReplyTo.fromJson(_map(json['replyTo'])),
+      replyTo: json['replyTo'] == null
+          ? null
+          : ReplyTo.fromJson(_map(json['replyTo'])),
       createdAt: _string(json['createdAt']),
       editedAt: _nullableString(json['editedAt']),
       clientNonce: _nullableString(json['clientNonce']),
@@ -920,7 +1044,11 @@ class Message {
 }
 
 class MessagesPage {
-  const MessagesPage({required this.messages, required this.hasMore, required this.nextCursor});
+  const MessagesPage({
+    required this.messages,
+    required this.hasMore,
+    required this.nextCursor,
+  });
 
   final List<Message> messages;
   final bool hasMore;

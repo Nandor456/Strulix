@@ -185,7 +185,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Image': 'Image',
     'Invalid QR code.': 'Invalid QR code.',
     'Invalid date': 'Invalid date',
-    'Initial workers': 'Initial workers',
     'Invite a new user': 'Invite a new user',
     'Invite new users by email. Each invitation carries a role and one-time registration link.':
         'Invite new users by email. Each invitation carries a role and one-time registration link.',
@@ -231,6 +230,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No workers available.': 'No workers available.',
     'No workpoints assigned': 'No workpoints assigned',
     'No workpoints yet': 'No workpoints yet',
+    'No workers have checked in to this workpoint yet.':
+        'No workers have checked in to this workpoint yet.',
     'Not set': 'Not set',
     'Open': 'Open',
     'Open attachment': 'Open attachment',
@@ -335,15 +336,11 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Browse job sites and manage workers, attendance, and QR tools.',
     'by {name}': 'by {name}',
-    'Create one to start assigning workers.':
-        'Create one to start assigning workers.',
+    'Create one to start tracking attendance.':
+        'Create one to start tracking attendance.',
     'Active': 'Active',
     'Actions': 'Actions',
     'Add': 'Add',
-    'Assign a worker before adding attendance.':
-        'Assign a worker before adding attendance.',
-    'Assign worker': 'Assign worker',
-    'Assigned workers': 'Assigned workers',
     'Attach file': 'Attach file',
     'Attachment': 'Attachment',
     'Attachment link is invalid.': 'Attachment link is invalid.',
@@ -397,9 +394,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No messages yet': 'No messages yet',
     'No users found': 'No users found',
     'No wage': 'No wage',
-    'No workers assigned to this workpoint.':
-        'No workers assigned to this workpoint.',
-    'No workers available to assign.': 'No workers available to assign.',
     'No workers registered yet': 'No workers registered yet',
     'Not checked out yet': 'Not checked out yet',
     'Offline': 'Offline',
@@ -434,14 +428,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attendance record not found': 'Attendance record not found',
     'Document not found': 'Document not found',
     'Document file not found': 'Document file not found',
-    'One or more workers were not found': 'One or more workers were not found',
-    'Only users with the WORKER role can be assigned':
-        'Only users with the WORKER role can be assigned',
     'workerId is required': 'workerId is required',
     'This workpoint does not have coordinates set':
         'This workpoint does not have coordinates set',
-    'You are not assigned to this workpoint':
-        'You are not assigned to this workpoint',
     'You must be within 100m of this workpoint to scan attendance':
         'You must be within 100m of this workpoint to scan attendance',
     'A user with this email already exists':
@@ -653,7 +642,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Image': 'Imagine',
     'Invalid QR code.': 'Cod QR invalid.',
     'Invalid date': 'Dată invalidă',
-    'Initial workers': 'Muncitori inițiali',
     'Invite a new user': 'Invită un utilizator nou',
     'Invite new users by email. Each invitation carries a role and one-time registration link.':
         'Invită utilizatori noi prin email. Fiecare invitație include un rol și un link unic de înregistrare.',
@@ -701,6 +689,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No workers available.': 'Nu există muncitori disponibili.',
     'No workpoints assigned': 'Nu ai puncte de lucru alocate',
     'No workpoints yet': 'Nu există puncte de lucru încă',
+    'No workers have checked in to this workpoint yet.':
+        'Niciun muncitor nu a intrat încă la acest punct de lucru.',
     'Not set': 'Nesetat',
     'Open': 'Deschide',
     'Open attachment': 'Deschide atașamentul',
@@ -807,15 +797,11 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Răsfoiește șantierele și gestionează muncitorii, prezența și instrumentele QR.',
     'by {name}': 'de {name}',
-    'Create one to start assigning workers.':
-        'Creează unul pentru a începe alocarea muncitorilor.',
+    'Create one to start tracking attendance.':
+        'Creează unul pentru a începe urmărirea prezenței.',
     'Active': 'Activ',
     'Actions': 'Acțiuni',
     'Add': 'Adaugă',
-    'Assign a worker before adding attendance.':
-        'Alocă un muncitor înainte de a adăuga prezența.',
-    'Assign worker': 'Alocă muncitor',
-    'Assigned workers': 'Muncitori alocați',
     'Attach file': 'Atașează fișier',
     'Attachment': 'Atașament',
     'Attachment link is invalid.': 'Linkul atașamentului este invalid.',
@@ -870,10 +856,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No messages yet': 'Niciun mesaj încă',
     'No users found': 'Nu s-au găsit utilizatori',
     'No wage': 'Fără salariu',
-    'No workers assigned to this workpoint.':
-        'Nu sunt muncitori alocați acestui punct de lucru.',
-    'No workers available to assign.':
-        'Nu există muncitori disponibili de alocat.',
     'No workers registered yet': 'Nu există muncitori înregistrați încă',
     'Not checked out yet': 'Ieșire neînregistrată încă',
     'Offline': 'Offline',
@@ -883,9 +865,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'QR link copied.': 'Linkul QR a fost copiat.',
     'Records {count}': 'Înregistrări {count}',
     'Remove': 'Elimină',
-    'Remove {name} from this workpoint?':
-        'Elimini {name} de la acest punct de lucru?',
-    'Remove worker': 'Elimină muncitor',
     'Replying to {name}: {message}': 'Răspunzi lui {name}: {message}',
     'Rotate': 'Rotește',
     'Rotate QR code': 'Rotește codul QR',
@@ -909,15 +888,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attendance record not found': 'Înregistrarea de prezență nu a fost găsită',
     'Document not found': 'Documentul nu a fost găsit',
     'Document file not found': 'Fișierul documentului nu a fost găsit',
-    'One or more workers were not found':
-        'Unul sau mai mulți muncitori nu au fost găsiți',
-    'Only users with the WORKER role can be assigned':
-        'Doar utilizatorii cu rolul WORKER pot fi alocați',
     'workerId is required': 'workerId este obligatoriu',
     'This workpoint does not have coordinates set':
         'Acest punct de lucru nu are coordonate setate',
-    'You are not assigned to this workpoint':
-        'Nu ești alocat la acest punct de lucru',
     'You must be within 100m of this workpoint to scan attendance':
         'Trebuie să fii la cel mult 100 m de acest punct de lucru pentru a scana prezența',
     'A user with this email already exists':
@@ -1030,11 +1003,14 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Alege cum arată Strulix pe acest dispozitiv.',
     'Choose the language used across the app.':
         'Alege limba folosită în aplicație.',
-    'Could not open billing portal.': 'Nu s-a putut deschide portalul de facturare.',
+    'Could not open billing portal.':
+        'Nu s-a putut deschide portalul de facturare.',
     'Enter your email and we will send a password reset link.':
         'Introdu emailul și îți vom trimite un link de resetare a parolei.',
-    'Failed to load billing status.': 'Nu s-a putut încărca statusul facturării.',
-    'Failed to open billing portal': 'Nu s-a putut deschide portalul de facturare',
+    'Failed to load billing status.':
+        'Nu s-a putut încărca statusul facturării.',
+    'Failed to open billing portal':
+        'Nu s-a putut deschide portalul de facturare',
     'Forgot password?': 'Ai uitat parola?',
     'If an account exists, we sent a password reset link.':
         'Dacă există un cont, am trimis un link de resetare a parolei.',
@@ -1132,7 +1108,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Image': 'Kép',
     'Invalid QR code.': 'Érvénytelen QR-kód.',
     'Invalid date': 'Érvénytelen dátum',
-    'Initial workers': 'Kezdeti dolgozók',
     'Invite a new user': 'Új felhasználó meghívása',
     'Invite new users by email. Each invitation carries a role and one-time registration link.':
         'Hívj meg új felhasználókat emailben. Minden meghívóhoz szerepkör és egyszer használható regisztrációs link tartozik.',
@@ -1179,6 +1154,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No workers available.': 'Nincs elérhető dolgozó.',
     'No workpoints assigned': 'Nincs hozzád rendelt munkapont',
     'No workpoints yet': 'Még nincsenek munkapontok',
+    'No workers have checked in to this workpoint yet.':
+        'Még egy dolgozó sem jelentkezett be ezen a munkaponton.',
     'Not set': 'Nincs beállítva',
     'Open': 'Megnyitás',
     'Open attachment': 'Csatolmány megnyitása',
@@ -1285,15 +1262,11 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Böngéssz a munkaterületek között, és kezeld a dolgozókat, a jelenlétet és a QR-eszközöket.',
     'by {name}': '{name} által',
-    'Create one to start assigning workers.':
-        'Hozz létre egyet a dolgozók hozzárendeléséhez.',
+    'Create one to start tracking attendance.':
+        'Hozz létre egyet a jelenlét követéséhez.',
     'Active': 'Aktív',
     'Actions': 'Műveletek',
     'Add': 'Hozzáad',
-    'Assign a worker before adding attendance.':
-        'Rendelj hozzá dolgozót, mielőtt jelenlétet adsz hozzá.',
-    'Assign worker': 'Dolgozó hozzárendelése',
-    'Assigned workers': 'Hozzárendelt dolgozók',
     'Attach file': 'Fájl csatolása',
     'Attachment': 'Csatolmány',
     'Attachment link is invalid.': 'A csatolmány hivatkozása érvénytelen.',
@@ -1347,10 +1320,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'No messages yet': 'Még nincsenek üzenetek',
     'No users found': 'Nincsenek találatok',
     'No wage': 'Nincs bér',
-    'No workers assigned to this workpoint.':
-        'Nincs dolgozó hozzárendelve ehhez a munkaponthoz.',
-    'No workers available to assign.':
-        'Nincs elérhető dolgozó a hozzárendeléshez.',
     'No workers registered yet': 'Még nincsenek regisztrált dolgozók',
     'Not checked out yet': 'Még nincs kilépés rögzítve',
     'Offline': 'Offline',
@@ -1360,9 +1329,6 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'QR link copied.': 'A QR-link másolva.',
     'Records {count}': 'Bejegyzések: {count}',
     'Remove': 'Eltávolít',
-    'Remove {name} from this workpoint?':
-        'Eltávolítod {name} nevű dolgozót a munkapontról?',
-    'Remove worker': 'Dolgozó eltávolítása',
     'Replying to {name}: {message}': 'Válasz {name} üzenetére: {message}',
     'Rotate': 'Forgatás',
     'Rotate QR code': 'QR-kód forgatása',
@@ -1386,14 +1352,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Attendance record not found': 'A jelenléti bejegyzés nem található',
     'Document not found': 'A dokumentum nem található',
     'Document file not found': 'A dokumentum fájlja nem található',
-    'One or more workers were not found': 'Egy vagy több dolgozó nem található',
-    'Only users with the WORKER role can be assigned':
-        'Csak WORKER szerepkörű felhasználók rendelhetők hozzá',
     'workerId is required': 'A workerId kötelező',
     'This workpoint does not have coordinates set':
         'Ehhez a munkaponthoz nincsenek beállítva koordináták',
-    'You are not assigned to this workpoint':
-        'Nem vagy ehhez a munkaponthoz hozzárendelve',
     'You must be within 100m of this workpoint to scan attendance':
         'A jelenlét szkenneléséhez 100 méteren belül kell lenned ehhez a munkaponthoz',
     'A user with this email already exists':
@@ -1506,11 +1467,14 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Válaszd ki, hogyan jelenjen meg a Strulix ezen az eszközön.',
     'Choose the language used across the app.':
         'Válaszd ki az alkalmazás nyelvét.',
-    'Could not open billing portal.': 'Nem sikerült megnyitni a számlázási portált.',
+    'Could not open billing portal.':
+        'Nem sikerült megnyitni a számlázási portált.',
     'Enter your email and we will send a password reset link.':
         'Add meg az emailed, és elküldjük a jelszó-visszaállító linket.',
-    'Failed to load billing status.': 'Nem sikerült betölteni a számlázási állapotot.',
-    'Failed to open billing portal': 'Nem sikerült megnyitni a számlázási portált',
+    'Failed to load billing status.':
+        'Nem sikerült betölteni a számlázási állapotot.',
+    'Failed to open billing portal':
+        'Nem sikerült megnyitni a számlázási portált',
     'Forgot password?': 'Elfelejtetted a jelszavad?',
     'If an account exists, we sent a password reset link.':
         'Ha létezik fiók, elküldtük a jelszó-visszaállító linket.',

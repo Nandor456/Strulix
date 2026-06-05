@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SignupSuccessPage from "./pages/SignupSuccessPage";
 import InvitationsPage from "./pages/InvitationsPage";
+import SubcontractorAcceptPage from "./pages/SubcontractorAcceptPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -48,6 +49,12 @@ function RequireRoles({ roles, children }: { roles: UserRole[]; children: ReactN
     }
 
     return <>{children}</>;
+}
+
+function LoginRedirect() {
+    const location = useLocation();
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
 }
 
 function AuthenticatedRoutes() {
@@ -117,6 +124,14 @@ function AuthenticatedRoutes() {
             />
             <Route path="/checkin/:qrToken" element={<CheckinPage />} />
             <Route
+                path="/subcontractors/accept"
+                element={
+                    <RequireRoles roles={["ADMIN"]}>
+                        <SubcontractorAcceptPage />
+                    </RequireRoles>
+                }
+            />
+            <Route
                 path="/invitations"
                 element={
                     <RequireRoles roles={["ADMIN", "LEADER"]}>
@@ -174,6 +189,7 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/register/success" element={<SignupSuccessPage />} />
                     <Route path="/checkin/:qrToken" element={<CheckinPage />} />
+                    <Route path="/subcontractors/accept" element={<LoginRedirect />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             )}

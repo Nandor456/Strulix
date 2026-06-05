@@ -17,7 +17,8 @@ import {
   getMyMonthlySummary,
   computeBillableHours,
 } from "../services/attendanceService.js";
-import { emitAttendanceChanged } from "../realtime/socketServer.js";
+import { getWorkPointChatId } from "../services/messagingService.js";
+import { emitAttendanceChanged, emitChatChanged } from "../realtime/socketServer.js";
 
 function notifyAttendanceChanged(params: {
   workPointId: string;
@@ -41,6 +42,17 @@ function notifyAttendanceChanged(params: {
       );
     } catch (error) {
       console.error("notifyAttendanceChanged error:", error);
+    }
+  })();
+}
+
+function notifyWorkPointChatChanged(workPointId: string, extraUserIds: string[] = []) {
+  void (async () => {
+    try {
+      const chatId = await getWorkPointChatId(workPointId);
+      if (chatId) await emitChatChanged(chatId, extraUserIds);
+    } catch (error) {
+      console.error("notifyWorkPointChatChanged error:", error);
     }
   })();
 }
@@ -72,17 +84,22 @@ export async function checkinController(
   try {
     const result = await recordAttendance({
       userId,
+      companyId: req.auth!.companyId,
+      userRole: req.auth!.role,
       qrToken,
       workerLocation: { lat, lng },
       source: "QR",
     });
-    if (result.event !== "ALREADY_COMPLETED") {
+    if (result.result.event !== "ALREADY_COMPLETED") {
       notifyAttendanceChanged({
-        workPointId: result.workPointId,
+        workPointId: result.result.workPointId,
         workerId: userId,
       });
     }
-    res.json(result);
+    if (result.workerAssociated) {
+      notifyWorkPointChatChanged(result.result.workPointId, [userId]);
+    }
+    res.json(result.result);
   } catch (err: unknown) {
     if (typeof err === "object" && err !== null && "code" in err) {
       const code = (err as { code: string }).code;
@@ -170,7 +187,7 @@ export async function manualMarkController(
   const checkedOutAt = checkedOutAtStr ? new Date(checkedOutAtStr) : undefined;
 
   try {
-    const record = await manualMark({
+    const result = await manualMark({
       workerId,
       workPointId,
       companyId: req.auth!.companyId,
@@ -178,11 +195,15 @@ export async function manualMarkController(
       checkedInAt,
       checkedOutAt,
     });
+    const { record } = result;
     notifyAttendanceChanged({
       workPointId: record.workPointId,
       workerId: record.workerId,
       attendanceId: record.id,
     });
+    if (result.workerAssociated) {
+      notifyWorkPointChatChanged(record.workPointId, [record.workerId]);
+    }
     res.status(201).json(record);
   } catch (err: unknown) {
     if (
@@ -438,6 +459,8 @@ export async function exportAttendanceController(
       { header: "Date", key: "date", width: 14 },
       { header: "Worker", key: "worker", width: 28 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Worker company", key: "workerCompany", width: 28 },
+      { header: "Worker type", key: "workerType", width: 18 },
       { header: "Source", key: "source", width: 10 },
       { header: "Checkout source", key: "checkoutSource", width: 16 },
       { header: "Checked-in at", key: "checkedInAt", width: 22 },
@@ -468,6 +491,11 @@ export async function exportAttendanceController(
         date: formatDate(r.date),
         worker: r.worker.username,
         email: r.worker.email,
+        workerCompany: r.worker.company.name,
+        workerType:
+          r.worker.affiliation === "SUBCONTRACTOR"
+            ? "Subcontractor"
+            : "Own company",
         source: r.source,
         checkoutSource: r.checkoutSource ?? "—",
         checkedInAt: formatDateTime(r.checkedInAt),
@@ -491,6 +519,8 @@ export async function exportAttendanceController(
     sheet2.columns = [
       { header: "Worker", key: "worker", width: 28 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Worker company", key: "workerCompany", width: 28 },
+      { header: "Worker type", key: "workerType", width: 18 },
       { header: "Total Presence Days", key: "totalDays", width: 22 },
       { header: "Complete Days", key: "completeDays", width: 16 },
       { header: "Total Hours", key: "totalHours", width: 14 },
@@ -513,6 +543,9 @@ export async function exportAttendanceController(
       sheet2.addRow({
         worker: s.username,
         email: s.email,
+        workerCompany: s.company.name,
+        workerType:
+          s.affiliation === "SUBCONTRACTOR" ? "Subcontractor" : "Own company",
         totalDays: s.totalDays,
         completeDays: s.completeDays,
         totalHours: s.totalHours,

@@ -5,7 +5,30 @@ import {
   attendanceDateTimeToUtc,
   dateInZone,
 } from "../utils/dateHelpers.js";
+import {
+  addParticipantToChat,
+  getOrCreateWorkPointChat,
+} from "./messagingService.js";
+import {
+  affiliationForCompany,
+  hasAcceptedSubcontractorAccess,
+  type WorkerAffiliation,
+} from "./subcontractorService.js";
 import QRCode from "qrcode";
+
+export type CompanySummary = {
+  id: string;
+  name: string;
+};
+
+export type AttendanceWorkerSummary = {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  company: CompanySummary;
+  affiliation: WorkerAffiliation;
+};
 
 export type AttendanceRecord = {
   id: string;
@@ -16,13 +39,15 @@ export type AttendanceRecord = {
   checkedOutAt: Date | null;
   checkoutSource: string | null;
   source: string;
-  worker: { id: string; username: string; email: string };
+  worker: AttendanceWorkerSummary;
 };
 
 export type AttendanceSummary = {
   workerId: string;
   username: string;
   email: string;
+  company: CompanySummary;
+  affiliation: WorkerAffiliation;
   totalDays: number;
   completeDays: number;
   totalHours: number;
@@ -51,6 +76,16 @@ export type CompletedScanResult = {
   checkoutSource: string | null;
   hours: number;
   earnings: number | null;
+};
+
+export type AttendanceScanResult = {
+  result: ScanResult;
+  workerAssociated: boolean;
+};
+
+export type ManualAttendanceResult = {
+  record: AttendanceRecord;
+  workerAssociated: boolean;
 };
 
 export type DailyStatRow = {
@@ -82,6 +117,8 @@ export type LiveFollowActiveCheckIn = {
   workerId: string;
   workerUsername: string;
   workerEmail: string;
+  workerCompany: CompanySummary;
+  workerAffiliation: WorkerAffiliation;
   checkedInAt: string;
   source: string;
 };
@@ -91,6 +128,8 @@ export type LiveFollowRecentEvent = {
   workerId: string;
   workerUsername: string;
   workerEmail: string;
+  workerCompany: CompanySummary;
+  workerAffiliation: WorkerAffiliation;
   event: LiveFollowEventType;
   occurredAt: string;
   source: string;
@@ -102,6 +141,8 @@ export type LiveFollowWorkPoint = {
   name: string;
   address: string;
   assignedWorkerCount: number;
+  ownWorkerCount: number;
+  subcontractorWorkerCount: number;
   activeWorkerCount: number;
   status: LiveFollowStatus;
   warningReasons: LiveFollowWarningReason[];
@@ -136,16 +177,95 @@ type LiveFollowRecentEventRow = {
   workerId: string;
   workerUsername: string;
   workerEmail: string;
+  workerCompanyId: string;
+  workerCompanyName: string;
+  workerAffiliation: WorkerAffiliation;
   event: LiveFollowEventType;
   occurredAt: Date;
   source: string;
   checkoutSource: string | null;
 };
 
+type SelectedAttendanceRecord = {
+  id: string;
+  workerId: string;
+  workPointId: string;
+  date: Date;
+  checkedInAt: Date;
+  checkedOutAt: Date | null;
+  checkoutSource: string | null;
+  source: string;
+  workPoint: { companyId: string };
+  worker: {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+    companyId: string;
+    company: CompanySummary;
+  };
+};
+
 type Coordinates = {
   lat: number;
   lng: number;
 };
+
+const attendanceRecordSelect = {
+  id: true,
+  workerId: true,
+  workPointId: true,
+  date: true,
+  checkedInAt: true,
+  checkedOutAt: true,
+  checkoutSource: true,
+  source: true,
+  workPoint: { select: { companyId: true } },
+  worker: {
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      role: true,
+      companyId: true,
+      company: { select: { id: true, name: true } },
+    },
+  },
+} as const;
+
+function toAttendanceWorkerSummary(params: {
+  ownerCompanyId: string;
+  worker: SelectedAttendanceRecord["worker"];
+}): AttendanceWorkerSummary {
+  return {
+    id: params.worker.id,
+    username: params.worker.username,
+    email: params.worker.email,
+    role: params.worker.role,
+    company: params.worker.company,
+    affiliation: affiliationForCompany({
+      ownerCompanyId: params.ownerCompanyId,
+      workerCompanyId: params.worker.companyId,
+    }),
+  };
+}
+
+function toAttendanceRecord(record: SelectedAttendanceRecord): AttendanceRecord {
+  return {
+    id: record.id,
+    workerId: record.workerId,
+    workPointId: record.workPointId,
+    date: record.date,
+    checkedInAt: record.checkedInAt,
+    checkedOutAt: record.checkedOutAt,
+    checkoutSource: record.checkoutSource,
+    source: record.source,
+    worker: toAttendanceWorkerSummary({
+      ownerCompanyId: record.workPoint.companyId,
+      worker: record.worker,
+    }),
+  };
+}
 
 export function normalizeLiveFollowEventLimit(limit?: number): number {
   if (!Number.isInteger(limit) || limit == null || limit < 1) {
@@ -325,6 +445,7 @@ export function startAttendanceAutoCloseJob(): NodeJS.Timeout {
 
 async function buildCompletedScanResult(params: {
   userId: string;
+  ownerCompanyId: string;
   event: CompletedScanResult["event"];
   workPointId: string;
   workPointName: string;
@@ -337,11 +458,13 @@ async function buildCompletedScanResult(params: {
 
   const worker = await prisma.user.findUnique({
     where: { id: params.userId },
-    select: { hourlyWage: true },
+    select: { hourlyWage: true, companyId: true },
   });
 
   const earnings =
-    worker?.hourlyWage != null ? hours * worker.hourlyWage : null;
+    worker?.companyId === params.ownerCompanyId && worker.hourlyWage != null
+      ? hours * worker.hourlyWage
+      : null;
 
   return {
     event: params.event,
@@ -356,13 +479,33 @@ async function buildCompletedScanResult(params: {
   };
 }
 
+async function associateWorkerWithWorkPoint(params: {
+  workPointId: string;
+  workerId: string;
+  alreadyAssociated: boolean;
+}): Promise<boolean> {
+  if (params.alreadyAssociated) return false;
+
+  await prisma.workPoint.update({
+    where: { id: params.workPointId },
+    data: { workers: { connect: { id: params.workerId } } },
+  });
+
+  const chatId = await getOrCreateWorkPointChat(params.workPointId);
+  await addParticipantToChat(chatId, params.workerId);
+  return true;
+}
+
 export async function recordAttendance(params: {
   userId: string;
+  companyId: string;
+  userRole: string;
   qrToken: string;
   workerLocation: Coordinates;
   source: "QR" | "MANUAL";
-}): Promise<ScanResult> {
-  const now = new Date();
+  now?: Date;
+}): Promise<AttendanceScanResult> {
+  const now = params.now ?? new Date();
 
   await autoCloseOpenAttendances(now);
 
@@ -370,6 +513,7 @@ export async function recordAttendance(params: {
     where: { qrToken: params.qrToken },
     select: {
       id: true,
+      companyId: true,
       name: true,
       lat: true,
       lng: true,
@@ -383,8 +527,21 @@ export async function recordAttendance(params: {
     throw err;
   }
 
-  if (workPoint.workers.length === 0) {
-    const err = new Error("You are not assigned to this workpoint");
+  const canUseWorkPoint =
+    workPoint.companyId === params.companyId ||
+    (await hasAcceptedSubcontractorAccess({
+      ownerCompanyId: workPoint.companyId,
+      subcontractorCompanyId: params.companyId,
+    }));
+
+  if (!canUseWorkPoint) {
+    const err = new Error("Invalid QR token");
+    (err as NodeJS.ErrnoException).code = "NOT_FOUND";
+    throw err;
+  }
+
+  if (params.userRole !== "WORKER") {
+    const err = new Error("Only workers can scan attendance");
     (err as NodeJS.ErrnoException).code = "FORBIDDEN";
     throw err;
   }
@@ -426,6 +583,11 @@ export async function recordAttendance(params: {
 
   if (!existing) {
     assertWithinAttendanceRecordingWindow(now);
+    const workerAssociated = await associateWorkerWithWorkPoint({
+      workPointId: workPoint.id,
+      workerId: params.userId,
+      alreadyAssociated: workPoint.workers.length > 0,
+    });
 
     const record = await prisma.attendance.create({
       data: {
@@ -438,28 +600,45 @@ export async function recordAttendance(params: {
       select: { checkedInAt: true },
     });
     return {
-      event: "CHECK_IN",
-      workPointId: workPoint.id,
-      workPointName: workPoint.name,
-      date,
-      checkedInAt: record.checkedInAt,
+      result: {
+        event: "CHECK_IN",
+        workPointId: workPoint.id,
+        workPointName: workPoint.name,
+        date,
+        checkedInAt: record.checkedInAt,
+      },
+      workerAssociated,
     };
   }
 
   if (existing.checkedOutAt !== null) {
-    return buildCompletedScanResult({
-      userId: params.userId,
-      event: "ALREADY_COMPLETED",
+    const workerAssociated = await associateWorkerWithWorkPoint({
       workPointId: workPoint.id,
-      workPointName: workPoint.name,
-      date,
-      checkedInAt: existing.checkedInAt,
-      checkedOutAt: existing.checkedOutAt,
-      checkoutSource: existing.checkoutSource,
+      workerId: params.userId,
+      alreadyAssociated: workPoint.workers.length > 0,
     });
+    return {
+      result: await buildCompletedScanResult({
+        userId: params.userId,
+        ownerCompanyId: workPoint.companyId,
+        event: "ALREADY_COMPLETED",
+        workPointId: workPoint.id,
+        workPointName: workPoint.name,
+        date,
+        checkedInAt: existing.checkedInAt,
+        checkedOutAt: existing.checkedOutAt,
+        checkoutSource: existing.checkoutSource,
+      }),
+      workerAssociated,
+    };
   }
 
   assertWithinAttendanceRecordingWindow(now);
+  const workerAssociated = await associateWorkerWithWorkPoint({
+    workPointId: workPoint.id,
+    workerId: params.userId,
+    alreadyAssociated: workPoint.workers.length > 0,
+  });
 
   const checkedOutAt = now;
 
@@ -468,16 +647,20 @@ export async function recordAttendance(params: {
     data: { checkedOutAt, checkoutSource: "QR" },
   });
 
-  return buildCompletedScanResult({
-    userId: params.userId,
-    event: "CHECK_OUT",
-    workPointId: workPoint.id,
-    workPointName: workPoint.name,
-    date,
-    checkedInAt: existing.checkedInAt,
-    checkedOutAt,
-    checkoutSource: "QR",
-  });
+  return {
+    result: await buildCompletedScanResult({
+      userId: params.userId,
+      ownerCompanyId: workPoint.companyId,
+      event: "CHECK_OUT",
+      workPointId: workPoint.id,
+      workPointName: workPoint.name,
+      date,
+      checkedInAt: existing.checkedInAt,
+      checkedOutAt,
+      checkoutSource: "QR",
+    }),
+    workerAssociated,
+  };
 }
 
 export async function listAttendance(params: {
@@ -488,7 +671,7 @@ export async function listAttendance(params: {
 }): Promise<AttendanceRecord[]> {
   await autoCloseOpenAttendances();
 
-  return prisma.attendance.findMany({
+  const records = await prisma.attendance.findMany({
     where: {
       workPointId: params.workPointId,
       workPoint: { companyId: params.companyId },
@@ -501,19 +684,11 @@ export async function listAttendance(params: {
         }
         : {}),
     },
-    select: {
-      id: true,
-      workerId: true,
-      workPointId: true,
-      date: true,
-      checkedInAt: true,
-      checkedOutAt: true,
-      checkoutSource: true,
-      source: true,
-      worker: { select: { id: true, username: true, email: true } },
-    },
+    select: attendanceRecordSelect,
     orderBy: [{ date: "desc" }, { checkedInAt: "desc" }],
   });
+
+  return records.map(toAttendanceRecord);
 }
 
 export async function getLiveFollowSnapshot(params: {
@@ -533,6 +708,7 @@ export async function getLiveFollowSnapshot(params: {
         name: true,
         address: true,
         _count: { select: { workers: true } },
+        workers: { select: { companyId: true } },
         attendances: {
           where: { checkedOutAt: null },
           select: {
@@ -540,7 +716,15 @@ export async function getLiveFollowSnapshot(params: {
             workerId: true,
             checkedInAt: true,
             source: true,
-            worker: { select: { id: true, username: true, email: true } },
+            worker: {
+              select: {
+                id: true,
+                username: true,
+                email: true,
+                companyId: true,
+                company: { select: { id: true, name: true } },
+              },
+            },
           },
           orderBy: [{ checkedInAt: "asc" }, { id: "asc" }],
         },
@@ -555,6 +739,12 @@ export async function getLiveFollowSnapshot(params: {
           a.worker_id AS "workerId",
           u.username AS "workerUsername",
           u.email AS "workerEmail",
+          u.company_id AS "workerCompanyId",
+          c.name AS "workerCompanyName",
+          CASE
+            WHEN u.company_id = wp.company_id THEN 'OWN_COMPANY'
+            ELSE 'SUBCONTRACTOR'
+          END AS "workerAffiliation",
           'CHECK_IN'::text AS "event",
           a.checked_in_at AS "occurredAt",
           a.source AS "source",
@@ -562,6 +752,7 @@ export async function getLiveFollowSnapshot(params: {
         FROM attendances a
         INNER JOIN "WorkPoint" wp ON wp.id = a.work_point_id
         INNER JOIN "User" u ON u.id = a.worker_id
+        INNER JOIN companies c ON c.id = u.company_id
         WHERE wp.company_id = ${params.companyId}
 
         UNION ALL
@@ -572,6 +763,12 @@ export async function getLiveFollowSnapshot(params: {
           a.worker_id AS "workerId",
           u.username AS "workerUsername",
           u.email AS "workerEmail",
+          u.company_id AS "workerCompanyId",
+          c.name AS "workerCompanyName",
+          CASE
+            WHEN u.company_id = wp.company_id THEN 'OWN_COMPANY'
+            ELSE 'SUBCONTRACTOR'
+          END AS "workerAffiliation",
           'CHECK_OUT'::text AS "event",
           a.checked_out_at AS "occurredAt",
           a.source AS "source",
@@ -579,6 +776,7 @@ export async function getLiveFollowSnapshot(params: {
         FROM attendances a
         INNER JOIN "WorkPoint" wp ON wp.id = a.work_point_id
         INNER JOIN "User" u ON u.id = a.worker_id
+        INNER JOIN companies c ON c.id = u.company_id
         WHERE wp.company_id = ${params.companyId}
           AND a.checked_out_at IS NOT NULL
       ),
@@ -599,6 +797,9 @@ export async function getLiveFollowSnapshot(params: {
         "workerId",
         "workerUsername",
         "workerEmail",
+        "workerCompanyId",
+        "workerCompanyName",
+        "workerAffiliation",
         "event",
         "occurredAt",
         "source",
@@ -620,6 +821,11 @@ export async function getLiveFollowSnapshot(params: {
       workerId: row.workerId,
       workerUsername: row.workerUsername,
       workerEmail: row.workerEmail,
+      workerCompany: {
+        id: row.workerCompanyId,
+        name: row.workerCompanyName,
+      },
+      workerAffiliation: row.workerAffiliation,
       event: row.event,
       occurredAt: row.occurredAt.toISOString(),
       source: row.source,
@@ -634,9 +840,18 @@ export async function getLiveFollowSnapshot(params: {
       workerId: attendance.workerId,
       workerUsername: attendance.worker.username,
       workerEmail: attendance.worker.email,
+      workerCompany: attendance.worker.company,
+      workerAffiliation: affiliationForCompany({
+        ownerCompanyId: params.companyId,
+        workerCompanyId: attendance.worker.companyId,
+      }),
       checkedInAt: attendance.checkedInAt.toISOString(),
       source: attendance.source,
     }));
+    const ownWorkerCount = workPoint.workers.filter(
+      (worker) => worker.companyId === params.companyId,
+    ).length;
+    const subcontractorWorkerCount = workPoint.workers.length - ownWorkerCount;
     const recentEvents = limitLiveFollowEvents(
       eventsByWorkPoint.get(workPoint.id) ?? [],
       eventLimit,
@@ -653,6 +868,8 @@ export async function getLiveFollowSnapshot(params: {
       name: workPoint.name,
       address: workPoint.address,
       assignedWorkerCount: workPoint._count.workers,
+      ownWorkerCount,
+      subcontractorWorkerCount,
       activeWorkerCount: activeCheckIns.length,
       status: status.status,
       warningReasons: status.warningReasons,
@@ -687,18 +904,38 @@ export async function manualMark(params: {
   date: Date;
   checkedInAt?: Date;
   checkedOutAt?: Date;
-}): Promise<AttendanceRecord> {
+}): Promise<ManualAttendanceResult> {
   const [worker, workPoint] = await Promise.all([
-    prisma.user.findFirst({
-      where: { id: params.workerId, companyId: params.companyId },
-      select: { id: true },
+    prisma.user.findUnique({
+      where: { id: params.workerId },
+      select: { id: true, role: true, companyId: true },
     }),
     prisma.workPoint.findFirst({
       where: { id: params.workPointId, companyId: params.companyId },
-      select: { id: true },
+      select: {
+        id: true,
+        companyId: true,
+        workers: { where: { id: params.workerId }, select: { id: true } },
+      },
     }),
   ]);
   if (!worker || !workPoint) {
+    const err = new Error("Worker or workpoint not found");
+    (err as NodeJS.ErrnoException).code = "NOT_FOUND";
+    throw err;
+  }
+  if (worker.role !== "WORKER") {
+    const err = new Error("Only workers can be marked for attendance");
+    (err as NodeJS.ErrnoException).code = "INVALID";
+    throw err;
+  }
+  const canUseWorkPoint =
+    worker.companyId === workPoint.companyId ||
+    (await hasAcceptedSubcontractorAccess({
+      ownerCompanyId: workPoint.companyId,
+      subcontractorCompanyId: worker.companyId,
+    }));
+  if (!canUseWorkPoint) {
     const err = new Error("Worker or workpoint not found");
     (err as NodeJS.ErrnoException).code = "NOT_FOUND";
     throw err;
@@ -712,7 +949,7 @@ export async function manualMark(params: {
   }
 
   try {
-    return await prisma.attendance.create({
+    const record = await prisma.attendance.create({
       data: {
         workerId: params.workerId,
         workPointId: params.workPointId,
@@ -723,18 +960,14 @@ export async function manualMark(params: {
           ? { checkedOutAt: params.checkedOutAt, checkoutSource: "MANUAL" }
           : {}),
       },
-      select: {
-        id: true,
-        workerId: true,
-        workPointId: true,
-        date: true,
-        checkedInAt: true,
-        checkedOutAt: true,
-        checkoutSource: true,
-        source: true,
-        worker: { select: { id: true, username: true, email: true } },
-      },
+      select: attendanceRecordSelect,
     });
+    const workerAssociated = await associateWorkerWithWorkPoint({
+      workPointId: params.workPointId,
+      workerId: params.workerId,
+      alreadyAssociated: workPoint.workers.length > 0,
+    });
+    return { record: toAttendanceRecord(record), workerAssociated };
   } catch (err: unknown) {
     if (
       typeof err === "object" &&
@@ -772,21 +1005,12 @@ export async function setCheckoutTime(
     throw err;
   }
 
-  return prisma.attendance.update({
+  const updated = await prisma.attendance.update({
     where: { id: attendanceId },
     data: { checkedOutAt, checkoutSource: "MANUAL" },
-    select: {
-      id: true,
-      workerId: true,
-      workPointId: true,
-      date: true,
-      checkedInAt: true,
-      checkedOutAt: true,
-      checkoutSource: true,
-      source: true,
-      worker: { select: { id: true, username: true, email: true } },
-    },
+    select: attendanceRecordSelect,
   });
+  return toAttendanceRecord(updated);
 }
 
 export async function updateAttendanceTimes(params: {
@@ -813,7 +1037,7 @@ export async function updateAttendanceTimes(params: {
   }
 
   try {
-    return await prisma.attendance.update({
+    const updated = await prisma.attendance.update({
       where: { id: params.attendanceId },
       data: {
         date: dateInZone(params.checkedInAt),
@@ -821,18 +1045,9 @@ export async function updateAttendanceTimes(params: {
         checkedOutAt: params.checkedOutAt ?? null,
         checkoutSource: params.checkedOutAt ? "MANUAL" : null,
       },
-      select: {
-        id: true,
-        workerId: true,
-        workPointId: true,
-        date: true,
-        checkedInAt: true,
-        checkedOutAt: true,
-        checkoutSource: true,
-        source: true,
-        worker: { select: { id: true, username: true, email: true } },
-      },
+      select: attendanceRecordSelect,
     });
+    return toAttendanceRecord(updated);
   } catch (err: unknown) {
     if (
       typeof err === "object" &&
@@ -949,11 +1164,14 @@ export async function getAttendanceSummary(
   const assignedWorkers = await prisma.workPoint.findFirst({
     where: { id: workPointId, companyId },
     select: {
+      companyId: true,
       workers: {
         select: {
           id: true,
           username: true,
           email: true,
+          companyId: true,
+          company: { select: { id: true, name: true } },
           hourlyWage: true,
         },
       },
@@ -991,15 +1209,23 @@ export async function getAttendanceSummary(
     const entry = byWorker.get(w.id);
     const dates = entry?.dates ?? [];
     const totalHours = entry?.totalHours ?? 0;
+    const affiliation = affiliationForCompany({
+      ownerCompanyId: assignedWorkers.companyId,
+      workerCompanyId: w.companyId,
+    });
     const completeDays = records.filter(
       (r) => r.workerId === w.id && r.checkedOutAt !== null,
     ).length;
     const totalEarnings =
-      w.hourlyWage != null ? totalHours * w.hourlyWage : null;
+      affiliation === "OWN_COMPANY" && w.hourlyWage != null
+        ? totalHours * w.hourlyWage
+        : null;
     return {
       workerId: w.id,
       username: w.username,
       email: w.email,
+      company: w.company,
+      affiliation,
       totalDays: dates.length,
       completeDays,
       totalHours,

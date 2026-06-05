@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
@@ -7,6 +8,7 @@ import { ChatHeader } from "./ChatHeader";
 import { useMessagingSocket } from "@/hooks/useMessagingSocket";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useUploadAttachment } from "@/hooks/useChats";
+import { useI18n } from "@/hooks/useI18n";
 import type { ChatListItem, Message } from "@/types/messaging";
 
 interface MessageThreadProps {
@@ -16,20 +18,22 @@ interface MessageThreadProps {
 }
 
 export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProps) {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, fetchPreviousPage, hasPreviousPage, isFetchingPreviousPage } =
     useChatMessages(chat.id);
   const { sendMessage, sendTyping, markRead, joinChat, onTyping } =
     useMessagingSocket();
   const uploadAttachment = useUploadAttachment(chat.id);
+  const { t } = useI18n();
 
   const [typingUsers, setTypingUsers] = useState<Map<string, ReturnType<typeof setTimeout>>>(
     new Map()
   );
   const [replyTo, setReplyTo] = useState<Message | null>(null);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottom = useRef(true);
+  const hasInitialScrollRef = useRef(false);
+  const initialScrollFrameRef = useRef<number | null>(null);
   const lastMessageIdRef = useRef<string | null>(null);
   const pendingPrependAdjustmentRef = useRef<{
     scrollHeight: number;
@@ -37,12 +41,49 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
   } | null>(null);
 
   const messages = useMemo(() => data?.pages.flatMap((p) => p.messages) ?? [], [data]);
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const rowVirtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 92,
+    overscan: 8,
+    getItemKey: (index) => messages[index]?.id ?? index,
+  });
+  const virtualItems = rowVirtualizer.getVirtualItems();
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
+    const el = scrollRef.current;
+    if (!el || messages.length === 0) return;
+
+    rowVirtualizer.scrollToIndex(messages.length - 1, { align: "end", behavior });
+    el.scrollTo({ top: el.scrollHeight, behavior });
+  }, [messages.length, rowVirtualizer]);
 
   // Join the chat room on mount
   useEffect(() => {
     joinChat(chat.id);
     markRead(chat.id);
   }, [chat.id, joinChat, markRead]);
+
+  useEffect(() => {
+    hasInitialScrollRef.current = false;
+    lastMessageIdRef.current = null;
+    pendingPrependAdjustmentRef.current = null;
+    isNearBottom.current = true;
+
+    if (initialScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(initialScrollFrameRef.current);
+      initialScrollFrameRef.current = null;
+    }
+  }, [chat.id]);
+
+  useEffect(() => {
+    return () => {
+      if (initialScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(initialScrollFrameRef.current);
+      }
+    };
+  }, []);
 
   // Typing listener
   useEffect(() => {
@@ -87,17 +128,30 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
       pendingPrependAdjustmentRef.current = null;
     } else if (latestMessageId && latestMessageId !== previousLatestMessageId) {
       pendingPrependAdjustmentRef.current = null;
-      if (previousLatestMessageId === null) {
+
+      if (previousLatestMessageId !== null && isNearBottom.current) {
         isNearBottom.current = true;
-        el.scrollTop = el.scrollHeight;
-      } else if (isNearBottom.current) {
-        isNearBottom.current = true;
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        scrollToBottom("smooth");
       }
     }
 
     lastMessageIdRef.current = latestMessageId;
-  }, [messages]);
+  }, [messages, scrollToBottom]);
+
+  useLayoutEffect(() => {
+    if (isLoading || messages.length === 0 || hasInitialScrollRef.current) return;
+
+    hasInitialScrollRef.current = true;
+    isNearBottom.current = true;
+    rowVirtualizer.measure();
+    scrollToBottom("auto");
+
+    initialScrollFrameRef.current = window.requestAnimationFrame(() => {
+      rowVirtualizer.measure();
+      scrollToBottom("auto");
+      initialScrollFrameRef.current = null;
+    });
+  }, [isLoading, messages.length, rowVirtualizer, scrollToBottom]);
 
   // Track if near bottom for auto-scroll
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -105,15 +159,14 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
     const threshold = 120;
     isNearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
 
-    // Infinite scroll (load older messages on scroll to top)
-    if (el.scrollTop < 80 && hasNextPage && !isFetchingNextPage) {
+    if (el.scrollTop < 120 && hasPreviousPage && !isFetchingPreviousPage) {
       pendingPrependAdjustmentRef.current = {
         scrollHeight: el.scrollHeight,
         scrollTop: el.scrollTop,
       };
-      void fetchNextPage();
+      void fetchPreviousPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage]);
 
   function handleSend(opts: {
     body: string;
@@ -128,7 +181,7 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
     markRead(chat.id);
     setTimeout(() => {
       isNearBottom.current = true;
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      scrollToBottom("smooth");
     }, 50);
   }
 
@@ -159,36 +212,55 @@ export function MessageThread({ chat, currentUserId, onBack }: MessageThreadProp
             ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-2 px-3 py-4 md:px-5">
-            {isFetchingNextPage && (
-              <div className="flex justify-center py-2">
-                <Skeleton className="h-4 w-24 rounded" />
+          <div className="relative px-3 py-4 md:px-5">
+            {isFetchingPreviousPage && (
+              <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center">
+                <Skeleton className="h-4 w-24 rounded bg-background/90" />
               </div>
             )}
 
-            {messages.map((msg, idx) => {
-              const isSelf = msg.senderId === currentUserId;
-              const prevMsg = messages[idx - 1];
-              const showSender =
-                !isSelf &&
-                chat.type !== "DIRECT" &&
-                prevMsg?.senderId !== msg.senderId;
+            <div
+              className="relative w-full"
+              style={{ height: messages.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : undefined }}
+            >
+              {virtualItems.map((virtualItem) => {
+                const msg = messages[virtualItem.index];
+                if (!msg) return null;
 
-              return (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isSelf={isSelf}
-                  showSender={showSender}
-                  onReply={setReplyTo}
-                  isReplyTarget={replyTo?.id === msg.id}
-                />
-              );
-            })}
+                const isSelf = msg.senderId === currentUserId;
+                const prevMsg = messages[virtualItem.index - 1];
+                const showSender =
+                  !isSelf &&
+                  chat.type !== "DIRECT" &&
+                  prevMsg?.senderId !== msg.senderId;
+
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={rowVirtualizer.measureElement}
+                    className="absolute left-0 top-0 w-full py-1"
+                    style={{ transform: `translateY(${virtualItem.start}px)` }}
+                  >
+                    <MessageBubble
+                      message={msg}
+                      isSelf={isSelf}
+                      showSender={showSender}
+                      onReply={setReplyTo}
+                      isReplyTarget={replyTo?.id === msg.id}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {messages.length === 0 && !isTypingAnyone && (
+              <div className="flex min-h-32 items-center justify-center px-3 text-sm text-muted-foreground">
+                {t("No messages yet")}
+              </div>
+            )}
 
             {isTypingAnyone && <TypingIndicator />}
-
-            <div ref={bottomRef} />
           </div>
         )}
       </div>

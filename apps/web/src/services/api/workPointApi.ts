@@ -7,12 +7,22 @@ export interface PublicUserSummary {
   role: string;
 }
 
+export type WorkerAffiliation = "OWN_COMPANY" | "SUBCONTRACTOR";
+
+export interface CompanySummary {
+  id: string;
+  name: string;
+}
+
 export interface WorkPointWorker extends PublicUserSummary {
   hourlyWage: number | null;
+  company: CompanySummary;
+  affiliation: WorkerAffiliation;
 }
 
 export interface WorkPointSummary {
   id: string;
+  company: CompanySummary;
   name: string;
   address: string;
   lat: number | null;
@@ -23,13 +33,17 @@ export interface WorkPointSummary {
   deadline: string | null;
   owner: PublicUserSummary | null;
   workerCount: number;
+  ownWorkerCount: number;
+  subcontractorWorkerCount: number;
   attendanceCount: number;
 }
 
 export type AssignedWorkPointSummary = Omit<
   WorkPointSummary,
-  "workerCount" | "attendanceCount"
->;
+  "workerCount" | "ownWorkerCount" | "subcontractorWorkerCount" | "attendanceCount"
+> & {
+  affiliation: WorkerAffiliation;
+};
 
 export interface WorkPointDetail extends WorkPointSummary {
   workers: WorkPointWorker[];
@@ -42,10 +56,9 @@ export interface WorkPointInput {
   lng?: number | null;
   description?: string | null;
   deadline?: string | null;
-  workerIds?: string[];
 }
 
-export type WorkPointUpdate = Omit<WorkPointInput, "workerIds">;
+export type WorkPointUpdate = Partial<WorkPointInput>;
 
 export const workPointAPI = {
   async list(): Promise<WorkPointSummary[]> {

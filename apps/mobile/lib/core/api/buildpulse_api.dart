@@ -66,10 +66,7 @@ class BuildPulseApi {
   }
 
   Future<void> requestPasswordReset(String email) async {
-    await client.post<dynamic>(
-      '/auth/forgot-password',
-      data: {'email': email},
-    );
+    await client.post<dynamic>('/auth/forgot-password', data: {'email': email});
   }
 
   Future<void> resetPassword({
@@ -180,29 +177,9 @@ class BuildPulseApi {
         .toList();
   }
 
-  Future<List<WorkerSummary>> assignWorker(
-    String workPointId,
-    String workerId,
-  ) async {
-    final response = await client.post<dynamic>(
-      '/workpoints/$workPointId/workers',
-      data: {'workerId': workerId},
-    );
-    final data = _responseMap(response);
-    return (data['workers'] as List? ?? const [])
-        .map(
-          (item) =>
-              WorkerSummary.fromJson(Map<String, dynamic>.from(item as Map)),
-        )
-        .toList();
-  }
-
-  Future<List<WorkerSummary>> removeWorker(
-    String workPointId,
-    String workerId,
-  ) async {
-    final response = await client.delete<dynamic>(
-      '/workpoints/$workPointId/workers/$workerId',
+  Future<List<WorkerSummary>> listAttendanceWorkers(String workPointId) async {
+    final response = await client.get<dynamic>(
+      '/workpoints/$workPointId/attendance-workers',
     );
     final data = _responseMap(response);
     return (data['workers'] as List? ?? const [])
@@ -257,6 +234,49 @@ class BuildPulseApi {
     final response = await client.delete<dynamic>('/invitations/$id');
     return Invitation.fromJson(
       Map<String, dynamic>.from(_responseMap(response)['invitation'] as Map),
+    );
+  }
+
+  Future<List<SubcontractorAccess>> listSubcontractors() async {
+    final response = await client.get<dynamic>('/subcontractors');
+    final data = _responseMap(response);
+    return (data['subcontractors'] as List? ?? const [])
+        .map(
+          (item) => SubcontractorAccess.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<SubcontractorAccess> createSubcontractorInvitation({
+    required String invitedAdminEmail,
+  }) async {
+    final response = await client.post<dynamic>(
+      '/subcontractors',
+      data: {'invitedAdminEmail': invitedAdminEmail},
+    );
+    return SubcontractorAccess.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['subcontractor'] as Map),
+    );
+  }
+
+  Future<SubcontractorAccess> acceptSubcontractorInvitation(
+    String token,
+  ) async {
+    final response = await client.post<dynamic>(
+      '/subcontractors/accept',
+      data: {'token': token},
+    );
+    return SubcontractorAccess.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['subcontractor'] as Map),
+    );
+  }
+
+  Future<SubcontractorAccess> revokeSubcontractor(String id) async {
+    final response = await client.delete<dynamic>('/subcontractors/$id');
+    return SubcontractorAccess.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['subcontractor'] as Map),
     );
   }
 
@@ -405,11 +425,7 @@ class BuildPulseApi {
   }) async {
     final response = await client.post<dynamic>(
       '/leave-requests',
-      data: {
-        'type': type.wireName,
-        'startDate': startDate,
-        'endDate': endDate,
-      },
+      data: {'type': type.wireName, 'startDate': startDate, 'endDate': endDate},
     );
     return LeaveRequest.fromJson(
       Map<String, dynamic>.from(_responseMap(response)['leaveRequest'] as Map),

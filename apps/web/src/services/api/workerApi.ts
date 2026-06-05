@@ -1,5 +1,12 @@
 import { api } from "./axios";
 
+export type WorkerAffiliation = "OWN_COMPANY" | "SUBCONTRACTOR";
+
+export interface CompanySummary {
+  id: string;
+  name: string;
+}
+
 export interface WorkerSummary {
   id: string;
   username: string;
@@ -7,6 +14,8 @@ export interface WorkerSummary {
   role: string;
   assignedWorkPointCount: number;
   hourlyWage: number | null;
+  company: CompanySummary;
+  affiliation: WorkerAffiliation;
 }
 
 export type WorkerStats = WorkerSummary;
@@ -24,23 +33,9 @@ export const workerAPI = {
     return res.data.workers;
   },
 
-  async assignWorker(
-    workPointId: string,
-    workerId: string,
-  ): Promise<WorkerStats[]> {
-    const res = await api.post<{ workers: WorkerStats[] }>(
-      `/workpoints/${workPointId}/workers`,
-      { workerId },
-    );
-    return res.data.workers;
-  },
-
-  async removeWorker(
-    workPointId: string,
-    workerId: string,
-  ): Promise<WorkerStats[]> {
-    const res = await api.delete<{ workers: WorkerStats[] }>(
-      `/workpoints/${workPointId}/workers/${workerId}`,
+  async listAttendanceWorkers(workPointId: string): Promise<WorkerStats[]> {
+    const res = await api.get<{ workers: WorkerStats[] }>(
+      `/workpoints/${workPointId}/attendance-workers`,
     );
     return res.data.workers;
   },

@@ -21,6 +21,12 @@ enum CompanyBillingStatus {
   CANCELED
 }
 
+enum CompanySubcontractorAccessStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
 model Company {
   id                        String               @id @default(uuid())
   name                      String
@@ -39,6 +45,8 @@ model Company {
   invitations              Invitation[]
   chats                    Chat[]
   pendingPaidRegistrations PendingPaidRegistration[]
+  ownedSubcontractorAccess CompanySubcontractorAccess[] @relation("OwnerCompanySubcontractorAccess")
+  subcontractorAccess      CompanySubcontractorAccess[] @relation("SubcontractorCompanyAccess")
 
   @@index([billingStatus])
   @@map("companies")
@@ -100,6 +108,8 @@ model User {
   pushDevices                PushDevice[]
   leaveRequests              LeaveRequest[]      @relation("LeaveRequestUser")
   reviewedLeaveRequests      LeaveRequest[]      @relation("LeaveRequestReviewer")
+  sentSubcontractorInvites   CompanySubcontractorAccess[] @relation("SubcontractorInvitedBy")
+  acceptedSubcontractorInvites CompanySubcontractorAccess[] @relation("SubcontractorAcceptedBy")
 
   @@index([companyId])
 }
@@ -144,6 +154,34 @@ model Invitation {
   @@index([companyId])
   @@index([companyId, email])
   @@map("invitations")
+}
+
+model CompanySubcontractorAccess {
+  id                     String                              @id @default(uuid())
+  ownerCompanyId          String                              @map("owner_company_id")
+  subcontractorCompanyId  String                              @map("subcontractor_company_id")
+  status                 CompanySubcontractorAccessStatus    @default(PENDING)
+  token                  String                              @unique
+  invitedAdminEmail       String                              @map("invited_admin_email")
+  invitedById             String?                             @map("invited_by_id")
+  acceptedById            String?                             @map("accepted_by_id")
+  expiresAt              DateTime                            @map("expires_at")
+  acceptedAt             DateTime?                           @map("accepted_at")
+  revokedAt              DateTime?                           @map("revoked_at")
+  createdAt              DateTime                            @default(now()) @map("created_at")
+  updatedAt              DateTime                            @updatedAt @map("updated_at")
+
+  ownerCompany         Company @relation("OwnerCompanySubcontractorAccess", fields: [ownerCompanyId], references: [id], onDelete: Cascade)
+  subcontractorCompany Company @relation("SubcontractorCompanyAccess", fields: [subcontractorCompanyId], references: [id], onDelete: Cascade)
+  invitedBy            User?   @relation("SubcontractorInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  acceptedBy           User?   @relation("SubcontractorAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@unique([ownerCompanyId, subcontractorCompanyId])
+  @@index([ownerCompanyId])
+  @@index([subcontractorCompanyId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("company_subcontractor_access")
 }
 
 model Attendance {

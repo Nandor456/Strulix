@@ -7,8 +7,8 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 
 - Base path: `/api`
 - Auth: JWT cookie auth with short-lived access cookies and rotating refresh tokens
-- Tenancy: each user belongs to exactly one company; authenticated app data is scoped by `companyId`
-- Role-based access: invitations, workpoint, worker assignment, worker account edits, and workpoint attendance operator routes allow `ADMIN` and `LEADER`; attendance time edit routes are `ADMIN`-only
+- Tenancy: each user belongs to exactly one company; authenticated app data is scoped by `companyId`; accepted subcontractor access lets a subcontractor company's `WORKER` users attend owner-company workpoints without joining that owner company
+- Role-based access: invitations, workpoint management, worker account edits, and workpoint attendance operator routes allow `ADMIN` and `LEADER`; attendance time edit routes are `ADMIN`-only
 - Real-time: Socket.IO with JWT auth and chat events
 - File uploads: `/uploads/messaging` is static for messaging attachments; worker documents are stored under `private/worker-documents` and streamed through authenticated `/api/worker-documents/:documentId/file`; workpoint documents are stored under `private/workpoint-documents` and streamed through authenticated `/api/workpoint-documents/:documentId/file`
 
@@ -99,7 +99,7 @@ User routes:
 `POST /api/attendance/checkin`
 - Body: `{ qrToken, lat, lng }`
 - Returns a scan result for `CHECK_IN`, `CHECK_OUT`, or `ALREADY_COMPLETED`.
-- QR attendance enforces the worker's one-time scan location within 100m of the workpoint coordinates; missing workpoint coordinates reject the scan.
+- QR attendance is for `WORKER` users only, enforces the worker's one-time scan location within 200m of same-company or accepted subcontractor workpoint coordinates, and automatically associates the worker with the workpoint on successful scans. Missing workpoint coordinates reject the scan.
 
 `GET /api/attendance/me/daily?year=YYYY&month=M`
 `GET /api/attendance/me/monthly?year=YYYY&month=M`
@@ -114,6 +114,8 @@ Admin/leader routes:
 
 `POST /api/attendance/workpoint/:id/manual`
 - Body: `{ workerId, date: "YYYY-MM-DD", checkedInAt?, checkedOutAt? }`
+- Manual attendance accepts any same-company `WORKER` and automatically associates that worker with the workpoint after a successful record creation.
+- Manual attendance also accepts `WORKER` users from accepted subcontractor companies; external wages are hidden in owner-company reporting.
 
 `PATCH /api/attendance/:id/checkout` (ADMIN)
 - Body: `{ checkedOutAt: ISO datetime }`
@@ -136,7 +138,7 @@ Admin/leader routes:
 
 User routes:
 `GET /api/workpoints/me`
-- Returns workpoints assigned to the current authenticated user.
+- Returns workpoints associated with the current authenticated user through check-in/manual attendance.
 
 Admin/leader workpoint routes:
 `GET /api/workpoints`
@@ -145,13 +147,22 @@ Admin/leader workpoint routes:
 `PUT /api/workpoints/:id`
 `DELETE /api/workpoints/:id`
 
-Worker assignment routes:
+Worker roster routes:
 `GET /api/workers`
 `GET /api/workpoints/:id/workers`
-`POST /api/workpoints/:id/workers`
-`DELETE /api/workpoints/:id/workers/:workerId`
+`GET /api/workpoints/:id/attendance-workers`
 `PUT /api/workers/:workerId`
 `DELETE /api/workers/:workerId`
+
+## Subcontractor routes (ADMIN/LEADER unless noted)
+
+`GET /api/subcontractors`
+`POST /api/subcontractors` with `{ invitedAdminEmail }`
+`DELETE /api/subcontractors/:id`
+`GET /api/subcontractors/incoming` (ADMIN)
+`POST /api/subcontractors/accept` (ADMIN) with `{ token }`
+
+Subcontractor invitations target the registered admin email of another company. Accepted access is company-wide for current and future owner-company workpoints; revocation removes subcontractor worker assignments/chat participants but preserves attendance history.
 
 ## Messaging routes (authenticated)
 

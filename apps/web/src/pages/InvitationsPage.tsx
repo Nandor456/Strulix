@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 
 
-import { Copy, Mail, Send, Trash2 } from "lucide-react";
+import { Building2, Copy, Mail, Send, Trash2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,11 @@ import {
   useInvitations,
   useRevokeInvitation,
 } from "../hooks/useInvitations";
+import {
+  useCreateSubcontractorInvitation,
+  useOutgoingSubcontractors,
+  useRevokeSubcontractorAccess,
+} from "../hooks/useSubcontractors";
 import { useAuth } from "@/hooks/useAuth";
 import { isBillingActive, isBillingRequiredError } from "@/lib/billing";
 import type {
@@ -42,6 +47,10 @@ import type {
   InvitationRole,
   InvitationStatus,
 } from "../services/api/invitationApi";
+import type {
+  SubcontractorAccess,
+  SubcontractorAccessStatus,
+} from "../services/api/subcontractorApi";
 
 const ROLE_OPTIONS: InvitationRole[] = ["WORKER", "LEADER"];
 
@@ -60,17 +69,37 @@ const STATUS_VARIANTS: Record<InvitationStatus, BadgeVariant> = {
   expired: "warning",
 };
 
+const SUBCONTRACTOR_STATUS_VARIANTS: Record<
+  SubcontractorAccessStatus,
+  BadgeVariant
+> = STATUS_VARIANTS;
+
 export default function InvitationsPage() {
   const { t, roleLabel, invitationStatusLabel } = useI18n();
   const { user } = useAuth();
   const { data: invitations = [], isLoading, error } = useInvitations();
+  const {
+    data: subcontractors = [],
+    isLoading: isSubcontractorsLoading,
+    error: subcontractorsError,
+  } = useOutgoingSubcontractors();
   const createMutation = useCreateInvitation();
   const revokeMutation = useRevokeInvitation();
+  const createSubcontractorMutation = useCreateSubcontractorInvitation();
+  const revokeSubcontractorMutation = useRevokeSubcontractorAccess();
 
+  const [activeTab, setActiveTab] = useState<"users" | "subcontractors">("users");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<InvitationRole>("WORKER");
   const [formError, setFormError] = useState<string | null>(null);
+  const [subcontractorEmail, setSubcontractorEmail] = useState("");
+  const [subcontractorFormError, setSubcontractorFormError] = useState<string | null>(
+    null,
+  );
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedSubcontractorId, setCopiedSubcontractorId] = useState<string | null>(
+    null,
+  );
   const hasActiveBilling = isBillingActive(user?.company.billingStatus);
 
   const roleOptions = useMemo(
@@ -81,6 +110,18 @@ export default function InvitationsPage() {
   const canSubmit = useMemo(() => {
     return email.trim().length > 0 && hasActiveBilling && !createMutation.isPending;
   }, [email, hasActiveBilling, createMutation.isPending]);
+
+  const canSubmitSubcontractor = useMemo(() => {
+    return (
+      subcontractorEmail.trim().length > 0 &&
+      hasActiveBilling &&
+      !createSubcontractorMutation.isPending
+    );
+  }, [
+    subcontractorEmail,
+    hasActiveBilling,
+    createSubcontractorMutation.isPending,
+  ]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,6 +150,34 @@ export default function InvitationsPage() {
     }
   }
 
+  async function onSubcontractorSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubcontractorFormError(null);
+
+    const trimmedEmail = subcontractorEmail.trim();
+    if (!trimmedEmail) {
+      setSubcontractorFormError(t("Email is required."));
+      return;
+    }
+
+    try {
+      await createSubcontractorMutation.mutateAsync({
+        invitedAdminEmail: trimmedEmail,
+      });
+      setSubcontractorEmail("");
+    } catch (err: unknown) {
+      if (isBillingRequiredError(err)) {
+        setSubcontractorFormError(t("Billing is required to continue."));
+        return;
+      }
+
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error ?? t("Failed to send invitation");
+      setSubcontractorFormError(message);
+    }
+  }
+
   async function handleCopyLink(invitation: Invitation) {
     try {
       await navigator.clipboard.writeText(invitation.inviteUrl);
@@ -121,12 +190,26 @@ export default function InvitationsPage() {
     }
   }
 
+  async function handleCopySubcontractorLink(access: SubcontractorAccess) {
+    try {
+      await navigator.clipboard.writeText(access.acceptUrl);
+      setCopiedSubcontractorId(access.id);
+      setTimeout(() => {
+        setCopiedSubcontractorId((current) =>
+          current === access.id ? null : current,
+        );
+      }, 1500);
+    } catch {
+      // Clipboard unavailable — ignore silently.
+    }
+  }
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8 flex items-center gap-3">
         <Mail className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-semibold">{t("User Invitations")}</h1>
+          <h1 className="text-3xl font-semibold">{t("Invitations")}</h1>
           <p className="text-sm text-muted-foreground">
             {t(
               "Invite new users by email. Each invitation carries a role and a one-time registration link.",
@@ -135,6 +218,27 @@ export default function InvitationsPage() {
         </div>
       </div>
 
+      <div className="mb-6 inline-flex rounded-md border bg-muted/20 p-1">
+        <Button
+          type="button"
+          variant={activeTab === "users" ? "secondary" : "ghost"}
+          onClick={() => setActiveTab("users")}
+        >
+          <Mail className="h-4 w-4" />
+          {t("Users")}
+        </Button>
+        <Button
+          type="button"
+          variant={activeTab === "subcontractors" ? "secondary" : "ghost"}
+          onClick={() => setActiveTab("subcontractors")}
+        >
+          <Building2 className="h-4 w-4" />
+          {t("Subcontractors")}
+        </Button>
+      </div>
+
+      {activeTab === "users" ? (
+        <>
       <div className="mb-8 rounded-lg border p-4 sm:p-6">
         <h2 className="mb-4 text-lg font-semibold">{t("Invite a new user")}</h2>
         {!hasActiveBilling && (
@@ -299,7 +403,173 @@ export default function InvitationsPage() {
           </Table>
         </div>
       )}
+        </>
+      ) : (
+        <>
+          <div className="mb-8 rounded-lg border p-4 sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold">
+              {t("Invite a subcontractor company")}
+            </h2>
+            {!hasActiveBilling && (
+              <Alert variant="destructive" className="mb-4">
+                {t("Your subscription is not active. Fix billing before inviting users.")}
+              </Alert>
+            )}
+            <form onSubmit={onSubcontractorSubmit}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex flex-1 flex-col gap-1.5">
+                  <Label htmlFor="subcontractor-admin-email">
+                    {t("Admin email address")}
+                  </Label>
+                  <Input
+                    id="subcontractor-admin-email"
+                    type="email"
+                    value={subcontractorEmail}
+                    onChange={(e) => setSubcontractorEmail(e.target.value)}
+                    placeholder={t("admin@example.com")}
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={!canSubmitSubcontractor}
+                  className="sm:min-w-[180px]"
+                >
+                  {createSubcontractorMutation.isPending ? (
+                    <Spinner size={16} />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  {createSubcontractorMutation.isPending
+                    ? t("Sending…")
+                    : t("Send invitation")}
+                </Button>
+              </div>
+              {subcontractorFormError && (
+                <Alert variant="destructive" className="mt-3">
+                  {subcontractorFormError}
+                </Alert>
+              )}
+            </form>
+          </div>
 
+          {isSubcontractorsLoading && (
+            <div className="flex justify-center py-12">
+              <Spinner size={36} />
+            </div>
+          )}
+
+          {subcontractorsError != null && !isSubcontractorsLoading && (
+            <Alert variant="destructive" className="mb-4">
+              {t("Failed to load subcontractors.")}
+            </Alert>
+          )}
+
+          {!isSubcontractorsLoading &&
+            !subcontractorsError &&
+            subcontractors.length === 0 && (
+              <Alert>
+                {t("No subcontractor invitations yet.")}
+              </Alert>
+            )}
+
+          {!isSubcontractorsLoading && subcontractors.length > 0 && (
+            <div className="overflow-hidden rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("Company")}</TableHead>
+                    <TableHead>{t("Admin email")}</TableHead>
+                    <TableHead>{t("Status")}</TableHead>
+                    <TableHead>{t("Sent")}</TableHead>
+                    <TableHead>{t("Expires")}</TableHead>
+                    <TableHead className="text-center">{t("Actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subcontractors.map((access) => {
+                    const canRevoke =
+                      access.status !== "revoked" && hasActiveBilling;
+                    return (
+                      <TableRow key={access.id}>
+                        <TableCell className="font-medium">
+                          {access.subcontractorCompany.name}
+                        </TableCell>
+                        <TableCell>{access.invitedAdminEmail}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              SUBCONTRACTOR_STATUS_VARIANTS[access.status]
+                            }
+                          >
+                            {invitationStatusLabel(access.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDateTime(access.createdAt)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDateTime(access.expiresAt)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      handleCopySubcontractorLink(access)
+                                    }
+                                    disabled={access.status !== "pending"}
+                                    aria-label={t("Copy invite link")}
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {copiedSubcontractorId === access.id
+                                  ? t("Copied!")
+                                  : t("Copy invite link")}
+                              </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive"
+                                    disabled={
+                                      !canRevoke ||
+                                      revokeSubcontractorMutation.isPending
+                                    }
+                                    onClick={() =>
+                                      revokeSubcontractorMutation.mutate(access.id)
+                                    }
+                                    aria-label={t("Revoke invitation")}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {canRevoke ? t("Revoke invitation") : "—"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

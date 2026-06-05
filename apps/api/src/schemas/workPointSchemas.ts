@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const uuidSchema = z.string().uuid("Must be a valid UUID");
-const optionalUuidArray = z.array(uuidSchema).max(500).optional();
 
 const workPointBodySchema = {
   name: z.string().trim().min(1, "Name is required").max(120),
@@ -10,7 +9,6 @@ const workPointBodySchema = {
   lng: z.coerce.number().min(-180).max(180).nullable().optional(),
   description: z.string().trim().max(1000).nullable().optional(),
   deadline: z.string().datetime("Deadline must be an ISO datetime").nullable().optional(),
-  workerIds: optionalUuidArray,
 };
 
 const updateWorkPointBodySchema = z
@@ -31,7 +29,7 @@ export const workPointIdSchema = z.object({
 });
 
 export const createWorkPointSchema = z.object({
-  body: z.object(workPointBodySchema),
+  body: z.strictObject(workPointBodySchema),
 });
 
 export const updateWorkPointSchema = z.object({

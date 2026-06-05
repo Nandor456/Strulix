@@ -28,11 +28,11 @@ export default function MessagingPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-4 md:p-6">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden p-4 md:p-6">
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/80 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.4)] backdrop-blur-sm dark:shadow-[0_24px_60px_-40px_rgba(0,0,0,0.85)]">
         <div
           className={cn(
-            "w-full flex-shrink-0 bg-muted/35 md:w-[320px] md:border-r md:border-border/70 xl:w-[340px]",
+            "min-h-0 w-full flex-shrink-0 bg-muted/35 md:w-[320px] md:border-r md:border-border/70 xl:w-[340px]",
             mobileView === "thread" ? "hidden md:flex md:flex-col" : "flex flex-col"
           )}
         >
@@ -44,7 +44,7 @@ export default function MessagingPage() {
 
         <div
           className={cn(
-            "min-w-0 flex-1 bg-background/95",
+            "min-h-0 min-w-0 flex-1 bg-background/95",
             mobileView === "sidebar" ? "hidden md:flex md:flex-col" : "flex flex-col"
           )}
         >

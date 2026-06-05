@@ -7,6 +7,7 @@ import '../attendance/checkin_page.dart';
 import '../attendance/scan_page.dart';
 import '../documents/documents_page.dart';
 import '../invitations/invitations_page.dart';
+import '../invitations/subcontractor_accept_page.dart';
 import '../leave/leave_calendar_page.dart';
 import '../messaging/messaging_page.dart';
 import '../settings/settings_page.dart';
@@ -114,6 +115,15 @@ GoRouter createAppRouter(AuthController auth) {
             pageBuilder: (context, state) =>
                 _buildPage(state, const InvitationsPage()),
           ),
+          GoRoute(
+            path: '/subcontractors/accept',
+            pageBuilder: (context, state) => _buildPage(
+              state,
+              SubcontractorAcceptPage(
+                token: state.uri.queryParameters['token'] ?? '',
+              ),
+            ),
+          ),
         ],
       ),
     ],
@@ -157,6 +167,7 @@ String? buildPulseRedirect({
     return '/';
   }
   if (path == '/invitations' && role != UserRole.admin) return '/';
+  if (path == '/subcontractors/accept' && role != UserRole.admin) return '/';
 
   return null;
 }

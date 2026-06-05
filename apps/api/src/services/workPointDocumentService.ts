@@ -149,10 +149,13 @@ async function assertCanAccessWorkPointDocuments(params: {
   if (!user) {
     throw new WorkPointDocumentError("Unauthorized", 401);
   }
-  if (!workPoint || workPoint.companyId !== user.companyId) {
+  if (!workPoint) {
     throw new WorkPointDocumentError("Workpoint not found", 404);
   }
-  if (user.role === "ADMIN" || user.role === "LEADER") {
+  if (
+    (user.role === "ADMIN" || user.role === "LEADER") &&
+    workPoint.companyId === user.companyId
+  ) {
     return;
   }
   if (user.role === "WORKER" && workPoint.workers.length > 0) {
@@ -164,11 +167,12 @@ async function assertCanAccessWorkPointDocuments(params: {
 
 function canAccessDocumentFile(params: {
   userRole: string;
+  userCompanyId: string;
   document: WorkPointDocumentWithAssignment;
 }) {
   return (
-    params.userRole === "ADMIN" ||
-    params.userRole === "LEADER" ||
+    ((params.userRole === "ADMIN" || params.userRole === "LEADER") &&
+      params.document.workPoint.companyId === params.userCompanyId) ||
     (params.userRole === "WORKER" && params.document.workPoint.workers.length > 0)
   );
 }
@@ -263,10 +267,16 @@ export async function getWorkPointDocumentFile(params: {
     }),
   ]);
 
-  if (!document || !user || document.workPoint.companyId !== user.companyId) {
+  if (!document || !user) {
     throw new WorkPointDocumentError("Document not found", 404);
   }
-  if (!canAccessDocumentFile({ userRole: user.role, document })) {
+  if (
+    !canAccessDocumentFile({
+      userRole: user.role,
+      userCompanyId: user.companyId,
+      document,
+    })
+  ) {
     throw new WorkPointDocumentError("Forbidden", 403);
   }
 

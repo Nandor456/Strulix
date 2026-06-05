@@ -199,12 +199,16 @@ class _ThreadView extends StatefulWidget {
 }
 
 class _ThreadViewState extends State<_ThreadView> {
+  static const _bottomSnapThreshold = 18.0;
+  static const _maxBottomScrollPasses = 2;
+
   final _body = TextEditingController();
   final _scroll = ScrollController();
   Timer? _typingTimer;
   Message? _replyTo;
   bool _isSendingAttachment = false;
   bool _isNearBottom = true;
+  int _bottomScrollRequestId = 0;
   String? _lastMessageId;
   int _lastMessageCount = 0;
   double? _pendingPrependScrollOffset;
@@ -223,6 +227,7 @@ class _ThreadViewState extends State<_ThreadView> {
     _replyTo = null;
     _body.clear();
     _isNearBottom = true;
+    _bottomScrollRequestId++;
     _lastMessageId = null;
     _lastMessageCount = 0;
     _pendingPrependScrollOffset = null;
@@ -231,6 +236,7 @@ class _ThreadViewState extends State<_ThreadView> {
 
   @override
   void dispose() {
+    _bottomScrollRequestId++;
     _typingTimer?.cancel();
     _body.dispose();
     _scroll.dispose();
@@ -255,19 +261,54 @@ class _ThreadViewState extends State<_ThreadView> {
 
   void _scrollToBottom({required bool animated}) {
     _isNearBottom = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) return;
-      final target = _scroll.position.maxScrollExtent;
-      if (animated) {
-        _scroll.animateTo(
-          target,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      } else {
-        _scroll.jumpTo(target);
-      }
-    });
+    final requestId = ++_bottomScrollRequestId;
+
+    void schedulePass({
+      required bool useAnimation,
+      required int remainingPasses,
+    }) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted ||
+            !_scroll.hasClients ||
+            requestId != _bottomScrollRequestId) {
+          return;
+        }
+
+        final position = _scroll.position;
+        final target = position.maxScrollExtent;
+        final distance = target - position.pixels;
+
+        if (useAnimation && distance.abs() > 1) {
+          await _scroll.animateTo(
+            target,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scroll.jumpTo(target);
+        }
+
+        if (!mounted ||
+            !_scroll.hasClients ||
+            requestId != _bottomScrollRequestId) {
+          return;
+        }
+
+        final remainingDistance =
+            _scroll.position.maxScrollExtent - _scroll.position.pixels;
+        if (remainingPasses > 0 && remainingDistance > _bottomSnapThreshold) {
+          schedulePass(
+            useAnimation: false,
+            remainingPasses: remainingPasses - 1,
+          );
+        }
+      });
+    }
+
+    schedulePass(
+      useAnimation: animated,
+      remainingPasses: _maxBottomScrollPasses,
+    );
   }
 
   void _restoreScrollAfterPrepend() {

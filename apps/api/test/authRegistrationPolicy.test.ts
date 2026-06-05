@@ -12,11 +12,10 @@ test("bootstrap registration flag only accepts true", () => {
   assert.equal(isBootstrapRegistrationEnabled(undefined), false);
 });
 
-test("bootstrap company registration requires the flag and an empty database", () => {
+test("bootstrap company registration requires the flag", () => {
   assert.equal(
     canCreateBootstrapCompany({
       allowBootstrapRegistration: true,
-      companyCount: 0,
     }),
     true,
   );
@@ -24,15 +23,6 @@ test("bootstrap company registration requires the flag and an empty database", (
   assert.equal(
     canCreateBootstrapCompany({
       allowBootstrapRegistration: false,
-      companyCount: 0,
-    }),
-    false,
-  );
-
-  assert.equal(
-    canCreateBootstrapCompany({
-      allowBootstrapRegistration: true,
-      companyCount: 1,
     }),
     false,
   );

@@ -30,7 +30,7 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
   bool _isExporting = false;
   String? _error;
   WorkPointDetail? _workPoint;
-  List<WorkerSummary> _workers = const [];
+  List<WorkerSummary> _attendanceWorkers = const [];
   List<WorkerSummary> _assignedWorkers = const [];
   List<AttendanceRecord> _attendance = const [];
   QrData? _qr;
@@ -53,13 +53,13 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     try {
       final results = await Future.wait([
         api.getWorkPoint(widget.id),
-        api.listWorkers(),
+        api.listAttendanceWorkers(widget.id),
         api.listWorkPointWorkers(widget.id),
         api.getQr(widget.id),
       ]);
       setState(() {
         _workPoint = results[0] as WorkPointDetail;
-        _workers = results[1] as List<WorkerSummary>;
+        _attendanceWorkers = results[1] as List<WorkerSummary>;
         _assignedWorkers = results[2] as List<WorkerSummary>;
         _qr = results[3] as QrData;
       });
@@ -93,50 +93,6 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     } finally {
       if (mounted) setState(() => _isAttendanceLoading = false);
     }
-  }
-
-  Future<void> _assignWorker() async {
-    final api = AppScope.apiOf(context);
-    final assignedIds = _assignedWorkers.map((worker) => worker.id).toSet();
-    final available = _workers
-        .where((worker) => !assignedIds.contains(worker.id))
-        .toList();
-    if (available.isEmpty) {
-      showSnack(context, context.l10n.t('No workers available to assign.'));
-      return;
-    }
-    final worker = await showDialog<WorkerSummary>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(context.l10n.t('Assign worker')),
-        children: available
-            .map(
-              (worker) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, worker),
-                child: Text('${worker.username} (${worker.email})'),
-              ),
-            )
-            .toList(),
-      ),
-    );
-    if (worker == null) return;
-    await api.assignWorker(widget.id, worker.id);
-    await _loadAll();
-  }
-
-  Future<void> _removeWorker(WorkerSummary worker) async {
-    final api = AppScope.apiOf(context);
-    final confirmed = await confirmAction(
-      context,
-      title: context.l10n.t('Remove worker'),
-      message: context.l10n.t('Remove {name} from this workpoint?', {
-        'name': worker.username,
-      }),
-      confirmLabel: context.l10n.t('Remove'),
-    );
-    if (!confirmed) return;
-    await api.removeWorker(widget.id, worker.id);
-    await _loadAll();
   }
 
   Future<void> _rotateQr() async {
@@ -255,11 +211,7 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
               child: const SizedBox.shrink(),
             ),
             const SizedBox(height: 12),
-            _WorkersSection(
-              workers: _assignedWorkers,
-              onAssign: _assignWorker,
-              onRemove: _removeWorker,
-            ),
+            _WorkersSection(workers: _assignedWorkers),
             const SizedBox(height: 12),
             _QrSection(
               qr: _qr,
@@ -307,21 +259,18 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
   }
 
   Future<void> _showManualAttendanceDialog() async {
-    if (_assignedWorkers.isEmpty) {
-      showSnack(
-        context,
-        context.l10n.t('Assign a worker before adding attendance.'),
-      );
+    if (_attendanceWorkers.isEmpty) {
+      showSnack(context, context.l10n.t('No workers available.'));
       return;
     }
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => _ManualAttendanceDialog(
-        workers: _assignedWorkers,
+        workers: _attendanceWorkers,
         workPointId: widget.id,
       ),
     );
-    if (saved == true) await _loadAttendance();
+    if (saved == true) await _loadAll();
   }
 
   Future<void> _showCheckoutDialog(AttendanceRecord record) async {
@@ -406,28 +355,17 @@ class _Overview extends StatelessWidget {
 }
 
 class _WorkersSection extends StatelessWidget {
-  const _WorkersSection({
-    required this.workers,
-    required this.onAssign,
-    required this.onRemove,
-  });
+  const _WorkersSection({required this.workers});
 
   final List<WorkerSummary> workers;
-  final VoidCallback onAssign;
-  final Future<void> Function(WorkerSummary worker) onRemove;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return SectionCard(
-      title: l10n.t('Assigned workers'),
-      trailing: IconButton.filledTonal(
-        tooltip: l10n.t('Assign worker'),
-        onPressed: onAssign,
-        icon: const Icon(Icons.person_add_alt),
-      ),
+      title: l10n.t('Workers'),
       child: workers.isEmpty
-          ? Text(l10n.t('No workers assigned to this workpoint.'))
+          ? Text(l10n.t('No workers have checked in to this workpoint yet.'))
           : Column(
               children: workers
                   .map(
@@ -436,27 +374,24 @@ class _WorkersSection extends StatelessWidget {
                       leading: const CircleAvatar(
                         child: Icon(Icons.person_outline),
                       ),
-                      title: Text(worker.username),
-                      subtitle: Text(worker.email),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      title: Row(
                         children: [
-                          Chip(
-                            label: Text(
-                              worker.hourlyWage == null
-                                  ? l10n.t('No wage')
-                                  : l10n.t('{amount} RON/h', {
-                                      'amount': worker.hourlyWage!
-                                          .toStringAsFixed(2),
-                                    }),
-                            ),
-                          ),
-                          IconButton(
-                            tooltip: l10n.t('Remove'),
-                            onPressed: () => onRemove(worker),
-                            icon: const Icon(Icons.person_remove_outlined),
-                          ),
+                          Expanded(child: Text(worker.username)),
+                          if (worker.affiliation == 'SUBCONTRACTOR')
+                            Chip(label: Text(l10n.t('Subcontractor'))),
                         ],
+                      ),
+                      subtitle: Text('${worker.email}\n${worker.company.name}'),
+                      trailing: Chip(
+                        label: Text(
+                          worker.hourlyWage == null
+                              ? l10n.t('No wage')
+                              : l10n.t('{amount} RON/h', {
+                                  'amount': worker.hourlyWage!.toStringAsFixed(
+                                    2,
+                                  ),
+                                }),
+                        ),
                       ),
                     ),
                   )
@@ -708,17 +643,25 @@ class _AttendanceRecordCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        record.worker.username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              record.worker.username,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (record.worker.affiliation == 'SUBCONTRACTOR')
+                            Chip(label: Text(l10n.t('Subcontractor'))),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        formatDate(record.date),
+                        '${formatDate(record.date)} · ${record.worker.company.name}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -1073,7 +1016,11 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
                   .map(
                     (worker) => DropdownMenuItem(
                       value: worker.id,
-                      child: Text(worker.username),
+                      child: Text(
+                        worker.affiliation == 'SUBCONTRACTOR'
+                            ? '${worker.username} (${worker.company.name})'
+                            : worker.username,
+                      ),
                     ),
                   )
                   .toList(),

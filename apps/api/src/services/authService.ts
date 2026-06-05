@@ -34,9 +34,8 @@ export function isBootstrapRegistrationEnabled(
 
 export function canCreateBootstrapCompany(params: {
   allowBootstrapRegistration: boolean;
-  companyCount: number;
 }) {
-  return params.allowBootstrapRegistration && params.companyCount === 0;
+  return params.allowBootstrapRegistration;
 }
 
 export async function register(
@@ -68,11 +67,9 @@ export async function register(
     }
 
     return prisma.$transaction(async (tx) => {
-      const companyCount = await tx.company.count();
       if (
         !canCreateBootstrapCompany({
           allowBootstrapRegistration: true,
-          companyCount,
         })
       ) {
         throw new RegistrationError(

@@ -19,7 +19,6 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
   bool _isLoading = true;
   String? _error;
   List<WorkPointSummary> _workPoints = const [];
-  List<WorkerSummary> _workers = const [];
 
   @override
   void initState() {
@@ -34,14 +33,8 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
     });
     final api = AppScope.apiOf(context);
     try {
-      final results = await Future.wait([
-        api.listWorkPoints(),
-        api.listWorkers(),
-      ]);
-      setState(() {
-        _workPoints = results[0] as List<WorkPointSummary>;
-        _workers = results[1] as List<WorkerSummary>;
-      });
+      final workPoints = await api.listWorkPoints();
+      setState(() => _workPoints = workPoints);
     } catch (error) {
       setState(
         () => _error = errorMessage(error, 'Failed to load workpoints.'),
@@ -73,8 +66,7 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) =>
-          _WorkPointFormSheet(workPoint: workPoint, workers: _workers),
+      builder: (context) => _WorkPointFormSheet(workPoint: workPoint),
     );
     if (saved == true) await _load();
   }
@@ -123,7 +115,7 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
             EmptyState(
               icon: Icons.business_outlined,
               title: l10n.t('No workpoints yet'),
-              message: l10n.t('Create one to start assigning workers.'),
+              message: l10n.t('Create one to start tracking attendance.'),
             )
           else
             ..._workPoints.map(
@@ -170,10 +162,9 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
 }
 
 class _WorkPointFormSheet extends StatefulWidget {
-  const _WorkPointFormSheet({required this.workers, this.workPoint});
+  const _WorkPointFormSheet({this.workPoint});
 
   final WorkPointSummary? workPoint;
-  final List<WorkerSummary> workers;
 
   @override
   State<_WorkPointFormSheet> createState() => _WorkPointFormSheetState();
@@ -189,7 +180,6 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
     text: widget.workPoint?.description ?? '',
   );
   String _deadline = '';
-  final Set<String> _workerIds = {};
   bool _isSaving = false;
   String? _error;
 
@@ -237,7 +227,6 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
           ? null
           : _description.text.trim(),
       'deadline': workPointDeadlineToApi(_deadline),
-      if (widget.workPoint == null) 'workerIds': _workerIds.toList(),
     };
 
     try {
@@ -323,38 +312,6 @@ class _WorkPointFormSheetState extends State<_WorkPointFormSheet> {
                         : '${l10n.t('Deadline')}: ${formatDate(_deadline)}',
                   ),
                 ),
-                if (isCreate) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.t('Initial workers'),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  if (widget.workers.isEmpty)
-                    Text(l10n.t('No workers available.'))
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: widget.workers
-                          .map(
-                            (worker) => FilterChip(
-                              label: Text(worker.username),
-                              selected: _workerIds.contains(worker.id),
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _workerIds.add(worker.id);
-                                  } else {
-                                    _workerIds.remove(worker.id);
-                                  }
-                                });
-                              },
-                            ),
-                          )
-                          .toList(),
-                    ),
-                ],
                 if (_error != null) ...[
                   const SizedBox(height: 12),
                   ErrorBanner(_error!),

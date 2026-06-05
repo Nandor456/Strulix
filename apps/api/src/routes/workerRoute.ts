@@ -9,11 +9,10 @@ import {
   ensureRole,
 } from "../middlewares/authMiddleware.js";
 import {
-  assignWorkerController,
   deleteWorkerController,
+  listAttendanceWorkersController,
   listWorkPointWorkersController,
   listWorkersController,
-  removeWorkerController,
   updateWorkerController,
 } from "../controllers/workerController.js";
 import {
@@ -107,8 +106,11 @@ router.post(
   uploadWorkerDocumentController,
 );
 router.get("/workpoints/:id/workers", admin_leaderAccess, listWorkPointWorkersController);
-router.post("/workpoints/:id/workers", admin_leaderAccess, ensureActiveBillingForWrites, assignWorkerController);
-router.delete("/workpoints/:id/workers/:workerId", admin_leaderAccess, ensureActiveBillingForWrites, removeWorkerController);
+router.get(
+  "/workpoints/:id/attendance-workers",
+  admin_leaderAccess,
+  listAttendanceWorkersController,
+);
 router.put("/workers/:workerId", admin_leaderAccess, ensureActiveBillingForWrites, updateWorkerController);
 router.delete("/workers/:workerId", admin_leaderAccess, ensureActiveBillingForWrites, deleteWorkerController);
 router.get("/worker-documents/me", admin_leader_workerAccess, listMyWorkerDocumentsController);

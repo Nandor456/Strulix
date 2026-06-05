@@ -11,6 +11,8 @@ export const QUERY_KEYS = {
     all: ["workers"] as const,
     forWorkPoint: (workPointId: string) =>
       ["workers", "workpoint", workPointId] as const,
+    forAttendance: (workPointId: string) =>
+      ["workers", "attendance", workPointId] as const,
   },
   workerDocuments: {
     all: ["worker-documents"] as const,
@@ -25,6 +27,10 @@ export const QUERY_KEYS = {
   },
   invitations: {
     all: ["invitations"] as const,
+  },
+  subcontractors: {
+    outgoing: ["subcontractors", "outgoing"] as const,
+    incoming: ["subcontractors", "incoming"] as const,
   },
   leaveRequests: {
     all: ["leave-requests"] as const,
@@ -57,6 +63,8 @@ const USER_SCOPED_QUERY_PREFIXES = [
   QUERY_KEYS.attendance.all,
   ["attendance", "me"] as const,
   QUERY_KEYS.invitations.all,
+  QUERY_KEYS.subcontractors.outgoing,
+  QUERY_KEYS.subcontractors.incoming,
   QUERY_KEYS.leaveRequests.all,
   QUERY_KEYS.workPoints.all,
   QUERY_KEYS.workers.all,

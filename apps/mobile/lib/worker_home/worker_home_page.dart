@@ -260,9 +260,15 @@ class _AssignedWorkpoints extends StatelessWidget {
           return ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const CircleAvatar(child: Icon(Icons.business_outlined)),
-            title: Text(workPoint.name),
+            title: Row(
+              children: [
+                Expanded(child: Text(workPoint.name)),
+                if (workPoint.affiliation == 'SUBCONTRACTOR')
+                  Chip(label: Text(l10n.t('Subcontractor'))),
+              ],
+            ),
             subtitle: Text(
-              '${workPoint.address}\n${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
+              '${workPoint.company.name} · ${workPoint.address}\n${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
             ),
             isThreeLine: true,
             trailing: Row(

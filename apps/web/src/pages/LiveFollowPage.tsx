@@ -235,7 +235,7 @@ export default function LiveFollowPage({
             </div>
 
             {sortedWorkPoints.length === 0 ? (
-              <Alert>{t("No workpoints yet. Create one to start assigning workers.")}</Alert>
+              <Alert>{t("No workpoints yet. Create one to start tracking attendance.")}</Alert>
             ) : (
               <div
                 className={cn(
@@ -375,6 +375,11 @@ function WorkPointLiveCard({
           <p className="mt-1 text-2xl font-semibold tabular-nums">
             {workPoint.assignedWorkerCount}
           </p>
+          {workPoint.subcontractorWorkerCount > 0 && (
+            <p className={cn("text-xs", fullscreen ? "text-neutral-400" : "text-muted-foreground")}>
+              {t("Subcontractors")}: {workPoint.subcontractorWorkerCount}
+            </p>
+          )}
         </div>
       </div>
 
@@ -416,8 +421,13 @@ function WorkPointLiveCard({
                   fullscreen ? "border-neutral-800 bg-neutral-950/60" : "bg-background/70",
                 )}
               >
-                <span className="min-w-0 truncate text-sm font-medium">
-                  {checkIn.workerUsername}
+                <span className="min-w-0 text-sm font-medium">
+                  <span className="truncate">{checkIn.workerUsername}</span>
+                  {checkIn.workerAffiliation === "SUBCONTRACTOR" && (
+                    <Badge variant="secondary" className="ml-2">
+                      {t("Subcontractor")}
+                    </Badge>
+                  )}
                 </span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums">
                   {formatElapsedSince(checkIn.checkedInAt, now)}
@@ -455,6 +465,11 @@ function WorkPointLiveCard({
                 <div className="min-w-0">
                   <p className="truncate">
                     <span className="font-medium">{event.workerUsername}</span>{" "}
+                    {event.workerAffiliation === "SUBCONTRACTOR" && (
+                      <Badge variant="secondary" className="mr-1">
+                        {t("Subcontractor")}
+                      </Badge>
+                    )}
                     <span className={fullscreen ? "text-neutral-300" : "text-muted-foreground"}>
                       {eventLabel(event.event, t)}
                     </span>

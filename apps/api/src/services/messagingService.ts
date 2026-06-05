@@ -39,10 +39,10 @@ export type ChatListItem = {
 
 export async function listChatsForUser(
   userId: string,
-  companyId: string,
+  _companyId: string,
 ): Promise<ChatListItem[]> {
   const participants = await prisma.chatParticipant.findMany({
-    where: { userId, chat: { companyId } },
+    where: { userId },
     include: {
       chat: {
         include: {

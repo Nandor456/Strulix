@@ -60,6 +60,17 @@ export const useManualMark = (workPointId: string) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.attendance.byWorkPoint(workPointId),
       });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.workers.forWorkPoint(workPointId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.workers.forAttendance(workPointId),
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.workers.all });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.workPoints.all });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.workPoints.detail(workPointId),
+      });
     },
   });
 };

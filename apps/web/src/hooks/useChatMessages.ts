@@ -3,13 +3,20 @@ import { messagingApi } from "@/services/api/messagingApi";
 import { QUERY_KEYS } from "@/services/queryClient";
 import type { Message, MessagesPage } from "@/types/messaging";
 
+const MESSAGE_PAGE_SIZE = 30;
+
 export function useChatMessages(chatId: string | null) {
   return useInfiniteQuery<MessagesPage>({
     queryKey: QUERY_KEYS.messaging.messages(chatId ?? ""),
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
-      messagingApi.getMessages(chatId!, pageParam as string | undefined),
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+      messagingApi.getMessages(
+        chatId!,
+        pageParam as string | undefined,
+        MESSAGE_PAGE_SIZE
+      ),
+    getNextPageParam: () => undefined,
+    getPreviousPageParam: (firstPage) => firstPage.nextCursor,
     enabled: !!chatId,
   });
 }

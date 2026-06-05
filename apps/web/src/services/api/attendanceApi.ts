@@ -1,6 +1,21 @@
 import { api } from "./axios";
 
 export type CheckoutSource = "QR" | "MANUAL" | "AUTO";
+export type WorkerAffiliation = "OWN_COMPANY" | "SUBCONTRACTOR";
+
+export interface CompanySummary {
+  id: string;
+  name: string;
+}
+
+export interface AttendanceWorkerSummary {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  company: CompanySummary;
+  affiliation: WorkerAffiliation;
+}
 
 export interface AttendanceRecord {
   id: string;
@@ -11,7 +26,7 @@ export interface AttendanceRecord {
   checkedOutAt: string | null;
   checkoutSource: CheckoutSource | null;
   source: "QR" | "MANUAL";
-  worker: { id: string; username: string; email: string };
+  worker: AttendanceWorkerSummary;
 }
 
 export interface QrData {
@@ -68,6 +83,8 @@ export interface LiveFollowActiveCheckIn {
   workerId: string;
   workerUsername: string;
   workerEmail: string;
+  workerCompany: CompanySummary;
+  workerAffiliation: WorkerAffiliation;
   checkedInAt: string;
   source: "QR" | "MANUAL" | string;
 }
@@ -77,6 +94,8 @@ export interface LiveFollowRecentEvent {
   workerId: string;
   workerUsername: string;
   workerEmail: string;
+  workerCompany: CompanySummary;
+  workerAffiliation: WorkerAffiliation;
   event: LiveFollowEventType;
   occurredAt: string;
   source: "QR" | "MANUAL" | string;
@@ -88,6 +107,8 @@ export interface LiveFollowWorkPoint {
   name: string;
   address: string;
   assignedWorkerCount: number;
+  ownWorkerCount: number;
+  subcontractorWorkerCount: number;
   activeWorkerCount: number;
   status: LiveFollowStatus;
   warningReasons: LiveFollowWarningReason[];

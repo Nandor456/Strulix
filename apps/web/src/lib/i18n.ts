@@ -108,7 +108,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Hourly wage": "Salariu pe oră",
     "Hours": "Ore",
     "Image": "Imagine",
-    "Initial workers": "Muncitori inițiali",
     "Invalid date": "Dată invalidă",
     "Invalid QR code.": "Cod QR invalid.",
     "Invitations": "Invitații",
@@ -172,8 +171,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "No workers available.": "Nu există muncitori disponibili.",
     "No workpoints are assigned to you yet.":
       "Nu ai niciun punct de lucru alocat încă.",
-    "No workpoints yet. Create one to start assigning workers.":
-      "Nu există puncte de lucru încă. Creează unul pentru a începe alocarea muncitorilor.",
+    "No workpoints yet. Create one to start tracking attendance.":
+      "Nu există puncte de lucru încă. Creează unul pentru a începe urmărirea prezenței.",
     "Not set": "Nesetat",
     "Open": "Deschide",
     "Open records": "Înregistrări deschise",
@@ -294,11 +293,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "You're accepting an invitation. Your role will be assigned automatically.":
       "Accepți o invitație. Rolul tău va fi atribuit automat.",
     "Add": "Adaugă",
-    "Add a check-in and optional check-out for an assigned worker.":
-      "Adaugă o intrare și o ieșire opțională pentru un muncitor alocat.",
-    "Assign": "Alocă",
-    "Assign worker": "Alocă muncitor",
-    "Assigned workers": "Muncitori alocați",
+    "Add a check-in and optional check-out for a worker.":
+      "Adaugă o intrare și o ieșire opțională pentru un muncitor.",
     "Attachment": "Atașament",
     "Automatically closed at 22:00. Edit to mark reviewed.":
       "Închisă automat la 22:00. Editează pentru a marca verificarea.",
@@ -352,8 +348,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "MB": "MB",
     "Manual attendance": "Prezență manuală",
     "Manual mark": "Marcare manuală",
-    "Manage assignments, attendance, QR access, and exports for this site.":
-      "Gestionează alocările, prezența, accesul QR și exporturile pentru acest punct.",
+    "Manage attendance, QR access, documents, and exports for this site.":
+      "Gestionează prezența, accesul QR, documentele și exporturile pentru acest punct.",
     "Manage registered workers and their documents.":
       "Gestionează muncitorii înregistrați și documentele lor.",
     "Manage worker documents": "Gestionează documentele muncitorului",
@@ -372,8 +368,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Nu există documente încărcate pentru acest punct de lucru.",
     "No users found": "Nu au fost găsiți utilizatori",
     "No wage": "Fără salariu",
-    "No workers assigned to this workpoint.":
-      "Nu există muncitori alocați acestui punct de lucru.",
+    "No workers have checked in to this workpoint yet.":
+      "Niciun muncitor nu a intrat încă la acest punct de lucru.",
     "No workers registered yet.": "Nu există muncitori înregistrați încă.",
     "Offline": "Offline",
     "Online": "Online",
@@ -381,7 +377,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "QR check-in": "Check-in QR",
     "QR code is not available yet.": "Codul QR nu este disponibil încă.",
     "Records": "Înregistrări",
-    "Remove worker": "Elimină muncitor",
     "Rotate": "Rotește",
     "Rotate this QR code? Existing printed codes will stop working.":
       "Rotești acest cod QR? Codurile tipărite existente nu vor mai funcționa.",
@@ -695,7 +690,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Hourly wage": "Órabér",
     "Hours": "Órák",
     "Image": "Kép",
-    "Initial workers": "Kezdeti dolgozók",
     "Invalid date": "Érvénytelen dátum",
     "Invalid QR code.": "Érvénytelen QR-kód.",
     "Invitations": "Meghívók",
@@ -758,8 +752,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "No workers available.": "Nincs elérhető dolgozó.",
     "No workpoints are assigned to you yet.":
       "Még nincs hozzád rendelt munkapont.",
-    "No workpoints yet. Create one to start assigning workers.":
-      "Még nincsenek munkapontok. Hozz létre egyet a dolgozók hozzárendeléséhez.",
+    "No workpoints yet. Create one to start tracking attendance.":
+      "Még nincsenek munkapontok. Hozz létre egyet a jelenlét követéséhez.",
     "Not set": "Nincs beállítva",
     "Open": "Megnyitás",
     "Open records": "Nyitott bejegyzések",
@@ -880,11 +874,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "You're accepting an invitation. Your role will be assigned automatically.":
       "Egy meghívót fogadsz el. A szerepköröd automatikusan be lesz állítva.",
     "Add": "Hozzáad",
-    "Add a check-in and optional check-out for an assigned worker.":
-      "Adj hozzá egy belépést és opcionális kilépést egy kijelölt dolgozóhoz.",
-    "Assign": "Hozzárendel",
-    "Assign worker": "Dolgozó hozzárendelése",
-    "Assigned workers": "Kijelölt dolgozók",
+    "Add a check-in and optional check-out for a worker.":
+      "Adj hozzá egy belépést és opcionális kilépést egy dolgozóhoz.",
     "Attachment": "Melléklet",
     "Automatically closed at 22:00. Edit to mark reviewed.":
       "Automatikusan lezárva 22:00-kor. Szerkeszd az ellenőrzöttként jelöléshez.",
@@ -938,8 +929,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "MB": "MB",
     "Manual attendance": "Manuális jelenlét",
     "Manual mark": "Manuális jelölés",
-    "Manage assignments, attendance, QR access, and exports for this site.":
-      "Kezeld a hozzárendeléseket, a jelenlétet, a QR-hozzáférést és az exportokat ezen a helyen.",
+    "Manage attendance, QR access, documents, and exports for this site.":
+      "Kezeld a jelenlétet, a QR-hozzáférést, a dokumentumokat és az exportokat ezen a helyen.",
     "Manage registered workers and their documents.":
       "Kezeld a regisztrált dolgozókat és dokumentumaikat.",
     "Manage worker documents": "Dolgozói dokumentumok kezelése",
@@ -958,8 +949,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Ehhez a munkaponthoz még nincs feltöltött dokumentum.",
     "No users found": "Nem található felhasználó",
     "No wage": "Nincs bér",
-    "No workers assigned to this workpoint.":
-      "Ehhez a munkaponthoz nincs dolgozó hozzárendelve.",
+    "No workers have checked in to this workpoint yet.":
+      "Még egy dolgozó sem jelentkezett be ezen a munkaponton.",
     "No workers registered yet.": "Még nincs regisztrált dolgozó.",
     "Offline": "Offline",
     "Online": "Online",
@@ -967,7 +958,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "QR check-in": "QR check-in",
     "QR code is not available yet.": "A QR-kód még nem elérhető.",
     "Records": "Bejegyzések",
-    "Remove worker": "Dolgozó eltávolítása",
     "Rotate": "Forgatás",
     "Rotate this QR code? Existing printed codes will stop working.":
       "Elforgatod ezt a QR-kódot? A korábbi nyomtatott kódok már nem fognak működni.",

@@ -80,6 +80,34 @@ export function buildInvitationEmail(params: {
   return { to: email, subject, html, text };
 }
 
+export function buildSubcontractorInvitationEmail(params: {
+  email: string;
+  ownerCompanyName: string;
+  subcontractorCompanyName: string;
+  acceptUrl: string;
+}): SendEmailInput {
+  const { email, ownerCompanyName, subcontractorCompanyName, acceptUrl } = params;
+  const subject = `${ownerCompanyName} invited your company to BuildPulse workpoints`;
+  const text = `${ownerCompanyName} invited ${subcontractorCompanyName} to collaborate on BuildPulse workpoints.\n\nAccept the subcontractor invitation:\n${acceptUrl}\n\nAfter acceptance, your worker users can scan attendance QR codes for ${ownerCompanyName}'s workpoints. If you did not expect this email, you can ignore it.`;
+  const html = `
+    <div style="font-family:Inter,Roboto,Arial,sans-serif;color:#0F172A;">
+      <h2 style="margin:0 0 12px 0;">Subcontractor invitation</h2>
+      <p><strong>${ownerCompanyName}</strong> invited <strong>${subcontractorCompanyName}</strong> to collaborate on BuildPulse workpoints.</p>
+      <p>
+        <a href="${acceptUrl}"
+           style="display:inline-block;padding:10px 18px;background:#1976D2;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+          Accept invitation
+        </a>
+      </p>
+      <p style="color:#64748B;font-size:12px;">
+        Or paste this link into your browser:<br/>${acceptUrl}
+      </p>
+      <p style="color:#64748B;font-size:12px;">If you did not expect this email for ${email}, you can ignore it.</p>
+    </div>
+  `;
+  return { to: email, subject, html, text };
+}
+
 export function buildPasswordResetEmail(params: {
   email: string;
   username: string;

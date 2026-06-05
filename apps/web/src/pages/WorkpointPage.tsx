@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Building2, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { ArrowRight, Building2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,9 @@ import {
   useUpdateWorkPoint,
   useWorkPoints,
 } from "@/hooks/useWorkPoints";
-import { useWorkers } from "@/hooks/useWorkers";
 import type {
   WorkPointInput,
   WorkPointSummary,
-  WorkPointUpdate,
 } from "@/services/api/workPointApi";
 import { formatDate } from "@/lib/format";
 
@@ -47,7 +45,6 @@ type WorkPointFormState = {
   address: string;
   description: string;
   deadline: string;
-  workerIds: string[];
 };
 
 const EMPTY_FORM: WorkPointFormState = {
@@ -55,7 +52,6 @@ const EMPTY_FORM: WorkPointFormState = {
   address: "",
   description: "",
   deadline: "",
-  workerIds: [],
 };
 
 function deadlineToInput(value: string | null) {
@@ -71,11 +67,10 @@ function formFromWorkPoint(workPoint: WorkPointSummary): WorkPointFormState {
     address: workPoint.address,
     description: workPoint.description ?? "",
     deadline: deadlineToInput(workPoint.deadline),
-    workerIds: [],
   };
 }
 
-function buildWorkPointPayload(form: WorkPointFormState): WorkPointUpdate {
+function buildWorkPointPayload(form: WorkPointFormState): WorkPointInput {
   return {
     name: form.name.trim(),
     address: form.address.trim(),
@@ -88,7 +83,6 @@ export default function WorkpointPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { data: workPoints = [], isLoading, error } = useWorkPoints();
-  const { data: workers = [] } = useWorkers();
   const createWorkPoint = useCreateWorkPoint();
   const updateWorkPoint = useUpdateWorkPoint();
   const deleteWorkPoint = useDeleteWorkPoint();
@@ -119,15 +113,6 @@ export default function WorkpointPage() {
     setFormError(null);
   }
 
-  function toggleInitialWorker(workerId: string) {
-    setForm((current) => ({
-      ...current,
-      workerIds: current.workerIds.includes(workerId)
-        ? current.workerIds.filter((id) => id !== workerId)
-        : [...current.workerIds, workerId],
-    }));
-  }
-
   async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -140,10 +125,7 @@ export default function WorkpointPage() {
 
     try {
       if (formMode === "create") {
-        const payload: WorkPointInput = {
-          ...basePayload,
-          workerIds: form.workerIds,
-        };
+        const payload: WorkPointInput = basePayload;
         const created = await createWorkPoint.mutateAsync(payload);
         closeFormDialog();
         navigate(`/workpoints/${created.id}`);
@@ -205,7 +187,7 @@ export default function WorkpointPage() {
       )}
 
       {!isLoading && !error && workPoints.length === 0 && (
-        <Alert>{t("No workpoints yet. Create one to start assigning workers.")}</Alert>
+        <Alert>{t("No workpoints yet. Create one to start tracking attendance.")}</Alert>
       )}
 
       {!isLoading && workPoints.length > 0 && (
@@ -357,40 +339,6 @@ export default function WorkpointPage() {
                 rows={3}
               />
             </div>
-
-            {formMode === "create" && (
-              <div className="rounded-md border p-3">
-                <div className="mb-3 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold">{t("Initial workers")}</h3>
-                </div>
-                {workers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t("No workers available.")}</p>
-                ) : (
-                  <div className="grid max-h-52 gap-2 overflow-y-auto sm:grid-cols-2">
-                    {workers.map((worker) => (
-                      <label
-                        key={worker.id}
-                        className="flex items-start gap-2 rounded-md border px-3 py-2 text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={form.workerIds.includes(worker.id)}
-                          onChange={() => toggleInitialWorker(worker.id)}
-                          className="mt-0.5 h-4 w-4 accent-primary"
-                        />
-                        <span className="min-w-0">
-                          <span className="block truncate font-medium">{worker.username}</span>
-                          <span className="block truncate text-xs text-muted-foreground">
-                            {worker.email}
-                          </span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
             {formError && <Alert variant="destructive">{formError}</Alert>}
 

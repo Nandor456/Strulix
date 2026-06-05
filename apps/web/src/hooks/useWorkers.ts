@@ -17,43 +17,14 @@ export const useWorkPointWorkers = (workPointId: string | null) =>
     enabled: Boolean(workPointId),
   });
 
-export const useAssignWorker = (workPointId: string | null) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (workerId: string) =>
-      workerAPI.assignWorker(workPointId!, workerId),
-    onSuccess: () => {
-      if (!workPointId) return;
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.workers.forWorkPoint(workPointId),
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.workers.all });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.workPoints.all });
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.workPoints.detail(workPointId),
-      });
-    },
+export const useAttendanceWorkers = (workPointId: string | null) =>
+  useQuery({
+    queryKey: workPointId
+      ? QUERY_KEYS.workers.forAttendance(workPointId)
+      : ["workers", "attendance", "__disabled__"],
+    queryFn: () => workerAPI.listAttendanceWorkers(workPointId!),
+    enabled: Boolean(workPointId),
   });
-};
-
-export const useRemoveWorker = (workPointId: string | null) => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (workerId: string) =>
-      workerAPI.removeWorker(workPointId!, workerId),
-    onSuccess: () => {
-      if (!workPointId) return;
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.workers.forWorkPoint(workPointId),
-      });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.workers.all });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.workPoints.all });
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.workPoints.detail(workPointId),
-      });
-    },
-  });
-};
 
 export const useUpdateWorker = () => {
   const queryClient = useQueryClient();

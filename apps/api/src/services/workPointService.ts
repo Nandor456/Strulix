@@ -9,6 +9,10 @@ import {
   listWorkPointDocumentStoredNames,
   removeWorkPointDocumentFiles,
 } from "./workPointDocumentService.js";
+import {
+  affiliationForCompany,
+  type WorkerAffiliation,
+} from "./subcontractorService.js";
 
 type PublicUserSummary = {
   id: string;
@@ -17,9 +21,21 @@ type PublicUserSummary = {
   role: string;
 };
 
+type CompanySummary = {
+  id: string;
+  name: string;
+};
+
+type WorkPointWorkerSummary = PublicUserSummary & {
+  hourlyWage: number | null;
+  company: CompanySummary;
+  affiliation: WorkerAffiliation;
+};
+
 type SelectedWorkPointSummary = {
   id: string;
   companyId: string;
+  company: CompanySummary;
   name: string;
   address: string;
   lat: number | null;
@@ -33,6 +49,7 @@ type SelectedWorkPointSummary = {
     workers: number;
     attendances: number;
   };
+  workers: Array<{ companyId: string }>;
 };
 
 type Coords = {
@@ -40,13 +57,18 @@ type Coords = {
   lng: number;
 };
 
-type SelectedWorkPointDetail = SelectedWorkPointSummary & {
-  workers: Array<PublicUserSummary & { hourlyWage: number | null }>;
+type SelectedWorkPointDetail = Omit<SelectedWorkPointSummary, "workers"> & {
+  workers: Array<PublicUserSummary & {
+    companyId: string;
+    company: CompanySummary;
+    hourlyWage: number | null;
+  }>;
 };
 
 type SelectedAssignedWorkPointSummary = {
   id: string;
   companyId: string;
+  company: CompanySummary;
   name: string;
   address: string;
   lat: number | null;
@@ -65,13 +87,13 @@ export type WorkPointInput = {
   lng?: number | null;
   description?: string | null;
   deadline?: string | null;
-  workerIds?: string[];
 };
 
 export type UpdateWorkPointInput = Partial<WorkPointInput>;
 
 export type WorkPointSummary = {
   id: string;
+  company: CompanySummary;
   name: string;
   address: string;
   lat: number | null;
@@ -82,18 +104,20 @@ export type WorkPointSummary = {
   deadline: string | null;
   owner: PublicUserSummary | null;
   workerCount: number;
+  ownWorkerCount: number;
+  subcontractorWorkerCount: number;
   attendanceCount: number;
 };
 
 export type AssignedWorkPointSummary = Omit<
   WorkPointSummary,
-  "workerCount" | "attendanceCount"
->;
+  "workerCount" | "ownWorkerCount" | "subcontractorWorkerCount" | "attendanceCount"
+> & {
+  affiliation: WorkerAffiliation;
+};
 
 export type WorkPointDetail = WorkPointSummary & {
-  workers: Array<PublicUserSummary & {
-    hourlyWage: number | null;
-  }>;
+  workers: WorkPointWorkerSummary[];
 };
 
 const publicUserSelect = {
@@ -106,6 +130,7 @@ const publicUserSelect = {
 const workPointSummarySelect = {
   id: true,
   companyId: true,
+  company: { select: { id: true, name: true } },
   name: true,
   address: true,
   lat: true,
@@ -116,6 +141,7 @@ const workPointSummarySelect = {
   deadline: true,
   user: { select: publicUserSelect },
   _count: { select: { workers: true, attendances: true } },
+  workers: { select: { companyId: true } },
 } as const;
 
 const workPointDetailSelect = {
@@ -123,6 +149,8 @@ const workPointDetailSelect = {
   workers: {
     select: {
       ...publicUserSelect,
+      companyId: true,
+      company: { select: { id: true, name: true } },
       hourlyWage: true,
     },
     orderBy: { username: "asc" },
@@ -132,6 +160,7 @@ const workPointDetailSelect = {
 const assignedWorkPointSelect = {
   id: true,
   companyId: true,
+  company: { select: { id: true, name: true } },
   name: true,
   address: true,
   lat: true,
@@ -143,9 +172,21 @@ const assignedWorkPointSelect = {
   user: { select: publicUserSelect },
 } as const;
 
+function countWorkersByAffiliation(workPoint: SelectedWorkPointSummary) {
+  const ownWorkerCount = workPoint.workers.filter(
+    (worker) => worker.companyId === workPoint.companyId,
+  ).length;
+  return {
+    ownWorkerCount,
+    subcontractorWorkerCount: workPoint.workers.length - ownWorkerCount,
+  };
+}
+
 function toSummary(workPoint: SelectedWorkPointSummary): WorkPointSummary {
+  const counts = countWorkersByAffiliation(workPoint);
   return {
     id: workPoint.id,
+    company: workPoint.company,
     name: workPoint.name,
     address: workPoint.address,
     lat: workPoint.lat,
@@ -156,6 +197,8 @@ function toSummary(workPoint: SelectedWorkPointSummary): WorkPointSummary {
     deadline: workPoint.deadline?.toISOString() ?? null,
     owner: workPoint.user,
     workerCount: workPoint._count.workers,
+    ownWorkerCount: counts.ownWorkerCount,
+    subcontractorWorkerCount: counts.subcontractorWorkerCount,
     attendanceCount: workPoint._count.attendances,
   };
 }
@@ -163,15 +206,31 @@ function toSummary(workPoint: SelectedWorkPointSummary): WorkPointSummary {
 function toDetail(workPoint: SelectedWorkPointDetail): WorkPointDetail {
   return {
     ...toSummary(workPoint),
-    workers: workPoint.workers,
+    workers: workPoint.workers.map((worker) => {
+      const affiliation = affiliationForCompany({
+        ownerCompanyId: workPoint.companyId,
+        workerCompanyId: worker.companyId,
+      });
+      return {
+        id: worker.id,
+        username: worker.username,
+        email: worker.email,
+        role: worker.role,
+        company: worker.company,
+        affiliation,
+        hourlyWage: affiliation === "OWN_COMPANY" ? worker.hourlyWage : null,
+      };
+    }),
   };
 }
 
 function toAssignedSummary(
   workPoint: SelectedAssignedWorkPointSummary,
+  userCompanyId: string,
 ): AssignedWorkPointSummary {
   return {
     id: workPoint.id,
+    company: workPoint.company,
     name: workPoint.name,
     address: workPoint.address,
     lat: workPoint.lat,
@@ -181,11 +240,11 @@ function toAssignedSummary(
     uploadedAt: workPoint.uploadedAt.toISOString(),
     deadline: workPoint.deadline?.toISOString() ?? null,
     owner: workPoint.user,
+    affiliation: affiliationForCompany({
+      ownerCompanyId: workPoint.companyId,
+      workerCompanyId: userCompanyId,
+    }),
   };
-}
-
-function uniqueIds(ids: string[] = []) {
-  return Array.from(new Set(ids));
 }
 
 function parseDeadline(value: string | null | undefined) {
@@ -219,36 +278,11 @@ async function ensureWorkPointExists(id: string, companyId: string) {
   }
 }
 
-async function assertAssignableWorkers(workerIds: string[], companyId: string) {
-  if (workerIds.length === 0) return;
-
-  const workers = await prisma.user.findMany({
-    where: { id: { in: workerIds }, companyId },
-    select: { id: true, role: true },
-  });
-
-  if (workers.length !== workerIds.length) {
-    throw new Error("One or more workers were not found");
-  }
-
-  const invalidWorker = workers.find((worker) => worker.role !== "WORKER");
-  if (invalidWorker) {
-    throw new Error("Only users with the WORKER role can be assigned");
-  }
-}
-
-async function syncChatParticipants(
-  workPointId: string,
-  workerIds: string[],
-  ownerId?: string,
-) {
-  if (workerIds.length === 0 && !ownerId) return;
+async function syncOwnerChatParticipant(workPointId: string, ownerId?: string) {
+  if (!ownerId) return;
 
   const chatId = await getOrCreateWorkPointChat(workPointId);
-  await Promise.all(workerIds.map((workerId) => addParticipantToChat(chatId, workerId)));
-  if (ownerId) {
-    await addParticipantToChat(chatId, ownerId);
-  }
+  await addParticipantToChat(chatId, ownerId);
 }
 
 export async function listWorkPoints(companyId: string): Promise<WorkPointSummary[]> {
@@ -267,7 +301,6 @@ export async function listMyAssignedWorkPoints(
 ): Promise<AssignedWorkPointSummary[]> {
   const workPoints = await prisma.workPoint.findMany({
     where: {
-      companyId,
       workers: {
         some: { id: userId },
       },
@@ -276,7 +309,7 @@ export async function listMyAssignedWorkPoints(
     orderBy: [{ uploadedAt: "desc" }],
   });
 
-  return workPoints.map(toAssignedSummary);
+  return workPoints.map((workPoint) => toAssignedSummary(workPoint, companyId));
 }
 
 export async function getWorkPointById(
@@ -299,8 +332,6 @@ export async function createWorkPoint(
   if (!companyId) {
     throw new Error("Company is required");
   }
-  const workerIds = uniqueIds(input.workerIds ?? []);
-  await assertAssignableWorkers(workerIds, companyId);
   const coords = await resolveAddressCoordinates(input.address);
 
   const workPoint = await prisma.workPoint.create({
@@ -313,14 +344,11 @@ export async function createWorkPoint(
       description: input.description ?? null,
       deadline: parseDeadline(input.deadline) ?? null,
       userId: ownerId,
-      workers: workerIds.length
-        ? { connect: workerIds.map((id) => ({ id })) }
-        : undefined,
     },
     select: { id: true },
   });
 
-  await syncChatParticipants(workPoint.id, workerIds, ownerId);
+  await syncOwnerChatParticipant(workPoint.id, ownerId);
 
   const created = await getWorkPointById(workPoint.id, companyId);
   if (!created) {
