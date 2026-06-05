@@ -168,10 +168,12 @@ function getLandingFeatureImageSrc(imageFileName: string) {
 function LandingFeaturePreview({
   feature,
   isVisible,
+  isReversed,
   index,
 }: {
   feature: LandingFeature;
   isVisible: boolean;
+  isReversed: boolean;
   index: number;
 }) {
   const { t } = useI18n();
@@ -180,7 +182,11 @@ function LandingFeaturePreview({
   return (
     <div className="flex h-full min-h-70 items-center justify-center rounded-[8px] border border-border/70 bg-muted/35 p-3">
       <div
-        className={`relative w-full overflow-hidden rounded-[8px] border border-border/70 bg-card shadow-sm transition duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
+        className={`relative w-full overflow-hidden rounded-[8px] border border-border/70 bg-card shadow-sm transition duration-700 ease-out ${isVisible
+          ? "translate-x-0 opacity-100"
+          : isReversed
+            ? "-translate-x-6 opacity-0"
+            : "translate-x-6 opacity-0"
           }`}
         style={{
           transitionDelay: isVisible
@@ -189,13 +195,15 @@ function LandingFeaturePreview({
         }}
       >
         {!imageUnavailable ? (
-          <img
-            src={getLandingFeatureImageSrc(feature.imageFileName)}
-            alt={t(feature.title)}
-            className="aspect-[4/3] w-full object-cover"
-            loading="lazy"
-            onError={() => setImageUnavailable(true)}
-          />
+          <div className="flex min-h-[280px] items-center justify-center bg-card p-3 sm:min-h-[320px]">
+            <img
+              src={getLandingFeatureImageSrc(feature.imageFileName)}
+              alt={t(feature.title)}
+              className="max-h-[420px] w-full object-contain"
+              loading="lazy"
+              onError={() => setImageUnavailable(true)}
+            />
+          </div>
         ) : (
           <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted via-card to-secondary/45 px-6 text-center">
             <div
@@ -219,10 +227,57 @@ function LandingFeaturePreview({
   );
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktop(mq.matches);
+
+    onChange();
+    mq.addEventListener("change", onChange);
+
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return isDesktop;
+}
+
+function FeatureDivider({
+  index,
+  total,
+}: {
+  index: number;
+  total: number;
+}) {
+  return (
+    <div className="relative z-10 flex h-12 items-center overflow-hidden bg-background">
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent to-border/70" />
+
+      <div className="flex shrink-0 items-center gap-3 px-5">
+        <div className="h-px w-4 bg-primary" />
+        <span className="font-mono text-[9px] uppercase tracking-[4px] text-primary/70">
+          {String(index + 1).padStart(2, "0")} ·{" "}
+          {String(total).padStart(2, "0")}
+        </span>
+        <div className="h-2 w-2 rotate-45 bg-primary/40 ring-1 ring-primary/25" />
+        <span className="font-mono text-[9px] uppercase tracking-[4px] text-muted-foreground/50">
+          NEXT
+        </span>
+        <div className="h-px w-4 bg-border/70" />
+      </div>
+
+      <div className="h-px flex-1 bg-gradient-to-l from-transparent to-border/70" />
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   const { t } = useI18n();
+  const isDesktop = useIsDesktop();
+
   const [visibleFeatureIndexes, setVisibleFeatureIndexes] = useState<Set<number>>(
     () => new Set()
   );
@@ -294,7 +349,7 @@ export default function LandingPage() {
           Mobile layout uses CSS order to place the logo panel on top.
           Desktop swaps back to the standard left-text / right-logo split.
         */}
-        <section className="relative isolate overflow-hidden border-b border-border bg-background text-foreground">
+        <section className="relative isolate overflow-hidden border-b border-border bg-background text-foreground transition-colors duration-500 ease-out">
           <div className="mx-auto grid min-h-[calc(100svh-64px)] w-full max-w-7xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] lg:gap-12 lg:px-8 lg:py-16">
             <div className="order-2 flex min-w-0 flex-col justify-center text-center lg:order-1 lg:text-left">
               <h1 className="sr-only">{t("Strulix")}</h1>
@@ -308,14 +363,18 @@ export default function LandingPage() {
                 />
               </div>
 
-              <p className="bp-animate bp-delay-3 mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
+              <p className="bp-animate bp-delay-3 mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground transition-colors duration-500 ease-out sm:mt-5 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
                 {t(
                   "Coordinate workpoints, QR attendance, worker documents, leave requests, and team messaging in one focused construction operations system."
                 )}
               </p>
 
               <div className="bp-animate bp-delay-4 mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
-                <Button asChild size="lg" className="h-11 w-full sm:w-auto">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-11 w-full transition-colors duration-500 ease-out sm:w-auto"
+                >
                   <Link to="/register?paid=1">
                     {t("Start for €3/user/month")}
                   </Link>
@@ -325,7 +384,7 @@ export default function LandingPage() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-11 w-full border-primary/30 bg-transparent text-primary hover:bg-primary/10 hover:text-primary sm:w-auto"
+                  className="h-11 w-full border-primary/30 bg-transparent text-primary transition-colors duration-500 ease-out hover:bg-primary/10 hover:text-primary sm:w-auto"
                 >
                   <Link to="/register">{t("Register")}</Link>
                 </Button>
@@ -334,7 +393,7 @@ export default function LandingPage() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-11 w-full border-secondary-foreground/20 bg-transparent text-secondary-foreground hover:bg-secondary/80 hover:text-secondary-foreground sm:w-auto"
+                  className="h-11 w-full border-secondary-foreground/20 bg-transparent text-secondary-foreground transition-colors duration-500 ease-out hover:bg-secondary/80 hover:text-secondary-foreground sm:w-auto"
                 >
                   <Link to="/login">{t("Login")}</Link>
                 </Button>
@@ -350,94 +409,226 @@ export default function LandingPage() {
         </section>
 
         {/* ── Feature Scroll ────────────────────────────────────────────── */}
-        <section className="border-b border-border bg-muted/20 px-4 py-16 text-foreground sm:px-6 sm:py-20 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase text-primary">
-                {t("Platform capabilities")}
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold sm:text-4xl lg:text-5xl">
-                {t("Everything teams need to run workpoints with clarity.")}
+        <section className="border-b border-border bg-background text-foreground">
+          <div className="relative overflow-hidden bg-muted/20 px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+            <div className="pointer-events-none absolute left-8 top-8 h-6 w-6 border-l border-t border-primary/30" />
+            <div className="pointer-events-none absolute right-8 top-8 h-6 w-6 border-r border-t border-primary/30" />
+            <div className="pointer-events-none absolute bottom-8 left-8 h-6 w-6 border-b border-l border-primary/30" />
+            <div className="pointer-events-none absolute bottom-8 right-8 h-6 w-6 border-b border-r border-primary/30" />
+
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+              <span className="select-none whitespace-nowrap text-[18vw] font-black uppercase leading-none text-primary/[0.03]">
+                {t("Strulix")}
+              </span>
+            </div>
+
+            <div className="relative mx-auto max-w-4xl">
+              <div className="mb-6 flex items-center justify-center gap-4">
+                <div className="h-px w-12 bg-gradient-to-r from-transparent to-primary" />
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
+                  {t("Platform capabilities")}
+                </p>
+                <div className="h-px w-12 bg-gradient-to-l from-transparent to-primary" />
+              </div>
+
+              <h2 className="text-4xl font-black uppercase leading-none tracking-tight sm:text-5xl lg:text-7xl">
+                {t("Everything teams need")}
               </h2>
-              <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
+
+              <h2 className="mt-2 text-4xl font-black uppercase leading-none tracking-tight text-primary sm:text-5xl lg:text-7xl">
+                {t("to run workpoints with clarity.")}
+              </h2>
+
+              <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                 {t(
                   "From QR attendance to subcontractor access, Strulix keeps field operations, payroll context, and team communication connected in one place."
                 )}
               </p>
             </div>
+          </div>
 
-            <div className="mt-12 space-y-6 sm:mt-14 lg:space-y-8">
-              {landingFeatures.map((feature, index) => {
-                const Icon = feature.icon;
-                const isReversed = index % 2 === 1;
-                const isVisible = visibleFeatureIndexes.has(index);
+          <div className="w-full">
+            {landingFeatures.map((feature, index) => {
+              const Icon = feature.icon;
+              const isReversed = index % 2 === 1;
+              const isVisible = visibleFeatureIndexes.has(index);
 
-                return (
+              return (
+                <div key={feature.title}>
                   <article
-                    key={feature.title}
                     ref={(node) => {
                       featureRefs.current[index] = node;
                     }}
                     data-feature-index={index}
-                    style={{
-                      transitionDelay: isVisible
-                        ? `${Math.min(index * 45, 180)}ms`
-                        : "0ms",
-                    }}
-                    className={`grid scroll-mt-28 overflow-hidden rounded-[8px] border border-border/70 bg-card/90 shadow-sm transition duration-700 ease-out lg:grid-cols-2 ${isVisible
-                      ? "translate-y-0 opacity-100"
-                      : "translate-y-10 opacity-0"
-                      }`}
+                    className="group relative overflow-hidden border-y border-border/70 bg-card/80"
                   >
                     <div
-                      className={`flex min-h-[360px] flex-col justify-center p-6 sm:p-8 lg:p-10 ${isReversed ? "lg:order-2" : ""
+                      className={`relative flex flex-col items-stretch lg:min-h-[560px] lg:flex-row ${isReversed ? "lg:flex-row-reverse" : ""
                         }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] text-white transition-transform duration-700 ${isVisible ? "scale-100" : "scale-90"
-                            } ${feature.accent}`}
-                        >
-                          <Icon className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                        <p className="text-xs font-semibold uppercase text-muted-foreground">
-                          {t(feature.eyebrow)}
-                        </p>
-                      </div>
-                      <h3 className="mt-6 text-2xl font-semibold sm:text-3xl">
-                        {t(feature.title)}
-                      </h3>
-                      <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-                        {t(feature.description)}
-                      </p>
-                      <div className="mt-6 space-y-3">
-                        {feature.details.map((detail) => (
-                          <div key={detail} className="flex gap-3">
-                            <span
-                              className={`mt-2 h-2 w-2 shrink-0 rounded-full ${feature.accent}`}
-                            />
-                            <p className="text-sm leading-6 text-muted-foreground">
-                              {t(detail)}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div
-                      className={`border-t border-border/70 bg-card/70 p-4 sm:p-6 lg:border-t-0 ${isReversed ? "lg:order-1 lg:border-r" : "lg:border-l"
-                        }`}
-                    >
-                      <LandingFeaturePreview
-                        feature={feature}
-                        isVisible={isVisible}
-                        index={index}
+                      <div
+                        className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+                        style={{
+                          background: isReversed
+                            ? "linear-gradient(270deg, transparent, hsl(var(--primary) / 0.04) 50%, transparent)"
+                            : "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.04) 50%, transparent)",
+                        }}
                       />
+
+                      <div
+                        className="relative min-h-[340px] w-full overflow-hidden border-b border-border/70 bg-muted/30 lg:min-h-0 lg:w-[57%] lg:border-b-0"
+                        style={{
+                          clipPath: isDesktop
+                            ? isReversed
+                              ? "polygon(9% 0, 100% 0, 100% 100%, 0 100%)"
+                              : "polygon(0 0, 100% 0, 91% 100%, 0 100%)"
+                            : "none",
+                          opacity: isVisible ? 1 : 0,
+                          transform: isVisible ? "scale(1)" : "scale(1.04)",
+                          transition:
+                            "opacity 1s ease, transform 1.2s cubic-bezier(0.16,1,0.3,1)",
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-background/70" />
+
+                        <div
+                          className={`absolute inset-0 ${isReversed
+                            ? "bg-gradient-to-l from-background/95 via-background/40 to-transparent"
+                            : "bg-gradient-to-r from-background/95 via-background/40 to-transparent"
+                            }`}
+                        />
+
+                        <div className="relative z-10 flex h-full min-h-[340px] items-center justify-center p-4 sm:p-6 lg:min-h-[560px] lg:p-8">
+                          <LandingFeaturePreview
+                            feature={feature}
+                            isVisible={isVisible}
+                            isReversed={isReversed}
+                            index={index}
+                          />
+                        </div>
+
+                        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+
+                        <div
+                          className="absolute top-6"
+                          style={{
+                            [isReversed ? "right" : "left"]: "20px",
+                            opacity: isVisible ? 1 : 0,
+                            transition: "opacity 0.6s ease 0.6s",
+                          }}
+                        >
+                          <span className="border border-border/70 bg-background/60 px-2 py-1 font-mono text-[10px] uppercase tracking-[4px] text-muted-foreground backdrop-blur">
+                            {String(index + 1).padStart(2, "0")} /{" "}
+                            {String(landingFeatures.length).padStart(2, "0")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-8 lg:w-[50%] lg:px-16 lg:py-24 ${isReversed ? "lg:-mr-[7%]" : "lg:-ml-[7%]"
+                          }`}
+                        style={{
+                          opacity: isVisible ? 1 : 0,
+                          transform: isVisible
+                            ? "translateX(0)"
+                            : isReversed
+                              ? "translateX(-50px)"
+                              : "translateX(50px)",
+                          transition:
+                            "opacity 0.9s ease 0.2s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.2s",
+                        }}
+                      >
+                        <div
+                          className="pointer-events-none absolute select-none font-black leading-none text-transparent"
+                          style={{
+                            [isReversed ? "left" : "right"]: "-6px",
+                            top: "50%",
+                            transform: "translateY(-52%)",
+                            fontSize: "clamp(90px, 18vw, 220px)",
+                            WebkitTextStroke: "1px hsl(var(--primary) / 0.08)",
+                            opacity: isVisible ? 1 : 0,
+                            transition: "opacity 1s ease 0.4s",
+                          }}
+                        >
+                          {String(index + 1).padStart(2, "0")}
+                        </div>
+
+                        <div className="relative mb-7 flex items-center gap-3">
+                          <div
+                            className="h-0.5 bg-gradient-to-r from-primary to-primary/60 shadow-[0_0_12px_hsl(var(--primary)/0.45)]"
+                            style={{
+                              width: isVisible ? "48px" : "0px",
+                              transition:
+                                "width 0.7s cubic-bezier(0.16,1,0.3,1) 0.4s",
+                            }}
+                          />
+
+                          <span className="font-mono text-[9px] uppercase tracking-[5px] text-primary">
+                            {t(feature.eyebrow)}
+                          </span>
+                        </div>
+
+                        <div className="relative flex items-center gap-3">
+                          <span
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] text-white shadow-lg transition-transform duration-700 ${isVisible ? "scale-100" : "scale-90"
+                              } ${feature.accent}`}
+                          >
+                            <Icon className="h-5 w-5" aria-hidden="true" />
+                          </span>
+
+                          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                            {String(index + 1).padStart(2, "0")}
+                          </p>
+                        </div>
+
+                        <h3 className="relative mt-6 text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+                          {t(feature.title)}
+                        </h3>
+
+                        <p className="relative mt-5 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
+                          {t(feature.description)}
+                        </p>
+
+                        <div className="relative mt-7 space-y-3">
+                          {feature.details.map((detail) => (
+                            <div key={detail} className="flex gap-3">
+                              <span
+                                className={`mt-2 h-2 w-2 shrink-0 rotate-45 ${feature.accent}`}
+                              />
+                              <p className="text-sm leading-6 text-muted-foreground">
+                                {t(detail)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="relative mt-10 border-t border-border/70 pt-6">
+                          <div className="flex flex-wrap gap-2">
+                            {[t("Live data"), t("Clear control"), t("Team ready")].map(
+                              (tag) => (
+                                <span
+                                  key={tag}
+                                  className="border border-border/70 bg-primary/5 px-3 py-1.5 text-[9px] uppercase tracking-[3px] text-muted-foreground transition-colors duration-300 group-hover:border-primary/30 group-hover:text-primary"
+                                >
+                                  {tag}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </article>
-                );
-              })}
-            </div>
+
+                  {index < landingFeatures.length - 1 && (
+                    <FeatureDivider
+                      index={index}
+                      total={landingFeatures.length}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
 
