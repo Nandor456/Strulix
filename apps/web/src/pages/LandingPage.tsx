@@ -180,9 +180,8 @@ function LandingFeaturePreview({
   return (
     <div className="flex h-full min-h-70 items-center justify-center rounded-[8px] border border-border/70 bg-muted/35 p-3">
       <div
-        className={`relative w-full overflow-hidden rounded-[8px] border border-border/70 bg-card shadow-sm transition duration-700 ${
-          isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
-        }`}
+        className={`relative w-full overflow-hidden rounded-[8px] border border-border/70 bg-card shadow-sm transition duration-700 ${isVisible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
+          }`}
         style={{
           transitionDelay: isVisible
             ? `${Math.min(index * 45, 180) + 120}ms`
@@ -296,12 +295,11 @@ export default function LandingPage() {
           Desktop swaps back to the standard left-text / right-logo split.
         */}
         <section className="relative isolate overflow-hidden border-b border-border bg-background text-foreground">
-          <div className="mx-auto grid min-h-[86svh] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] lg:gap-12 lg:px-8 lg:py-16">
-            <div className="order-2 flex flex-col justify-center lg:order-1">
-              {/* sr-only h1 for accessibility; ThreeDText is the visual title */}
+          <div className="mx-auto grid min-h-[calc(100svh-64px)] w-full max-w-7xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(320px,42%)] lg:gap-12 lg:px-8 lg:py-16">
+            <div className="order-2 flex min-w-0 flex-col justify-center text-center lg:order-1 lg:text-left">
               <h1 className="sr-only">{t("Strulix")}</h1>
 
-              <div className="bp-animate bp-delay-2 h-[60px] w-[500px] overflow-hidden sm:h-[120px] lg:h-[140px]">
+              <div className="bp-animate bp-delay-2 mx-auto h-[72px] w-full max-w-[340px] overflow-hidden sm:h-[110px] sm:max-w-[500px] lg:mx-0 lg:h-[140px]">
                 <ThreeDText
                   className="h-full w-full"
                   text="Strulix"
@@ -310,22 +308,19 @@ export default function LandingPage() {
                 />
               </div>
 
-              <p className="bp-animate bp-delay-3 mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7 lg:text-lg">
+              <p className="bp-animate bp-delay-3 mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg">
                 {t(
                   "Coordinate workpoints, QR attendance, worker documents, leave requests, and team messaging in one focused construction operations system."
                 )}
               </p>
 
-              <div className="bp-animate bp-delay-4 mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-11 w-full sm:w-auto"
-                >
+              <div className="bp-animate bp-delay-4 mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start">
+                <Button asChild size="lg" className="h-11 w-full sm:w-auto">
                   <Link to="/register?paid=1">
                     {t("Start for €3/user/month")}
                   </Link>
                 </Button>
+
                 <Button
                   asChild
                   variant="outline"
@@ -334,6 +329,7 @@ export default function LandingPage() {
                 >
                   <Link to="/register">{t("Register")}</Link>
                 </Button>
+
                 <Button
                   asChild
                   variant="outline"
@@ -346,7 +342,7 @@ export default function LandingPage() {
             </div>
 
             <div className="order-1 flex items-center justify-center lg:order-2 lg:justify-end">
-              <div className="relative h-[240px] w-full max-w-sm sm:h-[320px] sm:max-w-md md:h-[380px] md:max-w-lg lg:h-[min(68svh,560px)] lg:max-w-none">
+              <div className="relative h-[190px] w-full max-w-[280px] sm:h-[300px] sm:max-w-md md:h-[380px] md:max-w-lg lg:h-[min(68svh,560px)] lg:max-w-none">
                 <Viewer />
               </div>
             </div>
