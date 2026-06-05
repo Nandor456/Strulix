@@ -239,8 +239,11 @@ export default function InvitationsPage() {
 
       {activeTab === "users" ? (
         <>
-      <div className="mb-8 rounded-lg border p-4 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold">{t("Invite a new user")}</h2>
+      <div className="mb-8 overflow-hidden rounded-md border bg-card">
+        <div className="border-b px-4 py-3">
+          <h2 className="text-sm font-semibold">{t("Invite a new user")}</h2>
+        </div>
+        <div className="p-4 sm:p-6">
         {!hasActiveBilling && (
           <Alert variant="destructive" className="mb-4">
             {t("Your subscription is not active. Fix billing before inviting users.")}
@@ -296,6 +299,7 @@ export default function InvitationsPage() {
             </Alert>
           )}
         </form>
+        </div>
       </div>
 
       {isLoading && (
@@ -317,7 +321,10 @@ export default function InvitationsPage() {
       )}
 
       {!isLoading && invitations.length > 0 && (
-        <div className="overflow-hidden rounded-md border">
+        <div className="overflow-hidden rounded-md border bg-card">
+          <div className="border-b px-4 py-3">
+            <h2 className="text-sm font-semibold">{t("Outgoing invitations")}</h2>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -406,10 +413,13 @@ export default function InvitationsPage() {
         </>
       ) : (
         <>
-          <div className="mb-8 rounded-lg border p-4 sm:p-6">
-            <h2 className="mb-4 text-lg font-semibold">
-              {t("Invite a subcontractor company")}
-            </h2>
+          <div className="mb-8 overflow-hidden rounded-md border bg-card">
+            <div className="border-b px-4 py-3">
+              <h2 className="text-sm font-semibold">
+                {t("Invite a subcontractor company")}
+              </h2>
+            </div>
+            <div className="p-4 sm:p-6">
             {!hasActiveBilling && (
               <Alert variant="destructive" className="mb-4">
                 {t("Your subscription is not active. Fix billing before inviting users.")}
@@ -451,6 +461,7 @@ export default function InvitationsPage() {
                 </Alert>
               )}
             </form>
+            </div>
           </div>
 
           {isSubcontractorsLoading && (
@@ -474,7 +485,12 @@ export default function InvitationsPage() {
             )}
 
           {!isSubcontractorsLoading && subcontractors.length > 0 && (
-            <div className="overflow-hidden rounded-md border">
+            <div className="overflow-hidden rounded-md border bg-card">
+              <div className="border-b px-4 py-3">
+                <h2 className="text-sm font-semibold">
+                  {t("Subcontractor invitations")}
+                </h2>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -489,7 +505,7 @@ export default function InvitationsPage() {
                 <TableBody>
                   {subcontractors.map((access) => {
                     const canRevoke =
-                      access.status !== "revoked" && hasActiveBilling;
+                      access.status === "pending" && hasActiveBilling;
                     return (
                       <TableRow key={access.id}>
                         <TableCell className="font-medium">

@@ -245,6 +245,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password': 'Password',
     'Password does not match the rules.': 'Password does not match the rules.',
     'Password is required.': 'Password is required.',
+    'Repeat password': 'Repeat password',
+    'Repeat password is required.': 'Repeat password is required.',
+    'Passwords do not match.': 'Passwords do not match.',
     'Password must start with an uppercase letter.':
         'Password must start with an uppercase letter.',
     'Password must be at least 6 characters.':
@@ -252,6 +255,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password must be at most 100 characters.':
         'Password must be at most 100 characters.',
     'Please enter a username.': 'Please enter a username.',
+    'Incorrect username or password':
+        'Incorrect username or password',
     'Preview and download documents shared with your worker profile.':
         'Preview and download documents shared with your worker profile.',
     'Preview is not available for this file.':
@@ -378,6 +383,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Filter records and export the same period to Excel.':
         'Filter records and export the same period to Excel.',
     'From': 'From',
+    'min': 'min',
     'Hourly wage (RON)': 'Hourly wage (RON)',
     'Hours: {value}': 'Hours: {value}',
     'Loading attendance...': 'Loading attendance...',
@@ -704,6 +710,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password': 'Parolă',
     'Password does not match the rules.': 'Parola nu respectă regulile.',
     'Password is required.': 'Parola este obligatorie.',
+    'Repeat password': 'Repetă parola',
+    'Repeat password is required.': 'Repetarea parolei este obligatorie.',
+    'Passwords do not match.': 'Parolele nu se potrivesc.',
     'Password must start with an uppercase letter.':
         'Parola trebuie să înceapă cu o literă mare.',
     'Password must be at least 6 characters.':
@@ -711,6 +720,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password must be at most 100 characters.':
         'Parola poate avea cel mult 100 de caractere.',
     'Please enter a username.': 'Introdu un nume de utilizator.',
+    'Incorrect username or password':
+        'Nume de utilizator sau parolă incorectă',
     'Preview and download documents shared with your worker profile.':
         'Previzualizează și descarcă documentele distribuite profilului tău de muncitor.',
     'Preview is not available for this file.':
@@ -840,6 +851,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Filter records and export the same period to Excel.':
         'Filtrează înregistrările și exportă aceeași perioadă în Excel.',
     'From': 'De la',
+    'min': 'min',
     'Hourly wage (RON)': 'Salariu pe oră (RON)',
     'Hours: {value}': 'Ore: {value}',
     'Loading attendance...': 'Se încarcă prezența...',
@@ -1170,6 +1182,9 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password does not match the rules.':
         'A jelszó nem felel meg a szabályoknak.',
     'Password is required.': 'A jelszó kötelező.',
+    'Repeat password': 'Jelszó megismétlése',
+    'Repeat password is required.': 'A jelszó megismétlése kötelező.',
+    'Passwords do not match.': 'A jelszavak nem egyeznek.',
     'Password must start with an uppercase letter.':
         'A jelszónak nagybetűvel kell kezdődnie.',
     'Password must be at least 6 characters.':
@@ -1177,6 +1192,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password must be at most 100 characters.':
         'A jelszó legfeljebb 100 karakter lehet.',
     'Please enter a username.': 'Adj meg egy felhasználónevet.',
+    'Incorrect username or password':
+        'Hibás felhasználónév vagy jelszó',
     'Preview and download documents shared with your worker profile.':
         'Tekintsd meg és töltsd le a dolgozói profilodhoz megosztott dokumentumokat.',
     'Preview is not available for this file.':
@@ -1304,6 +1321,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Filter records and export the same period to Excel.':
         'Szűrd a bejegyzéseket, és exportáld ugyanezt az időszakot Excelbe.',
     'From': 'Tól',
+    'min': 'perc',
     'Hourly wage (RON)': 'Órabér (RON)',
     'Hours: {value}': 'Órák: {value}',
     'Loading attendance...': 'Jelenlét betöltése...',

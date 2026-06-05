@@ -40,6 +40,22 @@ function getUserInitials(username?: string) {
     return username?.slice(0, 2).toUpperCase() || "BP";
 }
 
+const sidebarItemBase =
+    "relative h-8 gap-2.5 rounded-md px-2 text-[13px] font-normal text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-100";
+
+const sidebarItemActive = [
+    "!bg-sidebar-primary/10 !text-sidebar-primary font-medium",
+    "dark:!bg-sidebar-primary/15 dark:!text-sidebar-primary",
+    "before:absolute before:left-0 before:top-1.5 before:bottom-1.5",
+    "before:w-[3px] before:rounded-r-full before:bg-sidebar-primary",
+];
+
+const sidebarSubItemBase =
+    "flex items-center gap-2 h-7 rounded-md px-2 text-[12.5px] text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
+
+const sidebarSubItemActive =
+    "!bg-sidebar-primary/10 !text-sidebar-primary font-medium dark:!bg-sidebar-primary/15";
+
 export function AppSidebar() {
     const location = useLocation();
     const { user, logout } = useAuth();
@@ -166,24 +182,14 @@ export function AppSidebar() {
                                             <SidebarMenuButton
                                                 isActive={isUsersRoute}
                                                 className={cn(
-                                                    "relative h-8 gap-2.5 rounded-md px-2 text-[13px] font-normal text-muted-foreground",
-                                                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                                    "transition-colors duration-100",
-                                                    isUsersRoute && [
-                                                        "bg-blue-50 text-blue-600 font-medium",
-                                                        "dark:bg-blue-950/40 dark:text-blue-400",
-                                                        "before:absolute before:left-0 before:top-1.5 before:bottom-1.5",
-                                                        "before:w-[3px] before:rounded-r-full before:bg-blue-600",
-                                                        "dark:before:bg-blue-400",
-                                                    ],
+                                                    sidebarItemBase,
+                                                    isUsersRoute && sidebarItemActive,
                                                 )}
                                             >
                                                 <Users
                                                     className={cn(
                                                         "h-4 w-4 shrink-0",
-                                                        isUsersRoute
-                                                            ? "text-blue-600 dark:text-blue-400"
-                                                            : "text-muted-foreground",
+                                                        isUsersRoute ? "text-sidebar-primary" : "text-muted-foreground",
                                                     )}
                                                 />
                                                 <span className="flex-1">{t("Users")}</span>
@@ -199,10 +205,8 @@ export function AppSidebar() {
                                                             asChild
                                                             isActive={location.pathname.startsWith("/invitations")}
                                                             className={cn(
-                                                                "flex items-center gap-2 h-7 rounded-md px-2 text-[12.5px]",
-                                                                "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                                                location.pathname.startsWith("/invitations") &&
-                                                                "text-blue-600 font-medium dark:text-blue-400",
+                                                                sidebarSubItemBase,
+                                                                location.pathname.startsWith("/invitations") && sidebarSubItemActive,
                                                             )}
                                                         >
                                                             <Link to="/invitations">
@@ -217,10 +221,8 @@ export function AppSidebar() {
                                                         asChild
                                                         isActive={location.pathname.startsWith("/workers")}
                                                         className={cn(
-                                                            "flex items-center gap-2 h-7 rounded-md px-2 text-[12.5px]",
-                                                            "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                                            location.pathname.startsWith("/workers") &&
-                                                            "text-blue-600 font-medium dark:text-blue-400",
+                                                            sidebarSubItemBase,
+                                                            location.pathname.startsWith("/workers") && sidebarSubItemActive,
                                                         )}
                                                     >
                                                         <Link to="/workers">
@@ -263,12 +265,12 @@ export function AppSidebar() {
                                 "h-auto gap-2.5 rounded-lg px-2 py-2",
                                 "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 location.pathname.startsWith("/settings") &&
-                                "bg-sidebar-accent text-sidebar-accent-foreground",
+                                "!bg-sidebar-primary/10 !text-sidebar-primary dark:!bg-sidebar-primary/15",
                             )}
                         >
                             <Link to="/settings">
                                 <Avatar className="h-7 w-7 rounded-lg shrink-0">
-                                    <AvatarFallback className="rounded-lg bg-blue-100 text-blue-700 text-[11px] font-medium dark:bg-blue-950 dark:text-blue-300">
+                                    <AvatarFallback className="rounded-lg bg-sidebar-primary/10 text-sidebar-primary text-[11px] font-medium dark:bg-sidebar-primary/15">
                                         {getUserInitials(user?.username)}
                                     </AvatarFallback>
                                 </Avatar>
@@ -317,25 +319,15 @@ function NavItem({ to, label, icon, active }: NavItemProps) {
                 asChild
                 isActive={active}
                 className={cn(
-                    "relative h-8 gap-2.5 rounded-md px-2 text-[13px] font-normal text-muted-foreground",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    "transition-colors duration-100",
-                    active && [
-                        "bg-blue-50 text-blue-600 font-medium",
-                        "dark:bg-blue-950/40 dark:text-blue-400",
-                        "before:absolute before:left-0 before:top-1.5 before:bottom-1.5",
-                        "before:w-[3px] before:rounded-r-full before:bg-blue-600",
-                        "dark:before:bg-blue-400",
-                    ],
+                    sidebarItemBase,
+                    active && sidebarItemActive,
                 )}
             >
                 <Link to={to}>
                     <span
                         className={cn(
                             "shrink-0",
-                            active
-                                ? "text-blue-600 dark:text-blue-400"
-                                : "text-muted-foreground",
+                            active ? "text-sidebar-primary" : "text-muted-foreground",
                         )}
                     >
                         {icon}

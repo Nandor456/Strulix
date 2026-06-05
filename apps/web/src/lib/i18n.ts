@@ -188,6 +188,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Password must be at most 100 characters.":
       "Parola poate avea cel mult 100 de caractere.",
     "Password is required.": "Parola este obligatorie.",
+    "Repeat password": "Repetă parola",
+    "Repeat password is required.":
+      "Repetarea parolei este obligatorie.",
+    "Passwords do not match.": "Parolele nu se potrivesc.",
     "PDF": "PDF",
     "Pending": "În așteptare",
     "Pending leave": "Concedii în așteptare",
@@ -197,6 +201,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Așază codul QR de prezență în interiorul cadrului.",
     "Please enter a username and password.":
       "Introdu un nume de utilizator și o parolă.",
+    "Incorrect username or password":
+      "Nume de utilizator sau parolă incorectă",
     "Point the camera at the attendance QR code.":
       "Îndreaptă camera spre codul QR de prezență.",
     "Preparing scan": "Se pregătește scanarea",
@@ -306,6 +312,87 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Înregistrarea bootstrap funcționează doar când este activată în API și nu există încă nicio companie.",
     "Built for the daily rhythm of construction work":
       "Creat pentru ritmul zilnic al lucrărilor de construcții",
+    "Platform capabilities": "Capabilitățile platformei",
+    "Everything teams need to run workpoints with clarity.":
+      "Tot ce au nevoie echipele pentru a gestiona punctele de lucru cu claritate.",
+    "From QR attendance to subcontractor access, Strulix keeps field operations, payroll context, and team communication connected in one place.":
+      "De la prezența prin QR până la accesul subcontractorilor, Strulix păstrează operațiunile din teren, contextul salarial și comunicarea echipei conectate într-un singur loc.",
+    "Ready to bring your sites online?":
+      "Ești gata să-ți aduci șantierele online?",
+    "Start free, pay only when your team grows.":
+      "Începi gratuit și plătești doar când echipa ta crește.",
+    "Create free account": "Creează cont gratuit",
+    "Add image": "Adaugă imagine",
+    "Smart Attendance": "Prezență inteligentă",
+    "Employees can check in and check out by scanning a secure QR code from their phone.":
+      "Angajații pot face check-in și check-out scanând un cod QR securizat de pe telefon.",
+    "Attendance is linked to a specific workpoint, and check-in is only allowed when the employee is within 200 meters of that location.":
+      "Prezența este legată de un punct de lucru specific, iar check-in-ul este permis doar când angajatul se află la mai puțin de 200 de metri de acea locație.",
+    "Managers can generate Excel reports for any selected period, including attendance records, total worked hours, and salary calculations.":
+      "Managerii pot genera rapoarte Excel pentru orice perioadă selectată, inclusiv înregistrări de prezență, totalul orelor lucrate și calculele salariale.",
+    "Live Follow Dashboard": "Tablou de bord Live Follow",
+    "Real-time overview": "Privire de ansamblu în timp real",
+    "Strulix provides a real-time overview of all workpoints in one place.":
+      "Strulix oferă într-un singur loc o imagine de ansamblu în timp real asupra tuturor punctelor de lucru.",
+    "The dashboard is optimized for wide screens and can be displayed on a TV.":
+      "Tabloul de bord este optimizat pentru ecrane late și poate fi afișat pe un televizor.",
+    "Managers can instantly see the latest check-ins and check-outs across all locations.":
+      "Managerii pot vedea instant cele mai recente check-in-uri și check-out-uri din toate locațiile.",
+    "Integrated Chat": "Chat integrat",
+    "Team messaging": "Mesagerie de echipă",
+    "Teams can communicate directly inside Strulix through the built-in messaging system.":
+      "Echipele pot comunica direct în Strulix prin sistemul de mesagerie integrat.",
+    "Work-related communication stays organized.":
+      "Comunicarea legată de muncă rămâne organizată.",
+    "Teams reduce the need to switch between different messaging apps.":
+      "Echipele reduc nevoia de a trece între aplicații diferite de mesagerie.",
+    "Absence planning": "Planificarea absențelor",
+    "Employees can request sick leave or vacation days through the calendar.":
+      "Angajații pot solicita concediu medical sau zile de vacanță prin calendar.",
+    "Managers can approve or deny requests.":
+      "Managerii pot aproba sau respinge cererile.",
+    "Leaders can quickly see who will be absent during the week, helping with planning and scheduling.":
+      "Șefii de echipă pot vedea rapid cine va lipsi în timpul săptămânii, ceea ce ajută la planificare și programare.",
+    "Employee Invitations": "Invitații pentru angajați",
+    "Fast onboarding": "Onboarding rapid",
+    "Administrators can invite employees by entering their email address and selecting their role.":
+      "Administratorii pot invita angajați introducând adresa lor de email și selectând rolul.",
+    "Supported roles include Worker and Leader.":
+      "Rolurile acceptate includ Muncitor și Șef de echipă.",
+    "The invited user receives an email and can join the company through the invitation link.":
+      "Utilizatorul invitat primește un email și se poate alătura companiei prin linkul de invitație.",
+    "Subcontractor Support": "Suport pentru subcontractori",
+    "Partner access": "Acces pentru parteneri",
+    "If a workpoint involves subcontractors, companies can invite partner companies.":
+      "Dacă un punct de lucru implică subcontractori, companiile pot invita firme partenere.",
+    "Partner workers can check in at the assigned workpoint.":
+      "Muncitorii partenerilor pot face check-in la punctul de lucru alocat.",
+    "Their attendance is included in the workpoint summary and reports.":
+      "Prezența lor este inclusă în sumarul punctului de lucru și în rapoarte.",
+    "Worker View": "Vizualizare muncitor",
+    "Clear records": "Evidențe clare",
+    "Workers can track their own attendance, worked hours, and estimated salary.":
+      "Muncitorii își pot urmări propria prezență, orele lucrate și salariul estimat.",
+    "Employees get clear access to their own records.":
+      "Angajații au acces clar la propriile lor evidențe.",
+    "This helps avoid confusion at the end of the month.":
+      "Acest lucru ajută la evitarea confuziilor la sfârșitul lunii.",
+    "Mobile App": "Aplicație mobilă",
+    "iOS and Android": "iOS și Android",
+    "Strulix is available on both iOS and Android, making it easy for workers to access the platform quickly from their phones.":
+      "Strulix este disponibil atât pe iOS, cât și pe Android, ceea ce le permite muncitorilor să acceseze rapid platforma de pe telefon.",
+    "Workers can use the platform directly on the device they already carry.":
+      "Muncitorii pot folosi platforma direct pe dispozitivul pe care îl au deja la ei.",
+    "Mobile access keeps attendance and team updates close to the worksite.":
+      "Accesul mobil păstrează prezența și actualizările echipei aproape de șantier.",
+    "Simple Pricing": "Prețuri simple",
+    "Flexible billing": "Facturare flexibilă",
+    "Strulix uses a flexible per-user pricing model. Each active user adds €3 to the monthly subscription.":
+      "Strulix folosește un model flexibil de tarifare per utilizator. Fiecare utilizator activ adaugă 3 € la abonamentul lunar.",
+    "If a user joins in the middle of the month, the cost is calculated proportionally.":
+      "Dacă un utilizator se alătură la mijlocul lunii, costul este calculat proporțional.",
+    "For example, if an employee is added halfway through the month, the cost for that user is only €1.50 for that month.":
+      "De exemplu, dacă un angajat este adăugat la jumătatea lunii, costul pentru acel utilizator este de doar 1,50 € pentru luna respectivă.",
     "by {name}": "de {name}",
     "Check in": "Intrare",
     "Check out": "Ieșire",
@@ -343,6 +430,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Filtrează înregistrările și exportă aceeași perioadă în Excel.",
     "From": "De la",
     "h": "h",
+    "min": "min",
     "Hourly wage (RON)": "Salariu pe oră (RON)",
     "KB": "KB",
     "MB": "MB",
@@ -769,6 +857,10 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Password must be at most 100 characters.":
       "A jelszó legfeljebb 100 karakter lehet.",
     "Password is required.": "A jelszó kötelező.",
+    "Repeat password": "Jelszó megismétlése",
+    "Repeat password is required.":
+      "A jelszó megismétlése kötelező.",
+    "Passwords do not match.": "A jelszavak nem egyeznek.",
     "PDF": "PDF",
     "Pending": "Függőben",
     "Pending leave": "Függő szabadság",
@@ -778,6 +870,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Helyezd a jelenléti QR-kódot a keretbe.",
     "Please enter a username and password.":
       "Adj meg egy felhasználónevet és egy jelszót.",
+    "Incorrect username or password":
+      "Hibás felhasználónév vagy jelszó",
     "Point the camera at the attendance QR code.":
       "Irányítsd a kamerát a jelenléti QR-kódra.",
     "Preparing scan": "Szkennelés előkészítése",
@@ -887,6 +981,87 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "A bootstrap regisztráció csak akkor működik, ha engedélyezve van az API-ban, és még nem létezik cég.",
     "Built for the daily rhythm of construction work":
       "Az építőipari munka napi ritmusára építve",
+    "Platform capabilities": "Platformképességek",
+    "Everything teams need to run workpoints with clarity.":
+      "Minden, amire a csapatoknak szükségük van a munkapontok átlátható működtetéséhez.",
+    "From QR attendance to subcontractor access, Strulix keeps field operations, payroll context, and team communication connected in one place.":
+      "A QR-jelenléttől az alvállalkozói hozzáférésig a Strulix egy helyen kapcsolja össze a helyszíni működést, a bérszámfejtési kontextust és a csapatkommunikációt.",
+    "Ready to bring your sites online?":
+      "Készen állsz arra, hogy a munkaterületeidet online vidd?",
+    "Start free, pay only when your team grows.":
+      "Kezdd ingyen, és csak akkor fizess, amikor a csapatod növekszik.",
+    "Create free account": "Ingyenes fiók létrehozása",
+    "Add image": "Kép hozzáadása",
+    "Smart Attendance": "Intelligens jelenlét",
+    "Employees can check in and check out by scanning a secure QR code from their phone.":
+      "A dolgozók biztonságos QR-kód beolvasásával tudnak be- és kijelentkezni a telefonjukról.",
+    "Attendance is linked to a specific workpoint, and check-in is only allowed when the employee is within 200 meters of that location.":
+      "A jelenlét egy adott munkaponthoz kapcsolódik, és a bejelentkezés csak akkor engedélyezett, ha a dolgozó 200 méteren belül van az adott helyhez képest.",
+    "Managers can generate Excel reports for any selected period, including attendance records, total worked hours, and salary calculations.":
+      "A vezetők bármely kiválasztott időszakra Excel-jelentéseket készíthetnek, beleértve a jelenléti adatokat, az összes ledolgozott órát és a bérszámításokat.",
+    "Live Follow Dashboard": "Live Follow irányítópult",
+    "Real-time overview": "Valós idejű áttekintés",
+    "Strulix provides a real-time overview of all workpoints in one place.":
+      "A Strulix egy helyen nyújt valós idejű áttekintést az összes munkapontról.",
+    "The dashboard is optimized for wide screens and can be displayed on a TV.":
+      "Az irányítópult széles kijelzőkre van optimalizálva, és TV-n is megjeleníthető.",
+    "Managers can instantly see the latest check-ins and check-outs across all locations.":
+      "A vezetők azonnal láthatják a legfrissebb be- és kijelentkezéseket az összes helyszínen.",
+    "Integrated Chat": "Integrált chat",
+    "Team messaging": "Csapatüzenetek",
+    "Teams can communicate directly inside Strulix through the built-in messaging system.":
+      "A csapatok közvetlenül a Strulixban kommunikálhatnak a beépített üzenetküldő rendszeren keresztül.",
+    "Work-related communication stays organized.":
+      "A munkával kapcsolatos kommunikáció rendezett marad.",
+    "Teams reduce the need to switch between different messaging apps.":
+      "A csapatoknak kevésbé kell különböző üzenetküldő alkalmazások között váltaniuk.",
+    "Absence planning": "Távollétek tervezése",
+    "Employees can request sick leave or vacation days through the calendar.":
+      "A dolgozók a naptáron keresztül kérhetnek betegszabadságot vagy szabadságnapokat.",
+    "Managers can approve or deny requests.":
+      "A vezetők jóváhagyhatják vagy elutasíthatják a kérelmeket.",
+    "Leaders can quickly see who will be absent during the week, helping with planning and scheduling.":
+      "A csapatvezetők gyorsan láthatják, ki lesz távol a hét folyamán, ami segíti a tervezést és az ütemezést.",
+    "Employee Invitations": "Dolgozói meghívások",
+    "Fast onboarding": "Gyors onboarding",
+    "Administrators can invite employees by entering their email address and selecting their role.":
+      "Az adminisztrátorok a dolgozók email-címének megadásával és szerepkörük kiválasztásával küldhetnek meghívót.",
+    "Supported roles include Worker and Leader.":
+      "A támogatott szerepkörök közé tartozik a Munkás és a Csapatvezető.",
+    "The invited user receives an email and can join the company through the invitation link.":
+      "A meghívott felhasználó emailt kap, és a meghívó linken keresztül csatlakozhat a céghez.",
+    "Subcontractor Support": "Alvállalkozói támogatás",
+    "Partner access": "Partnerhozzáférés",
+    "If a workpoint involves subcontractors, companies can invite partner companies.":
+      "Ha egy munkapont alvállalkozókat is érint, a cégek partnercégeket hívhatnak meg.",
+    "Partner workers can check in at the assigned workpoint.":
+      "A partnercégek dolgozói bejelentkezhetnek a kijelölt munkapontra.",
+    "Their attendance is included in the workpoint summary and reports.":
+      "Jelenlétük bekerül a munkapont összesítésébe és a jelentésekbe.",
+    "Worker View": "Dolgozói nézet",
+    "Clear records": "Átlátható nyilvántartás",
+    "Workers can track their own attendance, worked hours, and estimated salary.":
+      "A dolgozók nyomon követhetik saját jelenlétüket, ledolgozott óráikat és becsült bérüket.",
+    "Employees get clear access to their own records.":
+      "A dolgozók átlátható hozzáférést kapnak a saját adataikhoz.",
+    "This helps avoid confusion at the end of the month.":
+      "Ez segít elkerülni a félreértéseket a hónap végén.",
+    "Mobile App": "Mobilalkalmazás",
+    "iOS and Android": "iOS és Android",
+    "Strulix is available on both iOS and Android, making it easy for workers to access the platform quickly from their phones.":
+      "A Strulix iOS-en és Androidon is elérhető, így a dolgozók gyorsan hozzáférhetnek a platformhoz a telefonjukról.",
+    "Workers can use the platform directly on the device they already carry.":
+      "A dolgozók közvetlenül azon az eszközön használhatják a platformot, amit már amúgy is maguknál tartanak.",
+    "Mobile access keeps attendance and team updates close to the worksite.":
+      "A mobilhozzáférés közel tartja a jelenlétet és a csapatfrissítéseket a munkaterülethez.",
+    "Simple Pricing": "Egyszerű árazás",
+    "Flexible billing": "Rugalmas számlázás",
+    "Strulix uses a flexible per-user pricing model. Each active user adds €3 to the monthly subscription.":
+      "A Strulix rugalmas, felhasználónkénti árazási modellt használ. Minden aktív felhasználó 3 €-val növeli a havi előfizetést.",
+    "If a user joins in the middle of the month, the cost is calculated proportionally.":
+      "Ha egy felhasználó a hónap közepén csatlakozik, a költséget arányosan számítjuk ki.",
+    "For example, if an employee is added halfway through the month, the cost for that user is only €1.50 for that month.":
+      "Például ha egy dolgozó a hónap felénél kerül hozzáadásra, akkor arra a felhasználóra csak 1,50 € a havi költség.",
     "by {name}": "{name} által",
     "Check in": "Belépés",
     "Check out": "Kilépés",
@@ -924,6 +1099,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Szűrd a bejegyzéseket, és exportáld ugyanezt az időszakot Excelbe.",
     "From": "Tól",
     "h": "h",
+    "min": "perc",
     "Hourly wage (RON)": "Órabér (RON)",
     "KB": "KB",
     "MB": "MB",

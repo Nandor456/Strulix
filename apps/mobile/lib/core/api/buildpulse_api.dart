@@ -50,6 +50,7 @@ class BuildPulseApi {
     required String username,
     required String email,
     required String password,
+    required String confirmPassword,
     String? companyName,
     String? token,
   }) async {
@@ -59,6 +60,7 @@ class BuildPulseApi {
         'username': username,
         'email': email,
         'password': password,
+        'confirmPassword': confirmPassword,
         if (token == null || token.isEmpty) 'companyName': companyName,
         if (token != null && token.isNotEmpty) 'token': token,
       },

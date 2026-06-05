@@ -21,6 +21,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SubcontractorAffiliationMarker } from "@/components/subcontractor-affiliation-marker";
 import { WorkPointDocumentsDialog } from "@/components/workpoints/WorkPointDocumentsDialog";
 import {
   Dialog,
@@ -387,7 +388,7 @@ export default function WorkpointDetailPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {worker.affiliation === "SUBCONTRACTOR" && (
-                        <Badge variant="secondary">{t("Subcontractor")}</Badge>
+                        <SubcontractorAffiliationMarker />
                       )}
                       <Badge variant="outline">
                         {worker.hourlyWage == null
@@ -536,9 +537,7 @@ export default function WorkpointDetailPage() {
                               <div className="flex items-center gap-2">
                                 <span>{record.worker.username}</span>
                                 {record.worker.affiliation === "SUBCONTRACTOR" && (
-                                  <Badge variant="secondary">
-                                    {t("Subcontractor")}
-                                  </Badge>
+                                  <SubcontractorAffiliationMarker />
                                 )}
                               </div>
                               <p className="text-xs font-normal text-muted-foreground">

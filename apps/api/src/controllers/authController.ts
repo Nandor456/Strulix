@@ -48,7 +48,9 @@ export async function loginController(req: Request, res: Response) {
       password: string;
     };
     const user = await validateCredentials(username, password);
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) {
+      return res.status(401).json({ error: "Incorrect username or password" });
+    }
     await issueAuthCookies(res, user.id);
     log("Login successful for user:", user.id);
 

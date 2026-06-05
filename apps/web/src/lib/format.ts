@@ -48,11 +48,15 @@ export function formatMonthLabel(year: number, month: number) {
 
 export function formatHours(value: number | null | undefined) {
   const hourUnit = translate("h");
+  const minuteUnit = translate("min");
   if (value === null || value === undefined) return `0${hourUnit}`;
   const quarterHours = Math.round(value * 4) / 4;
-  return `${new Intl.NumberFormat(activeLocale, {
-    maximumFractionDigits: 2,
-  }).format(quarterHours)}${hourUnit}`;
+  const totalMinutes = Math.round(quarterHours * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (minutes === 0) return `${hours}${hourUnit}`;
+  if (hours === 0) return `${minutes}${minuteUnit}`;
+  return `${hours}${hourUnit} ${minutes}${minuteUnit}`;
 }
 
 export function formatMoney(

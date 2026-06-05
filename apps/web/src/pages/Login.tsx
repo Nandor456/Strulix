@@ -1,7 +1,9 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { ArrowRight, KeyRound, UserRound } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { useAuth } from "../hooks/useAuth";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,7 @@ import { useI18n } from "@/hooks/useI18n";
 import { translateApiErrorMessage } from "@/lib/apiErrors";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
-import buildPulseLogo from "@/assets/buildpulselogo.png";
+
 type LoginResponse =
   | { id: string; username: string }
   | { error?: string; errors?: { formErrors?: string[]; fieldErrors?: Record<string, string[] | undefined> } };
@@ -71,69 +73,76 @@ export default function Login() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-2">
-          <img
-            src={buildPulseLogo}
-            alt={t("Strulix logo")}
-            className="h-24 w-24"
-          />
-          <h1 className="text-center text-xl font-bold">{t("Sign in")}</h1>
-          <p className="text-center text-sm text-muted-foreground">
-            {t("Welcome back to Strulix")}
-          </p>
+    <AuthShell
+      modeLabel={t("Sign in")}
+      title={t("Welcome back to Strulix")}
+      subtitle={t(
+        "Strulix keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.",
+      )}
+      footer={
+        <div className="flex items-center justify-end">
+          <Link to="/register" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+            {t("Create account")}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="login-username">{t("Username")}</Label>
+          <div className="relative">
+            <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="login-username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              placeholder={t("your.username")}
+              minLength={3}
+              required
+              className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
+            />
+          </div>
         </div>
 
-        <div className="rounded-md border bg-card p-6 sm:p-8">
-          <form onSubmit={onSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-username">{t("Username")}</Label>
-              <Input
-                id="login-username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
-                placeholder={t("your.username")}
-                minLength={3}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="login-password">{t("Password")}</Label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs font-medium text-primary hover:underline"
-                >
-                  {t("Forgot password?")}
-                </Link>
-              </div>
-              <Input
-                id="login-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            {error && <Alert variant="destructive">{error}</Alert>}
-
-            <Button
-              type="submit"
-              disabled={!canSubmit}
-              className="w-full py-2.5 font-semibold"
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="login-password">{t("Password")}</Label>
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-primary hover:underline"
             >
-              {isSubmitting && <Spinner className="mr-2" />}
-              {isSubmitting ? t("Signing in…") : t("Sign in")}
-            </Button>
-          </form>
+              {t("Forgot password?")}
+            </Link>
+          </div>
+          <div className="relative">
+            <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="login-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+              className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
+            />
+          </div>
         </div>
-      </div>
-    </main>
+
+        {error && <Alert variant="destructive">{error}</Alert>}
+
+        <Button
+          type="submit"
+          disabled={!canSubmit}
+          size="lg"
+          className="h-11 w-full rounded-xl font-semibold shadow-sm"
+        >
+          {isSubmitting && <Spinner className="mr-2" />}
+          {isSubmitting ? t("Signing in…") : t("Sign in")}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

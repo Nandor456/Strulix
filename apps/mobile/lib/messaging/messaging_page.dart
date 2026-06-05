@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -749,6 +750,12 @@ class _BubbleContents extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final l10n = context.l10n;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bubbleMaxWidth = switch (screenWidth) {
+      >= 1100 => math.min(screenWidth * 0.68, 820.0),
+      >= 800 => math.min(screenWidth * 0.72, 700.0),
+      _ => screenWidth * 0.78,
+    };
     final attachmentUrl = message.attachmentUrl;
     final attachmentName = message.attachmentName?.trim();
     final body = message.body.trim();
@@ -759,9 +766,7 @@ class _BubbleContents extends StatelessWidget {
     final shouldShowBody = body.isNotEmpty && !isDuplicateAttachmentName;
 
     return Container(
-      constraints: BoxConstraints(
-        maxWidth: MediaQuery.sizeOf(context).width * 0.78,
-      ),
+      constraints: BoxConstraints(maxWidth: bubbleMaxWidth),
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

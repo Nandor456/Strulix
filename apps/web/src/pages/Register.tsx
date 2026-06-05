@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { ArrowRight, Building2, KeyRound, Mail, UserRound } from "lucide-react";
 import {
   Link as RouterLink,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { useAuth } from "../hooks/useAuth";
-import { PublicHeader } from "@/components/public-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,6 @@ import { translateApiErrorMessage } from "@/lib/apiErrors";
 import { api } from "@/services/api/axios";
 import { billingAPI } from "@/services/api/billingApi";
 import { resetUserScopedQueries } from "../services/queryClient";
-import buildPulseLogo from "@/assets/buildpulselogo.png";
 
 type RegisterResponse =
   | { id: string; username: string }
@@ -47,6 +47,7 @@ export default function Register() {
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,6 +82,14 @@ export default function Register() {
       );
       return;
     }
+    if (confirmPassword.length === 0) {
+      setError(t("Repeat password is required."));
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError(t("Passwords do not match."));
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -89,6 +98,7 @@ export default function Register() {
           username: trimmedUsername,
           email: trimmedEmail,
           password,
+          confirmPassword,
           companyName: trimmedCompanyName,
         });
         window.location.href = url;
@@ -99,6 +109,7 @@ export default function Register() {
         username: trimmedUsername,
         email: trimmedEmail,
         password,
+        confirmPassword,
         ...(isBootstrapMode ? { companyName: trimmedCompanyName } : {}),
         ...(token ? { token } : {}),
       });
@@ -133,44 +144,57 @@ export default function Register() {
     return <InviteOnlyRegistrationNotice />;
   }
 
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center gap-2">
-          <img
-            src={buildPulseLogo}
-            alt={t("Strulix logo")}
-            className="h-24 w-24"
-          />
-          <h1 className="text-center text-xl font-bold">{t("Create your account")}</h1>
-          <p className="text-center text-sm text-muted-foreground">
-            {isPaidSignupMode
-              ? t("Create your company workspace")
-              : isBootstrapMode
-                ? t("Create the first company administrator")
-                : t("Join the Construction ERP system")}
-          </p>
-        </div>
+  const registerTitle = isPaidSignupMode
+    ? t("Create your company workspace")
+    : isBootstrapMode
+      ? t("Create the first company administrator")
+      : t("Create your account");
+  const registerSubtitle = isPaidSignupMode
+    ? t("Your subscription starts at €3 per active user each month after checkout.")
+    : isBootstrapMode
+      ? t("Bootstrap registration only works when it is enabled on the API and no company exists yet.")
+      : t("Join the Construction ERP system");
 
-        <div className="rounded-md border bg-card p-6 sm:p-8">
-          {token && (
-            <Alert className="mb-5">
-              {t("You're accepting an invitation. Your role will be assigned automatically.")}
-            </Alert>
-          )}
-          {isPaidSignupMode && (
-            <Alert className="mb-5">
-              {t("Your subscription starts at €3 per active user each month after checkout.")}
-            </Alert>
-          )}
-          {isBootstrapMode && (
-            <Alert className="mb-5">
-              {t("Bootstrap registration only works when it is enabled on the API and no company exists yet.")}
-            </Alert>
-          )}
-          <form onSubmit={onSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-username">{t("Username")}</Label>
+  return (
+    <AuthShell
+      modeLabel={token ? t("Register") : registerTitle}
+      title={registerTitle}
+      subtitle={registerSubtitle}
+      footer={
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span>{t("Already have an account?")}</span>
+          <RouterLink
+            to="/login"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          >
+            {t("Sign in")}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </RouterLink>
+        </div>
+      }
+    >
+      <div className="space-y-5">
+        {token && (
+          <Alert>
+            {t("You're accepting an invitation. Your role will be assigned automatically.")}
+          </Alert>
+        )}
+        {isPaidSignupMode && (
+          <Alert>
+            {t("Your subscription starts at €3 per active user each month after checkout.")}
+          </Alert>
+        )}
+        {isBootstrapMode && (
+          <Alert>
+            {t("Bootstrap registration only works when it is enabled on the API and no company exists yet.")}
+          </Alert>
+        )}
+
+        <form onSubmit={onSubmit} className="space-y-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="register-username">{t("Username")}</Label>
+            <div className="relative">
+              <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="register-username"
                 value={username}
@@ -179,12 +203,16 @@ export default function Register() {
                 placeholder={t("your.username")}
                 minLength={3}
                 required
+                className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
               />
             </div>
+          </div>
 
-            {(isBootstrapMode || isPaidSignupMode) && (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="register-company">{t("Company name")}</Label>
+          {(isBootstrapMode || isPaidSignupMode) && (
+            <div className="space-y-1.5">
+              <Label htmlFor="register-company">{t("Company name")}</Label>
+              <div className="relative">
+                <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="register-company"
                   value={companyName}
@@ -193,12 +221,16 @@ export default function Register() {
                   placeholder={t("Your company")}
                   maxLength={120}
                   required
+                  className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
                 />
               </div>
-            )}
+            </div>
+          )}
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-email">{t("Email address")}</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="register-email">{t("Email address")}</Label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="register-email"
                 value={emailValue}
@@ -208,16 +240,20 @@ export default function Register() {
                 type="email"
                 required
                 disabled={Boolean(prefilledEmail)}
+                className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
               />
-              {prefilledEmail && (
-                <p className="text-xs text-muted-foreground">
-                  {t("Email is locked to the invited address.")}
-                </p>
-              )}
             </div>
+            {prefilledEmail && (
+              <p className="text-xs text-muted-foreground">
+                {t("Email is locked to the invited address.")}
+              </p>
+            )}
+          </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-password">{t("Password")}</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="register-password">{t("Password")}</Label>
+            <div className="relative">
+              <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="register-password"
                 value={password}
@@ -227,87 +263,87 @@ export default function Register() {
                 placeholder="••••••••"
                 minLength={6}
                 required
+                className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
               />
-              <p className="text-xs text-muted-foreground">
-                {t("Must start with an uppercase letter and be at least 6 characters.")}
-              </p>
             </div>
+            <p className="text-xs text-muted-foreground">
+              {t("Must start with an uppercase letter and be at least 6 characters.")}
+            </p>
+          </div>
 
-            {error && <Alert variant="destructive">{error}</Alert>}
+          <div className="space-y-1.5">
+            <Label htmlFor="register-confirm-password">{t("Repeat password")}</Label>
+            <div className="relative">
+              <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="register-confirm-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type="password"
+                autoComplete="new-password"
+                placeholder="••••••••"
+                minLength={6}
+                required
+                className="h-11 rounded-xl bg-background/80 pl-10 pr-3 shadow-sm"
+              />
+            </div>
+          </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 font-semibold"
-            >
-              {isSubmitting && <Spinner className="mr-2" />}
-              {isSubmitting
-                ? isPaidSignupMode
-                  ? t("Opening checkout…")
-                  : t("Creating account…")
-                : isPaidSignupMode
-                  ? t("Continue to payment")
-                  : t("Create account")}
-            </Button>
-          </form>
-        </div>
+          {error && <Alert variant="destructive">{error}</Alert>}
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          {t("Already have an account?")}{" "}
-          <RouterLink
-            to="/login"
-            className="font-medium text-primary hover:underline"
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            size="lg"
+            className="h-11 w-full rounded-xl font-semibold shadow-sm"
           >
-            {t("Sign in")}
-          </RouterLink>
-        </p>
+            {isSubmitting && <Spinner className="mr-2" />}
+            {isSubmitting
+              ? isPaidSignupMode
+                ? t("Opening checkout…")
+                : t("Creating account…")
+              : isPaidSignupMode
+                ? t("Continue to payment")
+                : t("Create account")}
+          </Button>
+        </form>
       </div>
-    </main>
+    </AuthShell>
   );
 }
 
 function InviteOnlyRegistrationNotice() {
   const { t } = useI18n();
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <PublicHeader />
-      <main className="flex min-h-[calc(100svh-4rem)] items-center justify-center px-4 py-12">
-        <section className="w-full max-w-lg rounded-md border bg-card p-6 text-center shadow-sm sm:p-8">
-          <img
-            src={buildPulseLogo}
-            alt={t("Strulix logo")}
-            className="mx-auto h-20 w-20 rounded-md"
-          />
-          <h1 className="mt-6 text-2xl font-semibold">
-            {t("Registration is invite-only")}
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {t(
-              "New companies can start with paid signup. Invited users should use their invitation link.",
-            )}
-          </p>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {t(
-              "For first-time setup on an empty database, use the bootstrap registration flow.",
-            )}
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button asChild size="lg">
-              <RouterLink to="/register?paid=1">
-                {t("Start paid signup")}
-              </RouterLink>
-            </Button>
-            <Button asChild variant="secondary" size="lg">
-              <RouterLink to="/register?bootstrap=1">
-                {t("Create first administrator")}
-              </RouterLink>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <RouterLink to="/login">{t("Login")}</RouterLink>
-            </Button>
-          </div>
-        </section>
-      </main>
-    </div>
+    <AuthShell
+      modeLabel={t("Register")}
+      title={t("Registration is invite-only")}
+      subtitle={t(
+        "New companies can start with paid signup. Invited users should use their invitation link.",
+      )}
+    >
+      <div className="space-y-5">
+        <Alert>
+          {t(
+            "For first-time setup on an empty database, use the bootstrap registration flow.",
+          )}
+        </Alert>
+        <div className="grid gap-3">
+          <Button asChild size="lg" className="h-11 rounded-xl font-semibold shadow-sm">
+            <RouterLink to="/register?paid=1">
+              {t("Start paid signup")}
+            </RouterLink>
+          </Button>
+          <Button asChild variant="secondary" size="lg" className="h-11 rounded-xl font-semibold shadow-sm">
+            <RouterLink to="/register?bootstrap=1">
+              {t("Create first administrator")}
+            </RouterLink>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="h-11 rounded-xl font-semibold">
+            <RouterLink to="/login">{t("Login")}</RouterLink>
+          </Button>
+        </div>
+      </div>
+    </AuthShell>
   );
 }

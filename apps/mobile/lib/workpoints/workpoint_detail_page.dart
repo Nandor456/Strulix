@@ -306,45 +306,36 @@ class _Overview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
     return SectionCard(
       title: workPoint.name,
       subtitle: workPoint.address,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (workPoint.description != null) Text(workPoint.description!),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              Chip(
-                label: Text(
-                  l10n.t('Workers {count}', {
-                    'count': '${workPoint.workerCount}',
-                  }),
-                ),
+          if (workPoint.description != null &&
+              workPoint.description!.trim().isNotEmpty) ...[
+            Text(workPoint.description!),
+            const SizedBox(height: 18),
+          ],
+
+          _OverviewInfoGrid(
+            items: [
+              _OverviewInfoItem(
+                label: l10n.t('Workers'),
+                value: '${workPoint.workerCount}',
               ),
-              Chip(
-                label: Text(
-                  l10n.t('Records {count}', {
-                    'count': '${workPoint.attendanceCount}',
-                  }),
-                ),
+              _OverviewInfoItem(
+                label: l10n.t('Records'),
+                value: '${workPoint.attendanceCount}',
               ),
-              Chip(
-                label: Text(
-                  l10n.t('Deadline {date}', {
-                    'date': formatDate(workPoint.deadline),
-                  }),
-                ),
+              _OverviewInfoItem(
+                label: l10n.t('Deadline'),
+                value: formatDate(workPoint.deadline),
               ),
-              Chip(
-                label: Text(
-                  l10n.t('Created {date}', {
-                    'date': formatDate(workPoint.uploadedAt),
-                  }),
-                ),
+              _OverviewInfoItem(
+                label: l10n.t('Created'),
+                value: formatDate(workPoint.uploadedAt),
               ),
             ],
           ),
@@ -352,6 +343,73 @@ class _Overview extends StatelessWidget {
       ),
     );
   }
+}
+
+class _OverviewInfoGrid extends StatelessWidget {
+  const _OverviewInfoGrid({required this.items});
+
+  final List<_OverviewInfoItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        final columns = width >= 720
+            ? 4
+            : width >= 420
+            ? 2
+            : 1;
+
+        const spacing = 14.0;
+        final itemWidth = (width - spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: 14,
+          children: items.map((item) {
+            return SizedBox(
+              width: itemWidth,
+              child: _OverviewInfoBlock(item: item),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _OverviewInfoBlock extends StatelessWidget {
+  const _OverviewInfoBlock({required this.item});
+
+  final _OverviewInfoItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(item.label, style: theme.textTheme.labelMedium),
+        const SizedBox(height: 4),
+        Text(
+          item.value,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium,
+        ),
+      ],
+    );
+  }
+}
+
+class _OverviewInfoItem {
+  const _OverviewInfoItem({required this.label, required this.value});
+
+  final String label;
+  final String value;
 }
 
 class _WorkersSection extends StatelessWidget {
@@ -378,7 +436,10 @@ class _WorkersSection extends StatelessWidget {
                         children: [
                           Expanded(child: Text(worker.username)),
                           if (worker.affiliation == 'SUBCONTRACTOR')
-                            Chip(label: Text(l10n.t('Subcontractor'))),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8),
+                              child: SubcontractorAffiliationIcon(),
+                            ),
                         ],
                       ),
                       subtitle: Text('${worker.email}\n${worker.company.name}'),
@@ -656,7 +717,10 @@ class _AttendanceRecordCard extends StatelessWidget {
                             ),
                           ),
                           if (record.worker.affiliation == 'SUBCONTRACTOR')
-                            Chip(label: Text(l10n.t('Subcontractor'))),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8),
+                              child: SubcontractorAffiliationIcon(),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 2),

@@ -334,6 +334,15 @@ export async function revokeSubcontractorAccess(params: {
   if (!access) {
     throw new SubcontractorAccessError("Subcontractor access not found", 404);
   }
+  if (access.acceptedAt || access.status === "ACCEPTED") {
+    throw new SubcontractorAccessError(
+      "Accepted subcontractor access cannot be revoked",
+      409,
+    );
+  }
+  if (access.revokedAt || access.status === "REVOKED") {
+    return toDTO(access);
+  }
 
   const updated = await prisma.companySubcontractorAccess.update({
     where: { id: access.id },

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { SubcontractorAffiliationMarker } from "@/components/subcontractor-affiliation-marker";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useLiveFollow } from "@/hooks/useAttendance";
@@ -421,14 +422,12 @@ function WorkPointLiveCard({
                   fullscreen ? "border-neutral-800 bg-neutral-950/60" : "bg-background/70",
                 )}
               >
-                <span className="min-w-0 text-sm font-medium">
-                  <span className="truncate">{checkIn.workerUsername}</span>
-                  {checkIn.workerAffiliation === "SUBCONTRACTOR" && (
-                    <Badge variant="secondary" className="ml-2">
-                      {t("Subcontractor")}
-                    </Badge>
-                  )}
-                </span>
+                  <span className="min-w-0 text-sm font-medium">
+                    <span className="truncate">{checkIn.workerUsername}</span>
+                    {checkIn.workerAffiliation === "SUBCONTRACTOR" && (
+                      <SubcontractorAffiliationMarker className="ml-2 align-middle" />
+                    )}
+                  </span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums">
                   {formatElapsedSince(checkIn.checkedInAt, now)}
                 </span>
@@ -466,9 +465,7 @@ function WorkPointLiveCard({
                   <p className="truncate">
                     <span className="font-medium">{event.workerUsername}</span>{" "}
                     {event.workerAffiliation === "SUBCONTRACTOR" && (
-                      <Badge variant="secondary" className="mr-1">
-                        {t("Subcontractor")}
-                      </Badge>
+                      <SubcontractorAffiliationMarker className="mr-1 align-middle" />
                     )}
                     <span className={fullscreen ? "text-neutral-300" : "text-muted-foreground"}>
                       {eventLabel(event.event, t)}

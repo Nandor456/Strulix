@@ -264,7 +264,10 @@ class _AssignedWorkpoints extends StatelessWidget {
               children: [
                 Expanded(child: Text(workPoint.name)),
                 if (workPoint.affiliation == 'SUBCONTRACTOR')
-                  Chip(label: Text(l10n.t('Subcontractor'))),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: SubcontractorAffiliationIcon(),
+                  ),
               ],
             ),
             subtitle: Text(

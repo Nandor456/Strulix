@@ -101,7 +101,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             TextButton(
-              onPressed: _isSubmitting ? null : () => context.go('/forgot-password'),
+              onPressed: _isSubmitting
+                  ? null
+                  : () => context.go('/forgot-password'),
               child: Text(l10n.t('Forgot password?')),
             ),
             const SizedBox(height: 8),
@@ -159,7 +161,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final l10n = context.l10n;
     return _AuthScaffold(
       title: l10n.t('Forgot password?'),
-      subtitle: l10n.t('Enter your email and we will send a password reset link.'),
+      subtitle: l10n.t(
+        'Enter your email and we will send a password reset link.',
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -186,7 +190,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  l10n.t('If an account exists, we sent a password reset link.'),
+                  l10n.t(
+                    'If an account exists, we sent a password reset link.',
+                  ),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
@@ -208,7 +214,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     )
                   : const Icon(Icons.mail_outline),
               label: Text(
-                _isSubmitting ? l10n.t('Sending...') : l10n.t('Send reset link'),
+                _isSubmitting
+                    ? l10n.t('Sending...')
+                    : l10n.t('Send reset link'),
               ),
             ),
             TextButton(
@@ -237,6 +245,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _username = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   bool _isSubmitting = false;
   String? _error;
 
@@ -253,6 +262,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _username.dispose();
     _email.dispose();
     _password.dispose();
+    _confirmPassword.dispose();
     super.dispose();
   }
 
@@ -267,6 +277,7 @@ class _RegisterPageState extends State<RegisterPage> {
         username: _username.text.trim(),
         email: _email.text.trim(),
         password: _password.text,
+        confirmPassword: _confirmPassword.text,
         token: widget.token,
       );
       if (mounted) context.go('/');
@@ -357,6 +368,22 @@ class _RegisterPageState extends State<RegisterPage> {
               validator: (value) => _passwordPattern.hasMatch(value ?? '')
                   ? null
                   : l10n.t('Password does not match the rules.'),
+            ),
+            const SizedBox(height: 14),
+            TextFormField(
+              key: const Key('register-confirm-password'),
+              controller: _confirmPassword,
+              obscureText: true,
+              decoration: InputDecoration(labelText: l10n.t('Repeat password')),
+              validator: (value) {
+                if ((value ?? '').isEmpty) {
+                  return l10n.t('Repeat password is required.');
+                }
+                if (value != _password.text) {
+                  return l10n.t('Passwords do not match.');
+                }
+                return null;
+              },
               onFieldSubmitted: (_) => _submit(),
             ),
             if (_error != null) ...[

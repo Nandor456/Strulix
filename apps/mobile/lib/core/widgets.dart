@@ -240,6 +240,38 @@ class StatTile extends StatelessWidget {
   }
 }
 
+class SubcontractorAffiliationIcon extends StatelessWidget {
+  const SubcontractorAffiliationIcon({super.key});
+
+  static const _label = 'Subcontractor worker';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      label: translate(_label),
+      child: Tooltip(
+        message: translate(_label),
+        child: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: colors.secondaryContainer,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.handshake_outlined,
+            size: 14,
+            color: colors.onSecondaryContainer,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 Future<bool> confirmAction(
   BuildContext context, {
   required String title,

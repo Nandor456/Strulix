@@ -42,9 +42,16 @@ String formatMonthLabel(int year, int month) {
 }
 
 String formatHours(num? value) {
-  if (value == null) return '0h';
-  final hours = roundToQuarterHours(value);
-  return '${NumberFormat.decimalPattern(_activeLocale).format(hours)}h';
+  final hourUnit = _translate('h');
+  final minuteUnit = _translate('min');
+  if (value == null) return '0$hourUnit';
+  final roundedHours = roundToQuarterHours(value).toDouble();
+  final totalMinutes = (roundedHours * 60).round();
+  final hours = totalMinutes ~/ 60;
+  final minutes = totalMinutes % 60;
+  if (minutes == 0) return '$hours$hourUnit';
+  if (hours == 0) return '$minutes$minuteUnit';
+  return '$hours$hourUnit $minutes$minuteUnit';
 }
 
 String formatMoney(num? value, {bool precise = false}) {

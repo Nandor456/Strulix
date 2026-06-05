@@ -197,7 +197,10 @@ export default function WorkerManagementPage() {
             )}
 
             {!isLoading && workers.length > 0 && (
-                <div className="overflow-hidden rounded-md border">
+                <div className="overflow-hidden rounded-md border bg-card">
+                    <div className="border-b px-4 py-3">
+                        <h2 className="text-sm font-semibold">{t("All workers")}</h2>
+                    </div>
                     <Table>
                         <TableHeader>
                             <TableRow>
