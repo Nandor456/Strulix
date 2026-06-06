@@ -57,6 +57,17 @@ function LoginRedirect() {
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
 }
 
+function PublicRootRoute() {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+
+    if (searchParams.get("token")) {
+        return <Navigate to={`/register${location.search}`} replace />;
+    }
+
+    return <LandingPage />;
+}
+
 function AuthenticatedRoutes() {
     const location = useLocation();
     const isDisplayRoute = location.pathname === "/live-follow/display";
@@ -182,7 +193,7 @@ function App() {
                 <AuthenticatedRoutes />
             ) : (
                 <Routes>
-                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/" element={<PublicRootRoute />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
