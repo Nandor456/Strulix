@@ -156,7 +156,7 @@ function AuthenticatedRoutes() {
                 }
             />
             <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="/register" element={<Navigate to="/" replace />} />
+            <Route path="/register/*" element={<Navigate to="/" replace />} />
             <Route path="/register/success" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -186,7 +186,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/register" element={<Register />} />
+                    <Route path="/register/*" element={<Register />} />
                     <Route path="/register/success" element={<SignupSuccessPage />} />
                     <Route path="/checkin/:qrToken" element={<CheckinPage />} />
                     <Route path="/subcontractors/accept" element={<LoginRedirect />} />

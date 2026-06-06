@@ -54,10 +54,12 @@ function redirectToLogin() {
 
   window.dispatchEvent(new Event(UNAUTHORIZED_EVENT_NAME));
 
+  const pathname = window.location.pathname;
   const isPublicPage =
-    window.location.pathname === "/" ||
-    window.location.pathname === "/login" ||
-    window.location.pathname === "/register";
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname.startsWith("/register/");
   if (!isPublicPage) {
     window.location.replace("/login");
   }
