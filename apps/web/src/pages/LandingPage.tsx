@@ -16,10 +16,6 @@ import {
 import { PublicHeader } from "@/components/public-header";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/hooks/useI18n";
-import {
-  getPublicRegistrationHref,
-  isDevelopmentCompanySignupEnabled,
-} from "@/lib/registration";
 import Viewer from "@/components/3dlogo";
 import { ThreeDText } from "@/components/3dtext";
 
@@ -236,7 +232,6 @@ function FeatureDivider({
 export default function LandingPage() {
   const { t } = useI18n();
   const isDesktop = useIsDesktop();
-  const registrationHref = getPublicRegistrationHref();
 
   const [visibleFeatureIndexes, setVisibleFeatureIndexes] = useState<Set<number>>(
     () => new Set()
@@ -338,15 +333,6 @@ export default function LandingPage() {
                   <Link to="/register?paid=1">
                     {t("Start for €3/user/month")}
                   </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="h-11 w-full border-primary/30 bg-transparent text-primary transition-colors duration-500 ease-out hover:bg-primary/10 hover:text-primary sm:w-auto"
-                >
-                  <Link to={registrationHref}>{t("Register")}</Link>
                 </Button>
 
                 <Button
@@ -585,18 +571,6 @@ export default function LandingPage() {
                 >
                   <Link to="/register?paid=1">
                     {t("Start for €3/user/month")}
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="h-11 w-full border-primary-foreground/25 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:w-auto"
-                >
-                  <Link to={registrationHref}>
-                    {isDevelopmentCompanySignupEnabled
-                      ? t("Create free account")
-                      : t("Register")}
                   </Link>
                 </Button>
               </div>
