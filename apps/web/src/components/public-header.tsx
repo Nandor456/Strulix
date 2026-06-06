@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { useI18n } from "@/hooks/useI18n";
+import { getPublicRegistrationHref } from "@/lib/registration";
 
 
 export function PublicHeader() {
   const { t } = useI18n();
+  const registrationHref = getPublicRegistrationHref();
 
   return (
     <>
@@ -33,7 +35,7 @@ export function PublicHeader() {
               size="lg"
               className="hidden border-red-300 bg-transparent text-red-700 hover:bg-red-50 hover:text-red-800 sm:inline-flex dark:border-red-400/50 dark:text-red-100 dark:hover:bg-red-500/15 dark:hover:text-white"
             >
-              <Link to="/register">{t("Register")}</Link>
+              <Link to={registrationHref}>{t("Register")}</Link>
             </Button>
             <Button
               asChild

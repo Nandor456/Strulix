@@ -54,9 +54,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Copied!": "Copiat!",
     "Copy invite link": "Copiază linkul invitației",
     "Create account": "Creează cont",
-    "Create first administrator": "Creează primul administrator",
-    "Create the first company administrator":
-      "Creează primul administrator al companiei",
     "Create workpoint": "Creează punct de lucru",
     "Create your account": "Creează-ți contul",
     "Creating account…": "Se creează contul…",
@@ -154,8 +151,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Need access?": "Ai nevoie de acces?",
     "New company registration will open after payment is available. For now, use an invitation link or request access.":
       "Înregistrarea companiilor noi se va deschide după ce plata este disponibilă. Deocamdată, folosește un link de invitație sau solicită acces.",
-    "For first-time setup on an empty database, use the bootstrap registration flow.":
-      "Pentru configurarea inițială pe o bază de date goală, folosește fluxul de înregistrare bootstrap.",
     "New workpoint": "Punct de lucru nou",
     "No account?": "Nu ai cont?",
     "No attendance recorded here for {periodLabel}.":
@@ -308,8 +303,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Strulix logo": "Sigla Strulix",
     "Strulix keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.":
       "Strulix conectează munca de pe șantier, verificarea din birou și autoservirea muncitorilor fără încă un tabel dezordonat.",
-    "Bootstrap registration only works when it is enabled on the API and no company exists yet.":
-      "Înregistrarea bootstrap funcționează doar când este activată în API și nu există încă nicio companie.",
     "Built for the daily rhythm of construction work":
       "Creat pentru ritmul zilnic al lucrărilor de construcții",
     "Platform capabilities": "Capabilitățile platformei",
@@ -585,6 +578,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Completing your signup": "Se finalizează înregistrarea",
     "Continue to payment": "Continuă la plată",
     "Create your company workspace": "Creează spațiul companiei",
+    "Development mode allows company signup without payment.":
+      "Modul de dezvoltare permite înregistrarea companiei fără plată.",
     "Current period ends {date}": "Perioada curentă se încheie la {date}",
     "Current status": "Stare curentă",
     "Failed to complete paid registration":
@@ -722,9 +717,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Copied!": "Másolva!",
     "Copy invite link": "Meghívó link másolása",
     "Create account": "Fiók létrehozása",
-    "Create first administrator": "Első adminisztrátor létrehozása",
-    "Create the first company administrator":
-      "Az első céges adminisztrátor létrehozása",
     "Create workpoint": "Munkapont létrehozása",
     "Create your account": "Hozd létre a fiókodat",
     "Creating account…": "Fiók létrehozása folyamatban…",
@@ -823,8 +815,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Need access?": "Hozzáférésre van szükséged?",
     "New company registration will open after payment is available. For now, use an invitation link or request access.":
       "Az új cégek regisztrációja a fizetés elérhetősége után nyílik meg. Addig használj meghívó linket, vagy kérj hozzáférést.",
-    "For first-time setup on an empty database, use the bootstrap registration flow.":
-      "Első beállításkor üres adatbázisnál használd a bootstrap regisztrációs folyamatot.",
     "New workpoint": "Új munkapont",
     "No account?": "Nincs fiókod?",
     "No attendance recorded here for {periodLabel}.":
@@ -977,8 +967,6 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Strulix logo": "Strulix logo",
     "Strulix keeps field work, office review, and worker self-service connected without adding another messy spreadsheet.":
       "A Strulix összeköti a terepi munkát, az irodai ellenőrzést és a dolgozói önkiszolgálást egy újabb rendezetlen táblázat nélkül.",
-    "Bootstrap registration only works when it is enabled on the API and no company exists yet.":
-      "A bootstrap regisztráció csak akkor működik, ha engedélyezve van az API-ban, és még nem létezik cég.",
     "Built for the daily rhythm of construction work":
       "Az építőipari munka napi ritmusára építve",
     "Platform capabilities": "Platformképességek",
@@ -1254,6 +1242,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Completing your signup": "A regisztráció befejezése",
     "Continue to payment": "Tovább a fizetéshez",
     "Create your company workspace": "Céges munkaterület létrehozása",
+    "Development mode allows company signup without payment.":
+      "Fejlesztői módban a cég regisztrációja fizetés nélkül is engedélyezett.",
     "Current period ends {date}": "Az aktuális időszak vége: {date}",
     "Current status": "Aktuális állapot",
     "Failed to complete paid registration":

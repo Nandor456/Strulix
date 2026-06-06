@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { useI18n } from "@/hooks/useI18n";
+import { getPublicRegistrationHref } from "@/lib/registration";
 import { translateApiErrorMessage } from "@/lib/apiErrors";
 import { api } from "@/services/api/axios";
 import { resetUserScopedQueries } from "../services/queryClient";
@@ -25,6 +26,7 @@ export default function Login() {
   const queryClient = useQueryClient();
   const { refreshUser } = useAuth();
   const { t } = useI18n();
+  const registrationHref = getPublicRegistrationHref();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -81,7 +83,7 @@ export default function Login() {
       )}
       footer={
         <div className="flex items-center justify-end">
-          <Link to="/register" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+          <Link to={registrationHref} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
             {t("Create account")}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>

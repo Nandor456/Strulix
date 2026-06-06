@@ -16,6 +16,9 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { useI18n } from "@/hooks/useI18n";
 import { translateApiErrorMessage } from "@/lib/apiErrors";
+import {
+  isDevelopmentCompanySignupEnabled,
+} from "@/lib/registration";
 import { api } from "@/services/api/axios";
 import { billingAPI } from "@/services/api/billingApi";
 import { resetUserScopedQueries } from "../services/queryClient";
@@ -35,13 +38,18 @@ export default function Register() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const prefilledEmail = searchParams.get("email") ?? "";
-  const isBootstrapMode =
-    searchParams.get("bootstrap") === "1" ||
-    searchParams.get("bootstrap") === "true";
   const isPaidSignupMode =
     searchParams.get("paid") === "1" ||
     searchParams.get("paid") === "true";
-  const showRegistrationForm = Boolean(token) || isBootstrapMode || isPaidSignupMode;
+  const isDevelopmentSignupMode =
+    isDevelopmentCompanySignupEnabled &&
+    !token &&
+    !isPaidSignupMode;
+  const showRegistrationForm =
+    Boolean(token) ||
+    isPaidSignupMode ||
+    isDevelopmentSignupMode;
+  const requiresCompanyName = isPaidSignupMode || isDevelopmentSignupMode;
 
   const [username, setUsername] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -71,7 +79,7 @@ export default function Register() {
     }
 
     const trimmedCompanyName = companyName.trim();
-    if ((isBootstrapMode || isPaidSignupMode) && !trimmedCompanyName) {
+    if (requiresCompanyName && !trimmedCompanyName) {
       setError(t("Company name is required."));
       return;
     }
@@ -110,7 +118,7 @@ export default function Register() {
         email: trimmedEmail,
         password,
         confirmPassword,
-        ...(isBootstrapMode ? { companyName: trimmedCompanyName } : {}),
+        ...(requiresCompanyName ? { companyName: trimmedCompanyName } : {}),
         ...(token ? { token } : {}),
       });
 
@@ -146,13 +154,13 @@ export default function Register() {
 
   const registerTitle = isPaidSignupMode
     ? t("Create your company workspace")
-    : isBootstrapMode
-      ? t("Create the first company administrator")
+    : isDevelopmentSignupMode
+      ? t("Create your company workspace")
       : t("Create your account");
   const registerSubtitle = isPaidSignupMode
     ? t("Your subscription starts at €3 per active user each month after checkout.")
-    : isBootstrapMode
-      ? t("Bootstrap registration only works when it is enabled on the API and no company exists yet.")
+    : isDevelopmentSignupMode
+      ? t("Development mode allows company signup without payment.")
       : t("Join the Construction ERP system");
 
   return (
@@ -184,9 +192,9 @@ export default function Register() {
             {t("Your subscription starts at €3 per active user each month after checkout.")}
           </Alert>
         )}
-        {isBootstrapMode && (
+        {isDevelopmentSignupMode && (
           <Alert>
-            {t("Bootstrap registration only works when it is enabled on the API and no company exists yet.")}
+            {t("Development mode allows company signup without payment.")}
           </Alert>
         )}
 
@@ -208,7 +216,7 @@ export default function Register() {
             </div>
           </div>
 
-          {(isBootstrapMode || isPaidSignupMode) && (
+          {requiresCompanyName && (
             <div className="space-y-1.5">
               <Label htmlFor="register-company">{t("Company name")}</Label>
               <div className="relative">
@@ -323,20 +331,10 @@ function InviteOnlyRegistrationNotice() {
       )}
     >
       <div className="space-y-5">
-        <Alert>
-          {t(
-            "For first-time setup on an empty database, use the bootstrap registration flow.",
-          )}
-        </Alert>
         <div className="grid gap-3">
           <Button asChild size="lg" className="h-11 rounded-xl font-semibold shadow-sm">
             <RouterLink to="/register?paid=1">
               {t("Start paid signup")}
-            </RouterLink>
-          </Button>
-          <Button asChild variant="secondary" size="lg" className="h-11 rounded-xl font-semibold shadow-sm">
-            <RouterLink to="/register?bootstrap=1">
-              {t("Create first administrator")}
             </RouterLink>
           </Button>
           <Button asChild variant="outline" size="lg" className="h-11 rounded-xl font-semibold">

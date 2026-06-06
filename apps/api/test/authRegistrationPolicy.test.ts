@@ -1,29 +1,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  canCreateBootstrapCompany,
-  isBootstrapRegistrationEnabled,
+  canCreateUnpaidCompany,
+  isNonProductionEnvironment,
 } from "../src/services/authService.js";
 
-test("bootstrap registration flag only accepts true", () => {
-  assert.equal(isBootstrapRegistrationEnabled("true"), true);
-  assert.equal(isBootstrapRegistrationEnabled(" TRUE "), true);
-  assert.equal(isBootstrapRegistrationEnabled("false"), false);
-  assert.equal(isBootstrapRegistrationEnabled(undefined), false);
-});
-
-test("bootstrap company registration requires the flag", () => {
+test("unpaid company registration is enabled only outside production", () => {
   assert.equal(
-    canCreateBootstrapCompany({
-      allowBootstrapRegistration: true,
-    }),
-    true,
-  );
-
-  assert.equal(
-    canCreateBootstrapCompany({
-      allowBootstrapRegistration: false,
+    canCreateUnpaidCompany({
+      isNonProduction: false,
     }),
     false,
   );
+
+  assert.equal(
+    canCreateUnpaidCompany({
+      isNonProduction: true,
+    }),
+    true,
+  );
+});
+
+test("non-production environment detection only blocks production", () => {
+  assert.equal(isNonProductionEnvironment("production"), false);
+  assert.equal(isNonProductionEnvironment("development"), true);
+  assert.equal(isNonProductionEnvironment("test"), true);
+  assert.equal(isNonProductionEnvironment(""), false);
 });

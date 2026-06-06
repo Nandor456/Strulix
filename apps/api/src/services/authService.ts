@@ -26,16 +26,16 @@ export class RegistrationError extends Error {
   }
 }
 
-export function isBootstrapRegistrationEnabled(
-  value = process.env.ALLOW_BOOTSTRAP_REGISTRATION,
+export function isNonProductionEnvironment(
+  value = process.env.NODE_ENV,
 ) {
-  return value?.trim().toLowerCase() === "true";
+  return value === "development" || value === "test";
 }
 
-export function canCreateBootstrapCompany(params: {
-  allowBootstrapRegistration: boolean;
+export function canCreateUnpaidCompany(params: {
+  isNonProduction: boolean;
 }) {
-  return params.allowBootstrapRegistration;
+  return params.isNonProduction;
 }
 
 export async function register(
@@ -59,7 +59,11 @@ export async function register(
     role = consumed.role;
     companyId = consumed.companyId;
   } else {
-    if (!isBootstrapRegistrationEnabled()) {
+    if (
+      !canCreateUnpaidCompany({
+        isNonProduction: isNonProductionEnvironment(),
+      })
+    ) {
       throw new RegistrationError(
         "Registration is invite-only until payment is available.",
         403,
@@ -67,17 +71,6 @@ export async function register(
     }
 
     return prisma.$transaction(async (tx) => {
-      if (
-        !canCreateBootstrapCompany({
-          allowBootstrapRegistration: true,
-        })
-      ) {
-        throw new RegistrationError(
-          "Registration is invite-only until payment is available.",
-          403,
-        );
-      }
-
       const trimmedCompanyName = companyName?.trim();
       if (!trimmedCompanyName) {
         throw new Error("Company name is required");

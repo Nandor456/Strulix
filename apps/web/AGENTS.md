@@ -5,7 +5,7 @@
 - Framework: React 19 + Vite + TypeScript (ESM)
 - Styling: Tailwind CSS v4 via @tailwindcss/vite in vite.config.ts
 - Entry: src/main.tsx mounts App into #root, imports src/index.css, and wraps the app with `I18nProvider`, `ThemeProvider`, `TooltipProvider`, `AuthProvider`, and `MessagingSocketProvider`
-- Unauthenticated `/` shows the public landing page; `/register` is invite-only unless explicitly opened in bootstrap mode with `/register?bootstrap=1`; paid company signup starts at `/register?paid=1` and completes at `/register/success?session_id=...`
+- Unauthenticated `/` shows the public landing page; `/register` allows direct unpaid company signup in development and is invite-only in production unless using paid signup at `/register?paid=1`; paid company signup completes at `/register/success?session_id=...`
 - API access defaults to same-origin `/api` in the browser; Vite proxies `/api`, `/socket.io`, and `/uploads` to the backend in dev
 - Env loading: Vite mode files are used normally (`.env.development`, `.env.production`); `VITE_API_PROXY_TARGET` is read in `vite.config.ts` and `VITE_API_BASE_URL` is read in browser code
 - Public landing includes a Stripe signup CTA; `VITE_REQUEST_ACCESS_URL` is still available for request-access links

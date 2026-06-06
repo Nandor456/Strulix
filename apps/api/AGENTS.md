@@ -18,7 +18,6 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 - Required env: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, plus either `DATABASE_URL` or the `DB_*` variables needed to build it
 - Production should set `FRONTEND_BASE_URL`, `APP_BASE_URL`, and `CORS_ALLOWED_ORIGINS`
 - Optional env: `PORT` (default 4000), `ATTENDANCE_TIMEZONE`, `AUTH_COOKIE_SAME_SITE`, `FIREBASE_SERVICE_ACCOUNT_JSON`, SMTP vars for mail
-- Optional bootstrap env: `ALLOW_BOOTSTRAP_REGISTRATION=true` permits the first company/admin signup only when no companies exist; keep it off otherwise
 - Stripe billing env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, `STRIPE_TAX_ENABLED=true`
 - CORS uses `CORS_ALLOWED_ORIGINS`/`FRONTEND_BASE_URL` and still allows localhost origins outside production
 - If the frontend calls the API from a different site in production, set `AUTH_COOKIE_SAME_SITE=none` so auth cookies can be sent cross-site
@@ -35,7 +34,7 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 
 `POST /api/auth/register`
 - Body: `{ username, email, password, companyName?, token? }`
-- Without `token`, creates a new company and its sole `ADMIN` only when `ALLOW_BOOTSTRAP_REGISTRATION=true` and the database has zero companies; `companyName` is required.
+- Without `token`, creates a new company and its sole `ADMIN` only outside production; `companyName` is required.
 - With `token`, joins the invitation's company as `LEADER` or `WORKER`; `companyName` is ignored.
 - Response: `{ id }` and auth cookies set.
 
