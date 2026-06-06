@@ -25,7 +25,7 @@ function getStoredThemeMode(): ThemeMode | null {
 
 function getSystemThemeMode(): ThemeMode {
   if (typeof window === "undefined") {
-    return "light";
+    return "dark";
   }
 
   return window.matchMedia(DARK_MODE_QUERY).matches ? "dark" : "light";

@@ -23,7 +23,6 @@ type LandingFeature = {
   title: string;
   eyebrow: string;
   description: string;
-  details: string[];
   imageFileName: string;
   icon: LucideIcon;
   accent: string;
@@ -35,11 +34,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Smart Attendance",
     eyebrow: "QR attendance",
     description:
-      "Employees can check in and check out by scanning a secure QR code from their phone.",
-    details: [
-      "Attendance is linked to a specific workpoint, and check-in is only allowed when the employee is within 200 meters of that location.",
-      "Managers can generate Excel reports for any selected period, including attendance records, total worked hours, and salary calculations.",
-    ],
+      "Employees can check in and check out by scanning a secure QR code from their phone. Attendance is linked to a specific workpoint, and check-in is only allowed when the employee is within 200 meters of that location.\nManagers can generate Excel reports for any selected period, including attendance records, total worked hours, and salary calculations.",
     imageFileName: "smart-attendance.jpg",
     icon: QrCode,
     accent: "bg-emerald-600",
@@ -49,11 +44,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Live Follow Dashboard",
     eyebrow: "Real-time overview",
     description:
-      "Strulix provides a real-time overview of all workpoints in one place.",
-    details: [
-      "The dashboard is optimized for wide screens and can be displayed on a TV.",
-      "Managers can instantly see the latest check-ins and check-outs across all locations.",
-    ],
+      "Strulix provides a real-time overview of all workpoints in one place. The dashboard is optimized for wide screens and can be displayed on a TV, allowing managers to instantly see the latest check-ins and check-outs across all locations.",
     imageFileName: "live-follow-dashboard.jpg",
     icon: Tv,
     accent: "bg-red-600",
@@ -63,11 +54,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Integrated Chat",
     eyebrow: "Team messaging",
     description:
-      "Teams can communicate directly inside Strulix through the built-in messaging system.",
-    details: [
-      "Work-related communication stays organized.",
-      "Teams reduce the need to switch between different messaging apps.",
-    ],
+      "Teams can communicate directly inside Strulix through the built-in messaging system. This keeps work-related communication organized and reduces the need to switch between different messaging apps.",
     imageFileName: "integrated-chat.jpg",
     icon: MessageSquareText,
     accent: "bg-emerald-600",
@@ -77,11 +64,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Leave Calendar",
     eyebrow: "Absence planning",
     description:
-      "Employees can request sick leave or vacation days through the calendar.",
-    details: [
-      "Managers can approve or deny requests.",
-      "Leaders can quickly see who will be absent during the week, helping with planning and scheduling.",
-    ],
+      "Employees can request sick leave or vacation days through the calendar. Managers can approve or deny requests and easily see which employees will be absent during the week, helping with planning and scheduling.",
     imageFileName: "leave-calendar.jpg",
     icon: CalendarDays,
     accent: "bg-red-600",
@@ -91,11 +74,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Employee Invitations",
     eyebrow: "Fast onboarding",
     description:
-      "Administrators can invite employees by entering their email address and selecting their role.",
-    details: [
-      "Supported roles include Worker and Leader.",
-      "The invited user receives an email and can join the company through the invitation link.",
-    ],
+      "Administrators can invite employees by entering their email address and selecting their role, such as Worker or Leader. The invited user receives an email and can join the company through the invitation link.",
     imageFileName: "employee-invitations.jpg",
     icon: UserPlus,
     accent: "bg-emerald-600",
@@ -105,11 +84,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Subcontractor Support",
     eyebrow: "Partner access",
     description:
-      "If a workpoint involves subcontractors, companies can invite partner companies.",
-    details: [
-      "Partner workers can check in at the assigned workpoint.",
-      "Their attendance is included in the workpoint summary and reports.",
-    ],
+      "If a workpoint involves subcontractors, companies can invite partner companies and allow their workers to check in at the workpoint. Their attendance is included in the workpoint summary and reports.",
     imageFileName: "subcontractor-support.jpg",
     icon: Building2,
     accent: "bg-red-600",
@@ -119,11 +94,7 @@ const landingFeatures: LandingFeature[] = [
     title: "Worker View",
     eyebrow: "Clear records",
     description:
-      "Workers can track their own attendance, worked hours, and estimated salary.",
-    details: [
-      "Employees get clear access to their own records.",
-      "This helps avoid confusion at the end of the month.",
-    ],
+      "Workers can track their own attendance, worked hours, and estimated salary. This helps avoid confusion at the end of the month and gives employees clear access to their own records.",
     imageFileName: "worker-view.jpg",
     icon: Users,
     accent: "bg-emerald-600",
@@ -134,28 +105,10 @@ const landingFeatures: LandingFeature[] = [
     eyebrow: "iOS and Android",
     description:
       "Strulix is available on both iOS and Android, making it easy for workers to access the platform quickly from their phones.",
-    details: [
-      "Workers can use the platform directly on the device they already carry.",
-      "Mobile access keeps attendance and team updates close to the worksite.",
-    ],
     imageFileName: "mobile-app.jpg",
     icon: Smartphone,
     accent: "bg-red-600",
     accentSoft: "bg-red-600/10",
-  },
-  {
-    title: "Simple Pricing",
-    eyebrow: "Flexible billing",
-    description:
-      "Strulix uses a flexible per-user pricing model. Each active user adds €3 to the monthly subscription.",
-    details: [
-      "If a user joins in the middle of the month, the cost is calculated proportionally.",
-      "For example, if an employee is added halfway through the month, the cost for that user is only €1.50 for that month.",
-    ],
-    imageFileName: "simple-pricing.jpg",
-    icon: BadgeEuro,
-    accent: "bg-emerald-600",
-    accentSoft: "bg-emerald-600/10",
   },
 ];
 
@@ -180,20 +133,22 @@ function LandingFeaturePreview({
   const [imageUnavailable, setImageUnavailable] = useState(false);
 
   return (
-    <div className="flex h-full min-h-70 items-center justify-center rounded-[8px] border border-border/70 bg-muted/35 p-3">
-      <div
-        className={`relative w-full overflow-hidden rounded-[8px] border border-border/70 bg-card shadow-sm transition duration-700 ease-out ${isVisible
-          ? "translate-x-0 opacity-100"
-          : isReversed
-            ? "-translate-x-6 opacity-0"
-            : "translate-x-6 opacity-0"
-          }`}
-        style={{
-          transitionDelay: isVisible
-            ? `${Math.min(index * 45, 180) + 120}ms`
-            : "0ms",
-        }}
-      >
+    <div
+      className={`flex h-full min-h-70 items-center justify-center rounded-[8px] border border-border/70 bg-muted/35 p-3 ${isReversed ? "lg:translate-x-8 xl:translate-x-12" : ""
+        }`}
+    >      <div
+      className={`relative w-full overflow-hidden rounded-[8px] border border-border/70 bg-card shadow-sm transition duration-700 ease-out ${isVisible
+        ? "translate-x-0 opacity-100"
+        : isReversed
+          ? "-translate-x-6 opacity-0"
+          : "translate-x-6 opacity-0"
+        }`}
+      style={{
+        transitionDelay: isVisible
+          ? `${Math.min(index * 45, 180) + 120}ms`
+          : "0ms",
+      }}
+    >
         {!imageUnavailable ? (
           <div className="flex min-h-[280px] items-center justify-center bg-card p-3 sm:min-h-[320px]">
             <img
@@ -476,7 +431,7 @@ export default function LandingPage() {
                       />
 
                       <div
-                        className="relative min-h-[340px] w-full overflow-hidden border-b border-border/70 bg-muted/30 lg:min-h-0 lg:w-[57%] lg:border-b-0"
+                        className="order-2 relative min-h-[340px] w-full overflow-hidden border-b border-border/70 bg-muted/30 lg:order-none lg:min-h-0 lg:w-[57%] lg:border-b-0"
                         style={{
                           clipPath: isDesktop
                             ? isReversed
@@ -498,7 +453,7 @@ export default function LandingPage() {
                             }`}
                         />
 
-                        <div className="relative z-10 flex h-full min-h-[340px] items-center justify-center p-4 sm:p-6 lg:min-h-[560px] lg:p-8">
+                        <div className="relative z-10 flex w-240 h-full min-h-[340px] items-center justify-center p-4 sm:p-6 lg:min-h-[560px] lg:p-8">
                           <LandingFeaturePreview
                             feature={feature}
                             isVisible={isVisible}
@@ -525,7 +480,7 @@ export default function LandingPage() {
                       </div>
 
                       <div
-                        className={`relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-8 lg:w-[50%] lg:px-16 lg:py-24 ${isReversed ? "lg:-mr-[7%]" : "lg:-ml-[7%]"
+                        className={`order-1 relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-8 lg:order-none lg:w-[50%] lg:px-16 lg:py-24 ${isReversed ? "lg:-mr-[7%]" : "lg:-ml-[7%]"
                           }`}
                         style={{
                           opacity: isVisible ? 1 : 0,
@@ -588,34 +543,6 @@ export default function LandingPage() {
                         <p className="relative mt-5 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
                           {t(feature.description)}
                         </p>
-
-                        <div className="relative mt-7 space-y-3">
-                          {feature.details.map((detail) => (
-                            <div key={detail} className="flex gap-3">
-                              <span
-                                className={`mt-2 h-2 w-2 shrink-0 rotate-45 ${feature.accent}`}
-                              />
-                              <p className="text-sm leading-6 text-muted-foreground">
-                                {t(detail)}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="relative mt-10 border-t border-border/70 pt-6">
-                          <div className="flex flex-wrap gap-2">
-                            {[t("Live data"), t("Clear control"), t("Team ready")].map(
-                              (tag) => (
-                                <span
-                                  key={tag}
-                                  className="border border-border/70 bg-primary/5 px-3 py-1.5 text-[9px] uppercase tracking-[3px] text-muted-foreground transition-colors duration-300 group-hover:border-primary/30 group-hover:text-primary"
-                                >
-                                  {tag}
-                                </span>
-                              )
-                            )}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </article>
@@ -634,31 +561,65 @@ export default function LandingPage() {
 
         {/* ── Final CTA ─────────────────────────────────────────────────── */}
         <section className="border-t border-border bg-primary px-4 py-14 text-primary-foreground sm:px-6 sm:py-20 lg:px-8">
-          <div className="mx-auto max-w-7xl text-center">
-            <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">
-              {t("Ready to bring your sites online?")}
-            </h2>
-            <p className="mt-3 text-sm text-primary-foreground/70 sm:mt-4 sm:text-base">
-              {t("Start free, pay only when your team grows.")}
-            </p>
-            <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center">
-              <Button
-                asChild
-                size="lg"
-                className="h-11 w-full bg-card text-card-foreground hover:bg-card/90 sm:w-auto"
-              >
-                <Link to="/register?paid=1">
-                  {t("Start for €3/user/month")}
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-11 w-full border-primary-foreground/25 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:w-auto"
-              >
-                <Link to="/register">{t("Create free account")}</Link>
-              </Button>
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center lg:gap-12">
+            <div className="text-center lg:text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground/70">
+                {t("Simple Pricing")}
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold sm:text-3xl lg:text-4xl">
+                {t("Ready to bring your sites online?")}
+              </h2>
+              <p className="mt-3 text-sm text-primary-foreground/70 sm:mt-4 sm:text-base">
+                {t("Start free, pay only when your team grows.")}
+              </p>
+              <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center lg:justify-start">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-11 w-full bg-card text-card-foreground hover:bg-card/90 sm:w-auto"
+                >
+                  <Link to="/register?paid=1">
+                    {t("Start for €3/user/month")}
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-11 w-full border-primary-foreground/25 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground sm:w-auto"
+                >
+                  <Link to="/register">{t("Create free account")}</Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-[8px] border border-primary-foreground/15 bg-primary-foreground/10 p-5 backdrop-blur sm:p-6">
+              <div className="flex items-start gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] bg-card text-card-foreground shadow-sm">
+                  <BadgeEuro className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-primary-foreground/70">
+                    {t("Flexible billing")}
+                  </p>
+                  <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    {t("Start for €3/user/month")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3 text-sm leading-6 text-primary-foreground/80 sm:text-[15px]">
+                <p>
+                  {t(
+                    "Strulix uses a flexible per-user pricing model. Each active user adds €3 to the monthly subscription."
+                  )}
+                </p>
+                <p>
+                  {t(
+                    "If a user joins in the middle of the month, the cost is calculated proportionally."
+                  )}
+                </p>
+              </div>
             </div>
           </div>
         </section>
