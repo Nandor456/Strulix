@@ -5,6 +5,7 @@ import "./authRegistrationPolicy.test.js";
 import "./billingPolicy.test.js";
 import "./passwordResetPolicy.test.js";
 import "./liveFollowPolicy.test.js";
+import "./attendanceLocationPolicy.test.js";
 import "./attendanceAutoAssignmentPolicy.test.js";
 import "./subcontractorAccessPolicy.test.js";
 import "./leaderWorkPointAccessPolicy.test.js";

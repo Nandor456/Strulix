@@ -108,6 +108,8 @@ model User {
   pushDevices                PushDevice[]
   leaveRequests              LeaveRequest[]      @relation("LeaveRequestUser")
   reviewedLeaveRequests      LeaveRequest[]      @relation("LeaveRequestReviewer")
+  attendanceLocationAlerts   AttendanceLocationAlert[] @relation("WorkerAttendanceLocationAlerts")
+  reviewedAttendanceLocationAlerts AttendanceLocationAlert[] @relation("ReviewedAttendanceLocationAlerts")
   sentSubcontractorInvites   CompanySubcontractorAccess[] @relation("SubcontractorInvitedBy")
   acceptedSubcontractorInvites CompanySubcontractorAccess[] @relation("SubcontractorAcceptedBy")
 
@@ -130,6 +132,7 @@ model WorkPoint {
   user        User?               @relation(fields: [userId], references: [id])
   workers     User[]              @relation("WorkPointWorkers")
   attendances Attendance[]
+  attendanceLocationAlerts AttendanceLocationAlert[]
   documents   WorkPointDocument[]
   chat        Chat?
 
@@ -193,13 +196,74 @@ model Attendance {
   checkedOutAt   DateTime? @map("checked_out_at")
   checkoutSource String?   @map("checkout_source")
   source         String
+  monitoringStatus    String    @default("PENDING") @map("monitoring_status")
+  monitoringPlatform  String?   @map("monitoring_platform")
+  monitoringStartedAt DateTime? @map("monitoring_started_at")
 
   worker    User      @relation(fields: [workerId], references: [id], onDelete: Cascade)
   workPoint WorkPoint @relation(fields: [workPointId], references: [id], onDelete: Cascade)
+  locationChecks AttendanceLocationCheck[]
+  locationAlerts AttendanceLocationAlert[]
 
   @@unique([workerId, workPointId, date])
   @@index([workPointId, date])
+  @@index([checkedOutAt, monitoringStatus])
   @@map("attendances")
+}
+
+model AttendanceLocationCheck {
+  id             String    @id @default(uuid())
+  attendanceId   String    @map("attendance_id")
+  dueAt          DateTime  @map("due_at")
+  capturedAt     DateTime? @map("captured_at")
+  receivedAt     DateTime? @map("received_at")
+  status         String
+  distanceMeters Float?    @map("distance_meters")
+  lat            Float?
+  lng            Float?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  alerts     AttendanceLocationAlert[]
+
+  @@unique([attendanceId, dueAt])
+  @@index([status, dueAt])
+  @@map("attendance_location_checks")
+}
+
+model AttendanceLocationAlert {
+  id             String    @id @default(uuid())
+  attendanceId   String    @map("attendance_id")
+  checkId        String?   @map("check_id")
+  workPointId    String    @map("work_point_id")
+  workerId       String    @map("worker_id")
+  type           String
+  status         String    @default("OPEN")
+  dueAt          DateTime? @map("due_at")
+  capturedAt     DateTime? @map("captured_at")
+  distanceMeters Float?    @map("distance_meters")
+  lat            Float?
+  lng            Float?
+  dedupeKey      String    @unique @map("dedupe_key")
+  reviewOutcome  String?   @map("review_outcome")
+  reviewNote     String?   @map("review_note")
+  reviewedBy     String?   @map("reviewed_by")
+  reviewedAt     DateTime? @map("reviewed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  check      AttendanceLocationCheck? @relation(fields: [checkId], references: [id], onDelete: SetNull)
+  workPoint  WorkPoint  @relation(fields: [workPointId], references: [id], onDelete: Cascade)
+  worker     User       @relation("WorkerAttendanceLocationAlerts", fields: [workerId], references: [id], onDelete: Cascade)
+  reviewer   User?      @relation("ReviewedAttendanceLocationAlerts", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([workPointId, status, createdAt])
+  @@index([workerId, createdAt])
+  @@index([attendanceId])
+  @@index([type])
+  @@map("attendance_location_alerts")
 }
 
 model WorkerDocument {

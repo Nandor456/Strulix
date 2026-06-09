@@ -17,8 +17,21 @@ import {
   getMyMonthlySummary,
   computeBillableHours,
 } from "../services/attendanceService.js";
+import {
+  getAttendanceLocationAlertObserverUserIds,
+  listAttendanceLocationAlerts,
+  listOpenAttendancesForWorker,
+  recordAttendanceLocationCheck,
+  reviewAttendanceLocationAlert,
+  type AttendanceLocationAlertDTO,
+} from "../services/attendanceLocationService.js";
+import { notifyAttendanceLocationAlertRecipients } from "../services/pushNotificationService.js";
 import { getWorkPointChatId } from "../services/messagingService.js";
-import { emitAttendanceChanged, emitChatChanged } from "../realtime/socketServer.js";
+import {
+  emitAttendanceChanged,
+  emitAttendanceLocationAlertChanged,
+  emitChatChanged,
+} from "../realtime/socketServer.js";
 
 function notifyAttendanceChanged(params: {
   workPointId: string;
@@ -42,6 +55,38 @@ function notifyAttendanceChanged(params: {
       );
     } catch (error) {
       console.error("notifyAttendanceChanged error:", error);
+    }
+  })();
+}
+
+export function notifyAttendanceLocationAlertChanged(
+  alert: AttendanceLocationAlertDTO,
+) {
+  void (async () => {
+    try {
+      const userIds = await getAttendanceLocationAlertObserverUserIds(
+        alert.workPointId,
+      );
+      emitAttendanceLocationAlertChanged(
+        {
+          alertId: alert.id,
+          workPointId: alert.workPointId,
+          attendanceId: alert.attendanceId,
+          workerId: alert.workerId,
+          type: alert.type,
+          status: alert.status,
+          changedAt: new Date().toISOString(),
+        },
+        userIds,
+      );
+      void notifyAttendanceLocationAlertRecipients({
+        alert,
+        recipientIds: userIds,
+      }).catch((error) => {
+        console.error("[push] attendance location alert error:", error);
+      });
+    } catch (error) {
+      console.error("notifyAttendanceLocationAlertChanged error:", error);
     }
   })();
 }
@@ -79,6 +124,7 @@ export async function checkinController(
     qrToken: string;
     lat: number;
     lng: number;
+    monitoringPlatform?: "ios" | "android" | "web";
   };
 
   try {
@@ -89,6 +135,11 @@ export async function checkinController(
       qrToken,
       workerLocation: { lat, lng },
       source: "QR",
+      monitoringPlatform: req.body.monitoringPlatform as
+        | "ios"
+        | "android"
+        | "web"
+        | undefined,
     });
     if (result.result.event !== "ALREADY_COMPLETED") {
       notifyAttendanceChanged({
@@ -98,6 +149,9 @@ export async function checkinController(
     }
     if (result.workerAssociated) {
       notifyWorkPointChatChanged(result.result.workPointId, [userId]);
+    }
+    if (result.locationAlert) {
+      notifyAttendanceLocationAlertChanged(result.locationAlert);
     }
     res.json(result.result);
   } catch (err: unknown) {
@@ -121,6 +175,133 @@ export async function checkinController(
       }
     }
     console.error("checkinController error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function getMyOpenAttendancesController(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  try {
+    const attendances = await listOpenAttendancesForWorker(req.auth!.userId);
+    res.json({ attendances });
+  } catch (err) {
+    console.error("getMyOpenAttendancesController error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function recordLocationCheckController(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const {
+    attendanceId,
+    dueAt: dueAtStr,
+    capturedAt: capturedAtStr,
+    lat,
+    lng,
+  } = req.body as {
+    attendanceId: string;
+    dueAt: string;
+    capturedAt: string;
+    lat: number;
+    lng: number;
+  };
+
+  try {
+    const result = await recordAttendanceLocationCheck({
+      workerId: req.auth!.userId,
+      attendanceId,
+      dueAt: new Date(dueAtStr),
+      capturedAt: new Date(capturedAtStr),
+      location: { lat, lng },
+    });
+    if (result.alert) {
+      notifyAttendanceLocationAlertChanged(result.alert);
+    }
+    res.status(201).json(result);
+  } catch (err: unknown) {
+    if (typeof err === "object" && err !== null && "code" in err) {
+      const code = (err as { code: string }).code;
+      if (code === "NOT_FOUND") {
+        res.status(404).json({ error: "Open monitored attendance not found" });
+        return;
+      }
+      if (code === "INVALID") {
+        res.status(400).json({ error: err instanceof Error ? err.message : "Invalid" });
+        return;
+      }
+      if (code === "MISSING_COORDINATES") {
+        res.status(409).json({
+          error: err instanceof Error ? err.message : "Workpoint coordinates are missing",
+        });
+        return;
+      }
+    }
+    console.error("recordLocationCheckController error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function listLocationAlertsController(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  try {
+    const alerts = await listAttendanceLocationAlerts({
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+      workPointId:
+        typeof req.query.workPointId === "string"
+          ? req.query.workPointId
+          : undefined,
+      status:
+        typeof req.query.status === "string"
+          ? (req.query.status as "OPEN" | "REVIEWED" | "ALL")
+          : "OPEN",
+    });
+    res.json({ alerts });
+  } catch (err) {
+    console.error("listLocationAlertsController error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function reviewLocationAlertController(
+  req: AuthenticatedRequest<{ id: string }>,
+  res: Response,
+): Promise<void> {
+  const { id } = req.params;
+  const { outcome, note } = req.body as {
+    outcome: "VALID" | "INVALID";
+    note?: string | null;
+  };
+
+  try {
+    const alert = await reviewAttendanceLocationAlert({
+      alertId: id,
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+      outcome,
+      note,
+    });
+    notifyAttendanceLocationAlertChanged(alert);
+    res.json({ alert });
+  } catch (err: unknown) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "NOT_FOUND"
+    ) {
+      res.status(404).json({ error: "Attendance location alert not found" });
+      return;
+    }
+    console.error("reviewLocationAlertController error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 }

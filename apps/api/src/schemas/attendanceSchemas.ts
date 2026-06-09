@@ -7,6 +7,32 @@ export const checkinSchema = z.object({
     qrToken: uuidSchema,
     lat: z.number().min(-90).max(90),
     lng: z.number().min(-180).max(180),
+    monitoringPlatform: z.enum(["ios", "android", "web"]).optional(),
+  }),
+});
+
+export const recordLocationCheckSchema = z.object({
+  body: z.object({
+    attendanceId: uuidSchema,
+    dueAt: z.string().datetime("Must be a valid ISO datetime"),
+    capturedAt: z.string().datetime("Must be a valid ISO datetime"),
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  }),
+});
+
+export const listLocationAlertsSchema = z.object({
+  query: z.object({
+    workPointId: uuidSchema.optional(),
+    status: z.enum(["OPEN", "REVIEWED", "ALL"]).default("OPEN"),
+  }),
+});
+
+export const reviewLocationAlertSchema = z.object({
+  params: z.object({ id: uuidSchema }),
+  body: z.object({
+    outcome: z.enum(["VALID", "INVALID"]),
+    note: z.string().max(1000).nullable().optional(),
   }),
 });
 

@@ -37,13 +37,19 @@ export interface QrData {
 export type ScanResult =
   | {
       event: "CHECK_IN";
+      attendanceId: string;
       workPointId: string;
       workPointName: string;
       date: string;
       checkedInAt: string;
+      monitoringStatus: string;
+      monitoringPlatform: string | null;
+      monitoringStartedAt: string | null;
+      nextCheckpointDueAt: string | null;
     }
   | {
       event: "CHECK_OUT" | "ALREADY_COMPLETED";
+      attendanceId: string;
       workPointId: string;
       workPointName: string;
       date: string;
@@ -75,7 +81,10 @@ export interface MonthlySummary {
 }
 
 export type LiveFollowStatus = "ACTIVE" | "INACTIVE" | "WARNING";
-export type LiveFollowWarningReason = "STALE_OPEN_CHECKIN" | "AUTO_CHECKOUT";
+export type LiveFollowWarningReason =
+  | "STALE_OPEN_CHECKIN"
+  | "AUTO_CHECKOUT"
+  | "LOCATION_ALERT";
 export type LiveFollowEventType = "CHECK_IN" | "CHECK_OUT";
 
 export interface LiveFollowActiveCheckIn {
@@ -112,6 +121,7 @@ export interface LiveFollowWorkPoint {
   activeWorkerCount: number;
   status: LiveFollowStatus;
   warningReasons: LiveFollowWarningReason[];
+  openLocationAlertCount: number;
   latestActivityAt: string | null;
   activeCheckIns: LiveFollowActiveCheckIn[];
   recentEvents: LiveFollowRecentEvent[];
@@ -133,14 +143,119 @@ export interface ScanLocation {
   lng: number;
 }
 
+export interface OpenAttendanceMonitoring {
+  attendanceId: string;
+  workPointId: string;
+  workPointName: string;
+  checkedInAt: string;
+  monitoringStatus: string;
+  monitoringPlatform: string | null;
+  monitoringStartedAt: string | null;
+  nextCheckpointDueAt: string;
+  intervalMinutes: number;
+  graceMinutes: number;
+  radiusMeters: number;
+}
+
+export type AttendanceLocationAlertType =
+  | "OUT_OF_RADIUS"
+  | "MISSED_CHECK"
+  | "MONITORING_UNAVAILABLE";
+export type AttendanceLocationAlertStatus = "OPEN" | "REVIEWED";
+export type AttendanceLocationReviewOutcome = "VALID" | "INVALID";
+
+export interface AttendanceLocationAlert {
+  id: string;
+  attendanceId: string;
+  checkId: string | null;
+  workPointId: string;
+  workerId: string;
+  type: AttendanceLocationAlertType | string;
+  status: AttendanceLocationAlertStatus | string;
+  dueAt: string | null;
+  capturedAt: string | null;
+  distanceMeters: number | null;
+  lat: number | null;
+  lng: number | null;
+  reviewOutcome: AttendanceLocationReviewOutcome | string | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  worker: AttendanceWorkerSummary;
+  workPoint: { id: string; name: string; address: string };
+  attendance: {
+    checkedInAt: string;
+    checkedOutAt: string | null;
+    source: "QR" | "MANUAL" | string;
+  };
+  reviewer: { id: string; username: string; email: string } | null;
+}
+
 export const attendanceAPI = {
   async checkin(qrToken: string, location: ScanLocation): Promise<ScanResult> {
     const res = await api.post<ScanResult>("/attendance/checkin", {
       qrToken,
       lat: location.lat,
       lng: location.lng,
+      monitoringPlatform: "web",
     });
     return res.data;
+  },
+
+  async getMyOpenAttendances(): Promise<OpenAttendanceMonitoring[]> {
+    const res = await api.get<{ attendances: OpenAttendanceMonitoring[] }>(
+      "/attendance/me/open",
+    );
+    return res.data.attendances;
+  },
+
+  async recordLocationCheck(input: {
+    attendanceId: string;
+    dueAt: string;
+    capturedAt: string;
+    lat: number;
+    lng: number;
+  }): Promise<{
+    check: {
+      id: string;
+      attendanceId: string;
+      dueAt: string;
+      capturedAt: string | null;
+      receivedAt: string | null;
+      status: string;
+      distanceMeters: number | null;
+    };
+    alert: AttendanceLocationAlert | null;
+  }> {
+    const res = await api.post("/attendance/location-checks", input);
+    return res.data;
+  },
+
+  async listLocationAlerts(params?: {
+    workPointId?: string;
+    status?: AttendanceLocationAlertStatus | "ALL";
+  }): Promise<AttendanceLocationAlert[]> {
+    const res = await api.get<{ alerts: AttendanceLocationAlert[] }>(
+      "/attendance/location-alerts",
+      { params },
+    );
+    return res.data.alerts;
+  },
+
+  async reviewLocationAlert(input: {
+    alertId: string;
+    outcome: AttendanceLocationReviewOutcome;
+    note?: string | null;
+  }): Promise<AttendanceLocationAlert> {
+    const res = await api.patch<{ alert: AttendanceLocationAlert }>(
+      `/attendance/location-alerts/${input.alertId}/review`,
+      {
+        outcome: input.outcome,
+        note: input.note ?? null,
+      },
+    );
+    return res.data.alert;
   },
 
   async list(

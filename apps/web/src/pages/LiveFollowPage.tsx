@@ -85,6 +85,7 @@ function warningReasonLabel(
   t: (key: string) => string,
 ) {
   if (reason === "STALE_OPEN_CHECKIN") return t("Open over 10h");
+  if (reason === "LOCATION_ALERT") return t("Location alert");
   return t("Latest auto checkout");
 }
 
@@ -390,6 +391,9 @@ function WorkPointLiveCard({
             <Badge key={reason} variant="warning">
               <AlertTriangle className="h-3 w-3" />
               {warningReasonLabel(reason, t)}
+              {reason === "LOCATION_ALERT" && workPoint.openLocationAlertCount > 0
+                ? ` ${workPoint.openLocationAlertCount}`
+                : ""}
             </Badge>
           ))}
         </div>

@@ -96,12 +96,19 @@ InvitationDTO fields:
 User routes:
 
 `POST /api/attendance/checkin`
-- Body: `{ qrToken, lat, lng }`
-- Returns a scan result for `CHECK_IN`, `CHECK_OUT`, or `ALREADY_COMPLETED`.
+- Body: `{ qrToken, lat, lng, monitoringPlatform? }`
+- Returns a scan result for `CHECK_IN`, `CHECK_OUT`, or `ALREADY_COMPLETED`, including attendance monitoring metadata when relevant.
 - QR attendance is for `WORKER` and `LEADER` users, enforces the user's one-time scan location within 200m of same-company or accepted subcontractor workpoint coordinates, and automatically associates the user with the workpoint on successful scans. Missing workpoint coordinates reject the scan.
+- Native mobile check-ins (`ios`/`android`) start hourly attendance location monitoring. Web or unsupported check-ins remain allowed but create a `MONITORING_UNAVAILABLE` review alert instead of auto-closing attendance.
 
 `GET /api/attendance/me/daily?year=YYYY&month=M`
 `GET /api/attendance/me/monthly?year=YYYY&month=M`
+`GET /api/attendance/me/open`
+- Returns the current worker's open attendances with monitoring status and next checkpoint schedule.
+
+`POST /api/attendance/location-checks`
+- Body: `{ attendanceId, dueAt, capturedAt, lat, lng }`
+- Accepts worker-owned mobile checkpoint samples for active attendance. Hourly due times must align to `checkedInAt + n hours`; outside-radius samples create review alerts and do not auto-checkout the worker.
 
 Admin/leader routes:
 
@@ -132,6 +139,13 @@ Admin/leader routes:
 
 `GET /api/attendance/workpoint/:id/export?from=YYYY-MM-DD&to=YYYY-MM-DD`
 - Returns an Excel file with attendance + summary sheets.
+
+`GET /api/attendance/location-alerts`
+- ADMIN lists company alerts; LEADER lists only alerts for assigned/history workpoints. Supports optional status/workpoint filters.
+
+`PATCH /api/attendance/location-alerts/:id/review`
+- Body: `{ outcome: "VALID" | "INVALID", note? }`
+- Marks an open attendance location alert reviewed by an ADMIN or scoped LEADER.
 
 ## Work point and worker routes
 
@@ -230,6 +244,7 @@ Server -> client:
 - `chat:bumped` `{ chatId, lastMessageAt }`
 - `chat:changed` `{ chatId }`
 - `attendance:changed` `{ workPointId, workerId?, attendanceId?, changedAt }`
+- `attendance-location-alert:changed` `{ alertId, attendanceId, workPointId, workerId, type, status, changedAt }`
 - `leave-request:changed` `{ action, leaveRequest, changedAt }`
 - `presence:online` `{ userId }`
 - `presence:offline` `{ userId }`

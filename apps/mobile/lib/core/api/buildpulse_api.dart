@@ -286,12 +286,85 @@ class BuildPulseApi {
     String qrToken, {
     required double lat,
     required double lng,
+    required String monitoringPlatform,
   }) async {
     final response = await client.post<dynamic>(
       '/attendance/checkin',
-      data: {'qrToken': qrToken, 'lat': lat, 'lng': lng},
+      data: {
+        'qrToken': qrToken,
+        'lat': lat,
+        'lng': lng,
+        'monitoringPlatform': monitoringPlatform,
+      },
     );
     return ScanResult.fromJson(_responseMap(response));
+  }
+
+  Future<List<OpenAttendanceMonitoring>> listOpenAttendances() async {
+    final response = await client.get<dynamic>('/attendance/me/open');
+    final data = _responseMap(response);
+    return (data['attendances'] as List? ?? const [])
+        .map(
+          (item) => OpenAttendanceMonitoring.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> recordAttendanceLocationCheck({
+    required String attendanceId,
+    required String dueAt,
+    required String capturedAt,
+    required double lat,
+    required double lng,
+  }) async {
+    await client.post<dynamic>(
+      '/attendance/location-checks',
+      data: {
+        'attendanceId': attendanceId,
+        'dueAt': dueAt,
+        'capturedAt': capturedAt,
+        'lat': lat,
+        'lng': lng,
+      },
+    );
+  }
+
+  Future<List<AttendanceLocationAlert>> listAttendanceLocationAlerts({
+    String? workPointId,
+    String status = 'OPEN',
+  }) async {
+    final queryParameters = <String, dynamic>{'status': status};
+    if (workPointId != null && workPointId.isNotEmpty) {
+      queryParameters['workPointId'] = workPointId;
+    }
+    final response = await client.get<dynamic>(
+      '/attendance/location-alerts',
+      queryParameters: queryParameters,
+    );
+    final data = _responseMap(response);
+    return (data['alerts'] as List? ?? const [])
+        .map(
+          (item) => AttendanceLocationAlert.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .toList();
+  }
+
+  Future<AttendanceLocationAlert> reviewAttendanceLocationAlert({
+    required String alertId,
+    required String outcome,
+    String? note,
+  }) async {
+    final response = await client.patch<dynamic>(
+      '/attendance/location-alerts/$alertId/review',
+      data: {'outcome': outcome, 'note': note},
+    );
+    return AttendanceLocationAlert.fromJson(
+      Map<String, dynamic>.from(_responseMap(response)['alert'] as Map),
+    );
   }
 
   Future<List<AttendanceRecord>> listAttendance(

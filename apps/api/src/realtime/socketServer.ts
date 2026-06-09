@@ -27,6 +27,15 @@ interface ServerToClientEvents {
     attendanceId?: string;
     changedAt: string;
   }) => void;
+  "attendance-location-alert:changed": (data: {
+    alertId: string;
+    workPointId: string;
+    attendanceId: string;
+    workerId: string;
+    type: string;
+    status: string;
+    changedAt: string;
+  }) => void;
   "leave-request:changed": (data: {
     action: "created" | "approved" | "rejected" | "canceled";
     leaveRequest: LeaveRequestDTO;
@@ -263,6 +272,28 @@ export function emitAttendanceChanged(
 
   for (const userId of new Set(userIds)) {
     ioInstance.to(`user:${userId}`).emit("attendance:changed", payload);
+  }
+}
+
+export function emitAttendanceLocationAlertChanged(
+  payload: {
+    alertId: string;
+    workPointId: string;
+    attendanceId: string;
+    workerId: string;
+    type: string;
+    status: string;
+    changedAt: string;
+  },
+  userIds: string[],
+): void {
+  if (!ioInstance) return;
+
+  for (const userId of new Set(userIds)) {
+    ioInstance.to(`user:${userId}`).emit(
+      "attendance-location-alert:changed",
+      payload,
+    );
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -53,13 +54,25 @@ class _CheckinPageState extends State<CheckinPage> {
         widget.qrToken,
         lat: position.latitude,
         lng: position.longitude,
+        monitoringPlatform: _monitoringPlatform,
       );
-      if (mounted) setState(() => _result = result);
+      if (mounted) {
+        await AppScope.attendanceMonitorOf(context).handleCheckInResult(result);
+        setState(() => _result = result);
+      }
     } catch (error) {
       if (mounted) setState(() => _error = _scanErrorMessage(error));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String get _monitoringPlatform {
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android => 'android',
+      TargetPlatform.iOS => 'ios',
+      _ => 'web',
+    };
   }
 
   Future<Position> _currentPosition() async {

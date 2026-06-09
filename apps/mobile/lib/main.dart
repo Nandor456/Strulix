@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'attendance/attendance_location_monitor_controller.dart';
 import 'auth/auth_controller.dart';
 import 'core/api/api_client.dart';
 import 'core/api/buildpulse_api.dart';
@@ -22,6 +23,11 @@ Future<void> main() async {
   final auth = AuthController(api);
   await auth.bootstrap();
   final messaging = MessagingController(api, auth);
+  final attendanceMonitor = AttendanceLocationMonitorController(
+    api: api,
+    auth: auth,
+  );
+  await attendanceMonitor.initialize();
   final pushNotifications = PushNotificationsController(
     api: api,
     auth: auth,
@@ -36,6 +42,7 @@ Future<void> main() async {
       api: api,
       auth: auth,
       messaging: messaging,
+      attendanceMonitor: attendanceMonitor,
       theme: theme,
       language: language,
       child: BuildPulseApp(auth: auth, pushNotifications: pushNotifications),

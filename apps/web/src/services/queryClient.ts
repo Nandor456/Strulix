@@ -39,6 +39,10 @@ export const QUERY_KEYS = {
   attendance: {
     all: ["attendance"] as const,
     liveFollow: ["attendance", "live-follow"] as const,
+    locationAlerts: (params?: object) =>
+      ["attendance", "location-alerts", params] as const,
+    locationAlertsBase: ["attendance", "location-alerts"] as const,
+    myOpen: ["attendance", "me", "open"] as const,
     byWorkPoint: (workPointId: string) =>
       ["attendance", "workpoint", workPointId] as const,
     forWorkPoint: (workPointId: string, params?: object) =>
@@ -62,6 +66,7 @@ export const QUERY_KEYS = {
 const USER_SCOPED_QUERY_PREFIXES = [
   QUERY_KEYS.attendance.all,
   ["attendance", "me"] as const,
+  QUERY_KEYS.attendance.locationAlertsBase,
   QUERY_KEYS.invitations.all,
   QUERY_KEYS.subcontractors.outgoing,
   QUERY_KEYS.subcontractors.incoming,

@@ -6,6 +6,11 @@ import {
   dateInZone,
 } from "../utils/dateHelpers.js";
 import {
+  GEOFENCE_RADIUS_METERS,
+  distanceMeters,
+  type Coordinates,
+} from "../utils/geo.js";
+import {
   addParticipantToChat,
   getOrCreateWorkPointChat,
 } from "./messagingService.js";
@@ -19,7 +24,17 @@ import {
   companyWorkPointAccessWhere,
   isAttendanceParticipantRole,
 } from "./accessPolicy.js";
+import {
+  createMonitoringUnavailableAlert,
+  monitoringStatusForPlatform,
+  nextAttendanceLocationCheckpointDueAt,
+  normalizeMonitoringPlatform,
+  type AttendanceLocationAlertDTO,
+  type AttendanceMonitoringPlatform,
+} from "./attendanceLocationService.js";
 import QRCode from "qrcode";
+
+export { distanceMeters } from "../utils/geo.js";
 
 export type CompanySummary = {
   id: string;
@@ -64,15 +79,21 @@ export type AttendanceSummary = {
 export type ScanResult =
   | {
     event: "CHECK_IN";
+    attendanceId: string;
     workPointId: string;
     workPointName: string;
     date: Date;
     checkedInAt: Date;
+    monitoringStatus: string;
+    monitoringPlatform: string | null;
+    monitoringStartedAt: Date | null;
+    nextCheckpointDueAt: Date | null;
   }
   | CompletedScanResult;
 
 export type CompletedScanResult = {
   event: "CHECK_OUT" | "ALREADY_COMPLETED";
+  attendanceId: string;
   workPointId: string;
   workPointName: string;
   date: Date;
@@ -86,6 +107,7 @@ export type CompletedScanResult = {
 export type AttendanceScanResult = {
   result: ScanResult;
   workerAssociated: boolean;
+  locationAlert?: AttendanceLocationAlertDTO;
 };
 
 export type ManualAttendanceResult = {
@@ -114,7 +136,10 @@ export type MonthlySummary = {
 };
 
 export type LiveFollowStatus = "ACTIVE" | "INACTIVE" | "WARNING";
-export type LiveFollowWarningReason = "STALE_OPEN_CHECKIN" | "AUTO_CHECKOUT";
+export type LiveFollowWarningReason =
+  | "STALE_OPEN_CHECKIN"
+  | "AUTO_CHECKOUT"
+  | "LOCATION_ALERT";
 export type LiveFollowEventType = "CHECK_IN" | "CHECK_OUT";
 
 export type LiveFollowActiveCheckIn = {
@@ -151,6 +176,7 @@ export type LiveFollowWorkPoint = {
   activeWorkerCount: number;
   status: LiveFollowStatus;
   warningReasons: LiveFollowWarningReason[];
+  openLocationAlertCount: number;
   latestActivityAt: string | null;
   activeCheckIns: LiveFollowActiveCheckIn[];
   recentEvents: LiveFollowRecentEvent[];
@@ -167,8 +193,6 @@ export type LiveFollowSnapshot = {
   workPoints: LiveFollowWorkPoint[];
 };
 
-const GEOFENCE_RADIUS_METERS = 200;
-const EARTH_RADIUS_METERS = 6_371_000;
 const QUARTER_HOUR_MS = 15 * 60 * 1000;
 const ATTENDANCE_RECORDING_START_HOUR = 6;
 const ATTENDANCE_RECORDING_END_HOUR = 22;
@@ -209,11 +233,6 @@ type SelectedAttendanceRecord = {
     companyId: string;
     company: CompanySummary;
   };
-};
-
-type Coordinates = {
-  lat: number;
-  lng: number;
 };
 
 const attendanceRecordSelect = {
@@ -305,8 +324,13 @@ export function evaluateLiveFollowStatus(params: {
   now: Date;
   activeCheckIns: Array<{ checkedInAt: Date | string }>;
   latestEvent?: { event: LiveFollowEventType; checkoutSource: string | null } | null;
+  openLocationAlertCount?: number;
 }): { status: LiveFollowStatus; warningReasons: LiveFollowWarningReason[] } {
   const warningReasons: LiveFollowWarningReason[] = [];
+  if ((params.openLocationAlertCount ?? 0) > 0) {
+    warningReasons.push("LOCATION_ALERT");
+  }
+
   const hasStaleOpenCheckIn = params.activeCheckIns.some((checkIn) => {
     const checkedInAt = new Date(checkIn.checkedInAt);
     return params.now.getTime() - checkedInAt.getTime() >= LIVE_FOLLOW_STALE_OPEN_MS;
@@ -337,24 +361,6 @@ export function evaluateLiveFollowStatus(params: {
 export function computeBillableHours(checkedInAt: Date, checkedOutAt: Date): number {
   const ms = Math.max(0, checkedOutAt.getTime() - checkedInAt.getTime());
   return Math.round(ms / QUARTER_HOUR_MS) / 4;
-}
-
-function toRadians(value: number): number {
-  return (value * Math.PI) / 180;
-}
-
-export function distanceMeters(from: Coordinates, to: Coordinates): number {
-  const dLat = toRadians(to.lat - from.lat);
-  const dLng = toRadians(to.lng - from.lng);
-  const lat1 = toRadians(from.lat);
-  const lat2 = toRadians(to.lat);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return EARTH_RADIUS_METERS * c;
 }
 
 function assertWithinAttendanceRecordingWindow(now: Date): void {
@@ -407,6 +413,7 @@ async function closeEligibleOpenAttendances(now: Date): Promise<number> {
         data: {
           checkedOutAt: record.checkedOutAt,
           checkoutSource: "AUTO",
+          monitoringStatus: "STOPPED",
         },
       }),
     ),
@@ -452,6 +459,7 @@ async function buildCompletedScanResult(params: {
   userId: string;
   ownerCompanyId: string;
   event: CompletedScanResult["event"];
+  attendanceId: string;
   workPointId: string;
   workPointName: string;
   date: Date;
@@ -473,6 +481,7 @@ async function buildCompletedScanResult(params: {
 
   return {
     event: params.event,
+    attendanceId: params.attendanceId,
     workPointId: params.workPointId,
     workPointName: params.workPointName,
     date: params.date,
@@ -508,6 +517,7 @@ export async function recordAttendance(params: {
   qrToken: string;
   workerLocation: Coordinates;
   source: "QR" | "MANUAL";
+  monitoringPlatform?: AttendanceMonitoringPlatform;
   now?: Date;
 }): Promise<AttendanceScanResult> {
   const now = params.now ?? new Date();
@@ -563,7 +573,7 @@ export async function recordAttendance(params: {
   });
 
   if (distance > GEOFENCE_RADIUS_METERS) {
-    const err = new Error("You must be within 100m of this workpoint to scan attendance");
+    const err = new Error("You must be within 200m of this workpoint to scan attendance");
     (err as NodeJS.ErrnoException).code = "FORBIDDEN";
     throw err;
   }
@@ -588,6 +598,11 @@ export async function recordAttendance(params: {
 
   if (!existing) {
     assertWithinAttendanceRecordingWindow(now);
+    const monitoringPlatform = normalizeMonitoringPlatform(
+      params.monitoringPlatform,
+    );
+    const monitoringStatus = monitoringStatusForPlatform(monitoringPlatform);
+    const monitoringStartedAt = monitoringStatus === "ACTIVE" ? now : null;
     const workerAssociated = await associateWorkerWithWorkPoint({
       workPointId: workPoint.id,
       workerId: params.userId,
@@ -601,18 +616,40 @@ export async function recordAttendance(params: {
         date,
         checkedInAt: now,
         source: params.source,
+        monitoringStatus,
+        monitoringPlatform,
+        monitoringStartedAt,
       },
-      select: { checkedInAt: true },
+      select: {
+        id: true,
+        checkedInAt: true,
+        monitoringStatus: true,
+        monitoringPlatform: true,
+        monitoringStartedAt: true,
+      },
     });
+    const locationAlert =
+      monitoringStatus === "UNAVAILABLE"
+        ? await createMonitoringUnavailableAlert(record.id)
+        : null;
     return {
       result: {
         event: "CHECK_IN",
+        attendanceId: record.id,
         workPointId: workPoint.id,
         workPointName: workPoint.name,
         date,
         checkedInAt: record.checkedInAt,
+        monitoringStatus: record.monitoringStatus,
+        monitoringPlatform: record.monitoringPlatform,
+        monitoringStartedAt: record.monitoringStartedAt,
+        nextCheckpointDueAt:
+          record.monitoringStatus === "ACTIVE"
+            ? nextAttendanceLocationCheckpointDueAt(record.checkedInAt, now)
+            : null,
       },
       workerAssociated,
+      ...(locationAlert?.created ? { locationAlert: locationAlert.alert } : {}),
     };
   }
 
@@ -627,6 +664,7 @@ export async function recordAttendance(params: {
         userId: params.userId,
         ownerCompanyId: workPoint.companyId,
         event: "ALREADY_COMPLETED",
+        attendanceId: existing.id,
         workPointId: workPoint.id,
         workPointName: workPoint.name,
         date,
@@ -649,7 +687,7 @@ export async function recordAttendance(params: {
 
   await prisma.attendance.update({
     where: { id: existing.id },
-    data: { checkedOutAt, checkoutSource: "QR" },
+    data: { checkedOutAt, checkoutSource: "QR", monitoringStatus: "STOPPED" },
   });
 
   return {
@@ -657,6 +695,7 @@ export async function recordAttendance(params: {
       userId: params.userId,
       ownerCompanyId: workPoint.companyId,
       event: "CHECK_OUT",
+      attendanceId: existing.id,
       workPointId: workPoint.id,
       workPointName: workPoint.name,
       date,
@@ -741,6 +780,20 @@ export async function getLiveFollowSnapshot(params: {
     orderBy: [{ name: "asc" }, { id: "asc" }],
   });
   const workPointIds = workPoints.map((workPoint) => workPoint.id);
+  const openLocationAlertCounts =
+    workPointIds.length === 0
+      ? []
+      : await prisma.attendanceLocationAlert.groupBy({
+        by: ["workPointId"],
+        where: {
+          workPointId: { in: workPointIds },
+          status: "OPEN",
+        },
+        _count: { _all: true },
+      });
+  const openLocationAlertCountByWorkPoint = new Map(
+    openLocationAlertCounts.map((row) => [row.workPointId, row._count._all]),
+  );
   const recentEventRows =
     workPointIds.length === 0
       ? []
@@ -869,10 +922,13 @@ export async function getLiveFollowSnapshot(params: {
       eventLimit,
     );
     const latestEvent = recentEvents[0] ?? null;
+    const openLocationAlertCount =
+      openLocationAlertCountByWorkPoint.get(workPoint.id) ?? 0;
     const status = evaluateLiveFollowStatus({
       now,
       activeCheckIns,
       latestEvent,
+      openLocationAlertCount,
     });
 
     return {
@@ -885,6 +941,7 @@ export async function getLiveFollowSnapshot(params: {
       activeWorkerCount: activeCheckIns.length,
       status: status.status,
       warningReasons: status.warningReasons,
+      openLocationAlertCount,
       latestActivityAt: latestEvent?.occurredAt ?? null,
       activeCheckIns,
       recentEvents,
@@ -1024,7 +1081,11 @@ export async function setCheckoutTime(
 
   const updated = await prisma.attendance.update({
     where: { id: attendanceId },
-    data: { checkedOutAt, checkoutSource: "MANUAL" },
+    data: {
+      checkedOutAt,
+      checkoutSource: "MANUAL",
+      monitoringStatus: "STOPPED",
+    },
     select: attendanceRecordSelect,
   });
   return toAttendanceRecord(updated);
@@ -1061,6 +1122,7 @@ export async function updateAttendanceTimes(params: {
         checkedInAt: params.checkedInAt,
         checkedOutAt: params.checkedOutAt ?? null,
         checkoutSource: params.checkedOutAt ? "MANUAL" : null,
+        ...(params.checkedOutAt ? { monitoringStatus: "STOPPED" } : {}),
       },
       select: attendanceRecordSelect,
     });
