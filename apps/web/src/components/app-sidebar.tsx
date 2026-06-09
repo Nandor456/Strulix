@@ -67,7 +67,7 @@ export function AppSidebar() {
     const canManageBilling = user?.role === "ADMIN";
     const hasInactiveBilling =
         canManageBilling && !isBillingActive(user?.company.billingStatus);
-    const isWorker = user?.role === "WORKER";
+    const isAttendanceParticipant = user?.role === "WORKER" || user?.role === "LEADER";
     const isUsersRoute =
         canViewWorkers &&
         (location.pathname.startsWith("/invitations") || location.pathname.startsWith("/workers"));
@@ -103,7 +103,7 @@ export function AppSidebar() {
             <SidebarContent className="px-2 py-2">
                 <SidebarGroup className="p-0">
                     <SidebarMenu className="gap-0.5">
-                        {isWorker && (
+                        {isAttendanceParticipant && (
                             <>
                                 <NavItem
                                     to="/"
@@ -227,7 +227,7 @@ export function AppSidebar() {
                                                     >
                                                         <Link to="/workers">
                                                             <BadgeCheck className="h-3.5 w-3.5 shrink-0" />
-                                                            {t("Worker management")}
+                                                            {t("Team management")}
                                                         </Link>
                                                     </SidebarMenuSubButton>
                                                 </SidebarMenuSubItem>

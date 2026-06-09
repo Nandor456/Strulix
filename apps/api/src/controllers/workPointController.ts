@@ -39,7 +39,11 @@ export async function listWorkPointsController(
   res: Response,
 ) {
   try {
-    const workPoints = await listWorkPoints(req.auth!.companyId);
+    const workPoints = await listWorkPoints({
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     res.json({ workPoints });
   } catch (error) {
     res.status(500).json({
@@ -72,7 +76,11 @@ export async function getWorkPointController(
   const { id } = req.params;
 
   try {
-    const workPoint = await getWorkPointById(id, req.auth!.companyId);
+    const workPoint = await getWorkPointById(id, {
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     if (!workPoint) {
       return res.status(404).json({ error: "Work point not found" });
     }
@@ -94,6 +102,7 @@ export async function createWorkPointController(
       req.body as WorkPointInput,
       req.auth!.userId,
       req.auth!.companyId,
+      req.auth!.role,
     );
     notifyWorkPointChatChanged(workPoint.id);
     res.status(201).json({ workPoint });
@@ -113,7 +122,11 @@ export async function updateWorkPointController(
   try {
     const workPoint = await updateWorkPoint(
       id,
-      req.auth!.companyId,
+      {
+        userId: req.auth!.userId,
+        companyId: req.auth!.companyId,
+        role: req.auth!.role,
+      },
       req.body as UpdateWorkPointInput,
     );
     res.json({ workPoint });
@@ -131,7 +144,11 @@ export async function deleteWorkPointController(
   const { id } = req.params;
 
   try {
-    await deleteWorkPoint(id, req.auth!.companyId);
+    await deleteWorkPoint(id, {
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     res.status(204).send();
   } catch (error) {
     res.status(statusForError(error)).json({

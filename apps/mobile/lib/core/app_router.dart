@@ -156,8 +156,10 @@ String? buildPulseRedirect({
 
   if (isAuthRoute) return '/';
 
-  if (path == '/documents' && role != UserRole.worker) return '/';
-  if (path == '/scan' && role != UserRole.worker) return '/';
+  final isAttendanceParticipant =
+      role == UserRole.worker || role == UserRole.leader;
+  if (path == '/documents' && !isAttendanceParticipant) return '/';
+  if (path == '/scan' && !isAttendanceParticipant) return '/';
   if (path.startsWith('/workpoints') &&
       role != UserRole.admin &&
       role != UserRole.leader) {
@@ -166,7 +168,11 @@ String? buildPulseRedirect({
   if (path == '/workers' && role != UserRole.admin && role != UserRole.leader) {
     return '/';
   }
-  if (path == '/invitations' && role != UserRole.admin) return '/';
+  if (path == '/invitations' &&
+      role != UserRole.admin &&
+      role != UserRole.leader) {
+    return '/';
+  }
   if (path == '/subcontractors/accept' && role != UserRole.admin) return '/';
 
   return null;
@@ -178,7 +184,7 @@ class HomeRoutePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = AppShell.auth(context);
-    if (auth.isWorker) return const WorkerHomePage();
+    if (auth.isAttendanceParticipant) return const WorkerHomePage();
     return const WorkpointsPage();
   }
 }

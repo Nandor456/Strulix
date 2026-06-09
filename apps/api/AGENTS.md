@@ -7,8 +7,8 @@ This is a concise, implementation-accurate guide for the backend so agents do no
 
 - Base path: `/api`
 - Auth: JWT cookie auth with short-lived access cookies and rotating refresh tokens
-- Tenancy: each user belongs to exactly one company; authenticated app data is scoped by `companyId`; accepted subcontractor access lets a subcontractor company's `WORKER` users attend owner-company workpoints without joining that owner company
-- Role-based access: invitations, workpoint management, worker account edits, and workpoint attendance operator routes allow `ADMIN` and `LEADER`; attendance time edit routes are `ADMIN`-only
+- Tenancy: each user belongs to exactly one company; authenticated app data is scoped by `companyId`; accepted subcontractor access lets a subcontractor company's `WORKER` and `LEADER` users attend owner-company workpoints without joining that owner company
+- Role-based access: invitations, workpoint management, worker/leader account edits, and workpoint attendance operator routes allow `ADMIN` and `LEADER`; attendance time edit routes are `ADMIN`-only; `LEADER` workpoint-scoped access is limited to assigned workpoints, where assignment means the workpoint workers relation or attendance history
 - Real-time: Socket.IO with JWT auth and chat events
 - File uploads: `/uploads/messaging` is static for messaging attachments; worker documents are stored under `private/worker-documents` and streamed through authenticated `/api/worker-documents/:documentId/file`; workpoint documents are stored under `private/workpoint-documents` and streamed through authenticated `/api/workpoint-documents/:documentId/file`
 
@@ -98,7 +98,7 @@ User routes:
 `POST /api/attendance/checkin`
 - Body: `{ qrToken, lat, lng }`
 - Returns a scan result for `CHECK_IN`, `CHECK_OUT`, or `ALREADY_COMPLETED`.
-- QR attendance is for `WORKER` users only, enforces the worker's one-time scan location within 200m of same-company or accepted subcontractor workpoint coordinates, and automatically associates the worker with the workpoint on successful scans. Missing workpoint coordinates reject the scan.
+- QR attendance is for `WORKER` and `LEADER` users, enforces the user's one-time scan location within 200m of same-company or accepted subcontractor workpoint coordinates, and automatically associates the user with the workpoint on successful scans. Missing workpoint coordinates reject the scan.
 
 `GET /api/attendance/me/daily?year=YYYY&month=M`
 `GET /api/attendance/me/monthly?year=YYYY&month=M`
@@ -109,12 +109,12 @@ Admin/leader routes:
 - Returns list of attendance records.
 
 `GET /api/attendance/live-follow?limit=5`
-- ADMIN/LEADER aggregate live snapshot for all company workpoints, including current open check-ins, latest activity, recent check-in/check-out events, and active/inactive/warning status.
+- ADMIN aggregate live snapshot for all company workpoints; LEADER sees only assigned workpoints. Includes current open check-ins, latest activity, recent check-in/check-out events, and active/inactive/warning status.
 
 `POST /api/attendance/workpoint/:id/manual`
 - Body: `{ workerId, date: "YYYY-MM-DD", checkedInAt?, checkedOutAt? }`
-- Manual attendance accepts any same-company `WORKER` and automatically associates that worker with the workpoint after a successful record creation.
-- Manual attendance also accepts `WORKER` users from accepted subcontractor companies; external wages are hidden in owner-company reporting.
+- Manual attendance accepts any same-company `WORKER` or `LEADER` and automatically associates that user with the workpoint after a successful record creation.
+- Manual attendance also accepts `WORKER` or `LEADER` users from accepted subcontractor companies; external wages are hidden in owner-company reporting.
 
 `PATCH /api/attendance/:id/checkout` (ADMIN)
 - Body: `{ checkedOutAt: ISO datetime }`
@@ -152,6 +152,8 @@ Worker roster routes:
 `GET /api/workpoints/:id/attendance-workers`
 `PUT /api/workers/:workerId`
 `DELETE /api/workers/:workerId`
+
+Worker roster/document routes include both `WORKER` and `LEADER` users; route names and payload fields keep historical `worker` naming for API compatibility.
 
 ## Subcontractor routes (ADMIN/LEADER unless noted)
 

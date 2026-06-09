@@ -122,7 +122,7 @@ export default function WorkpointDetailPage() {
   const navigate = useNavigate();
   const { id: workPointId } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, roleLabel } = useI18n();
   const isAdmin = user?.role === "ADMIN";
   const canManageWorkPointDocuments =
     user?.role === "ADMIN" || user?.role === "LEADER";
@@ -322,7 +322,7 @@ export default function WorkpointDetailPage() {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm sm:min-w-44">
                 <div className="rounded-md bg-muted/70 px-3 py-2">
-                  <p className="text-xs text-muted-foreground">{t("Workers")}</p>
+                  <p className="text-xs text-muted-foreground">{t("Team")}</p>
                   <p className="font-semibold tabular-nums">{workPoint.workerCount}</p>
                 </div>
                 <div className="rounded-md bg-muted/70 px-3 py-2">
@@ -367,12 +367,12 @@ export default function WorkpointDetailPage() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">{t("Workers")}</h3>
+                <h3 className="font-semibold">{t("Team")}</h3>
               </div>
             </div>
 
             {assignedWorkers.length === 0 ? (
-              <Alert>{t("No workers have checked in to this workpoint yet.")}</Alert>
+              <Alert>{t("No workers or leaders have checked in to this workpoint yet.")}</Alert>
             ) : (
               <div className="space-y-2">
                 {assignedWorkers.map((worker) => (
@@ -518,7 +518,7 @@ export default function WorkpointDetailPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t("Worker")}</TableHead>
+                      <TableHead>{t("Person")}</TableHead>
                       <TableHead>{t("Date")}</TableHead>
                       <TableHead>{t("Source")}</TableHead>
                       <TableHead>{t("Check in")}</TableHead>
@@ -636,23 +636,23 @@ export default function WorkpointDetailPage() {
           <DialogHeader>
             <DialogTitle>{t("Manual attendance")}</DialogTitle>
             <DialogDescription>
-              {t("Add a check-in and optional check-out for a worker.")}
+              {t("Add a check-in and optional check-out for a worker or leader.")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(event) => void handleManualAttendance(event)} className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <Label htmlFor="manual-worker">{t("Worker")}</Label>
+                <Label htmlFor="manual-worker">{t("Worker or leader")}</Label>
                 <Select value={manualWorkerId} onValueChange={setManualWorkerId}>
                   <SelectTrigger id="manual-worker">
-                    <SelectValue placeholder={t("Choose worker")} />
+                    <SelectValue placeholder={t("Choose worker or leader")} />
                   </SelectTrigger>
                   <SelectContent>
                     {attendanceWorkers.map((worker) => (
                       <SelectItem key={worker.id} value={worker.id}>
                         {worker.affiliation === "SUBCONTRACTOR"
-                          ? `${worker.username} (${worker.company.name})`
-                          : worker.username}
+                          ? `${worker.username} (${worker.company.name}) · ${roleLabel(worker.role)}`
+                          : `${worker.username} · ${roleLabel(worker.role)}`}
                       </SelectItem>
                     ))}
                   </SelectContent>

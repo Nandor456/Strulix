@@ -147,32 +147,49 @@ databaseTest("cross-company QR scan is rejected without association or attendanc
   assert.equal(await attendanceCount(first.workPoint.id, second.worker.id), 0);
 });
 
-databaseTest("admin and leader QR scans are rejected without association or attendance", async (t) => {
+databaseTest("admin QR scans are rejected without association or attendance", async (t) => {
   const admin = await createFixture({ workerRole: "ADMIN" });
-  const leader = await createFixture({ workerRole: "LEADER" });
-  t.after(async () => {
-    await prisma.company.delete({ where: { id: admin.company.id } });
-    await prisma.company.delete({ where: { id: leader.company.id } });
+  t.after(() => prisma.company.delete({ where: { id: admin.company.id } }).then(() => undefined));
+
+  await assert.rejects(
+    () =>
+      recordAttendance({
+        userId: admin.worker.id,
+        companyId: admin.company.id,
+        userRole: admin.worker.role,
+        qrToken: admin.workPoint.qrToken,
+        workerLocation: WORKPOINT_LOCATION,
+        source: "QR",
+        now: SUCCESS_NOW,
+      }),
+    (error: unknown) => (error as NodeJS.ErrnoException).code === "FORBIDDEN",
+  );
+
+  assert.equal(await isWorkerConnected(admin.workPoint.id, admin.worker.id), false);
+  assert.equal(await attendanceCount(admin.workPoint.id, admin.worker.id), 0);
+});
+
+databaseTest("unassociated same-company leader scan creates attendance and associates leader", async (t) => {
+  const { company, worker: leader, workPoint } = await createFixture({
+    workerRole: "LEADER",
+  });
+  t.after(() => prisma.company.delete({ where: { id: company.id } }).then(() => undefined));
+
+  const result = await recordAttendance({
+    userId: leader.id,
+    companyId: company.id,
+    userRole: "LEADER",
+    qrToken: workPoint.qrToken,
+    workerLocation: WORKPOINT_LOCATION,
+    source: "QR",
+    now: SUCCESS_NOW,
   });
 
-  for (const fixture of [admin, leader]) {
-    await assert.rejects(
-      () =>
-        recordAttendance({
-          userId: fixture.worker.id,
-          companyId: fixture.company.id,
-          userRole: fixture.worker.role,
-          qrToken: fixture.workPoint.qrToken,
-          workerLocation: WORKPOINT_LOCATION,
-          source: "QR",
-          now: SUCCESS_NOW,
-        }),
-      (error: unknown) => (error as NodeJS.ErrnoException).code === "FORBIDDEN",
-    );
-
-    assert.equal(await isWorkerConnected(fixture.workPoint.id, fixture.worker.id), false);
-    assert.equal(await attendanceCount(fixture.workPoint.id, fixture.worker.id), 0);
-  }
+  assert.equal(result.result.event, "CHECK_IN");
+  assert.equal(result.workerAssociated, true);
+  assert.equal(await isWorkerConnected(workPoint.id, leader.id), true);
+  assert.equal(await attendanceCount(workPoint.id, leader.id), 1);
+  assert.equal(await hasWorkPointChatParticipant(workPoint.id, leader.id), true);
 });
 
 databaseTest("geofence, coordinate, and recording-window failures do not associate worker", async (t) => {
@@ -238,7 +255,9 @@ databaseTest("manual attendance for an unassociated worker associates the worker
   const result = await manualMark({
     workerId: worker.id,
     workPointId: workPoint.id,
+    userId: worker.id,
     companyId: company.id,
+    role: "ADMIN",
     date: new Date("2000-01-02T00:00:00.000Z"),
     checkedInAt: new Date("2000-01-02T09:00:00.000Z"),
     checkedOutAt: new Date("2000-01-02T17:00:00.000Z"),
@@ -249,4 +268,28 @@ databaseTest("manual attendance for an unassociated worker associates the worker
   assert.equal(await isWorkerConnected(workPoint.id, worker.id), true);
   assert.equal(await attendanceCount(workPoint.id, worker.id), 1);
   assert.equal(await hasWorkPointChatParticipant(workPoint.id, worker.id), true);
+});
+
+databaseTest("manual attendance for an unassociated leader associates the leader", async (t) => {
+  const { company, worker: leader, workPoint } = await createFixture({
+    workerRole: "LEADER",
+  });
+  t.after(() => prisma.company.delete({ where: { id: company.id } }).then(() => undefined));
+
+  const result = await manualMark({
+    workerId: leader.id,
+    workPointId: workPoint.id,
+    userId: leader.id,
+    companyId: company.id,
+    role: "ADMIN",
+    date: new Date("2000-01-06T00:00:00.000Z"),
+    checkedInAt: new Date("2000-01-06T09:00:00.000Z"),
+    checkedOutAt: new Date("2000-01-06T17:00:00.000Z"),
+  });
+
+  assert.equal(result.record.workerId, leader.id);
+  assert.equal(result.workerAssociated, true);
+  assert.equal(await isWorkerConnected(workPoint.id, leader.id), true);
+  assert.equal(await attendanceCount(workPoint.id, leader.id), 1);
+  assert.equal(await hasWorkPointChatParticipant(workPoint.id, leader.id), true);
 });

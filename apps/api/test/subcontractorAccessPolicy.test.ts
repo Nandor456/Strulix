@@ -216,14 +216,20 @@ databaseTest("accepted subcontractor worker can attend and is reported as extern
 
   const records = await listAttendance({
     workPointId: fixture.workPoint.id,
+    userId: fixture.ownerAdmin.id,
     companyId: fixture.ownerCompany.id,
+    role: "ADMIN",
   });
   assert.equal(records[0].worker.affiliation, "SUBCONTRACTOR");
   assert.equal(records[0].worker.company.id, fixture.subcontractorCompany.id);
 
   const summary = await getAttendanceSummary(
     fixture.workPoint.id,
-    fixture.ownerCompany.id,
+    {
+      userId: fixture.ownerAdmin.id,
+      companyId: fixture.ownerCompany.id,
+      role: "ADMIN",
+    },
   );
   const subcontractorSummary = summary.find(
     (row) => row.workerId === fixture.subcontractorWorker.id,
@@ -233,7 +239,11 @@ databaseTest("accepted subcontractor worker can attend and is reported as extern
 
   const attendanceWorkers = await listAttendanceWorkersForWorkPoint(
     fixture.workPoint.id,
-    fixture.ownerCompany.id,
+    {
+      userId: fixture.ownerAdmin.id,
+      companyId: fixture.ownerCompany.id,
+      role: "ADMIN",
+    },
   );
   const externalWorker = attendanceWorkers.find(
     (worker) => worker.id === fixture.subcontractorWorker.id,
@@ -272,7 +282,9 @@ databaseTest("revocation removes subcontractor assignments and blocks future att
   await manualMark({
     workerId: fixture.subcontractorWorker.id,
     workPointId: fixture.workPoint.id,
+    userId: fixture.ownerAdmin.id,
     companyId: fixture.ownerCompany.id,
+    role: "ADMIN",
     date: new Date("2000-01-04T00:00:00.000Z"),
     checkedInAt: new Date("2000-01-04T09:00:00.000Z"),
     checkedOutAt: new Date("2000-01-04T17:00:00.000Z"),

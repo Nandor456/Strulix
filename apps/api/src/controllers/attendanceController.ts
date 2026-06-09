@@ -136,7 +136,9 @@ export async function listAttendanceController(
   try {
     const records = await listAttendance({
       workPointId,
+      userId: req.auth!.userId,
       companyId: req.auth!.companyId,
+      role: req.auth!.role,
       from,
       to,
     });
@@ -155,7 +157,9 @@ export async function liveFollowController(
 
   try {
     const snapshot = await getLiveFollowSnapshot({
+      userId: req.auth!.userId,
       companyId: req.auth!.companyId,
+      role: req.auth!.role,
       limit,
     });
     res.json(snapshot);
@@ -190,7 +194,9 @@ export async function manualMarkController(
     const result = await manualMark({
       workerId,
       workPointId,
+      userId: req.auth!.userId,
       companyId: req.auth!.companyId,
+      role: req.auth!.role,
       date,
       checkedInAt,
       checkedOutAt,
@@ -327,7 +333,11 @@ export async function deleteAttendanceController(
 ): Promise<void> {
   const { id } = req.params;
   try {
-    const record = await removeAttendance(id, req.auth!.companyId);
+    const record = await removeAttendance(id, {
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     notifyAttendanceChanged({
       workPointId: record.workPointId,
       workerId: record.workerId,
@@ -357,7 +367,9 @@ export async function getQrController(
   try {
     const result = await getQrForWorkPoint({
       workPointId,
+      userId: req.auth!.userId,
       companyId: req.auth!.companyId,
+      role: req.auth!.role,
       frontendBaseUrl: getFrontendBaseUrl(req),
     });
     res.json(result);
@@ -382,11 +394,17 @@ export async function rotateQrController(
 ): Promise<void> {
   const workPointId = req.params.id;
   try {
-    const { qrToken } = await rotateQrToken(workPointId, req.auth!.companyId);
+    const { qrToken } = await rotateQrToken(workPointId, {
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     const frontendBaseUrl = getFrontendBaseUrl(req);
     const result = await getQrForWorkPoint({
       workPointId,
+      userId: req.auth!.userId,
       companyId: req.auth!.companyId,
+      role: req.auth!.role,
       frontendBaseUrl,
     });
     res.json({ qrToken, qrPng: result.qrPng });
@@ -447,8 +465,19 @@ export async function exportAttendanceController(
 
   try {
     const [records, summary] = await Promise.all([
-      listAttendance({ workPointId, companyId: req.auth!.companyId, from, to }),
-      getAttendanceSummary(workPointId, req.auth!.companyId),
+      listAttendance({
+        workPointId,
+        userId: req.auth!.userId,
+        companyId: req.auth!.companyId,
+        role: req.auth!.role,
+        from,
+        to,
+      }),
+      getAttendanceSummary(workPointId, {
+        userId: req.auth!.userId,
+        companyId: req.auth!.companyId,
+        role: req.auth!.role,
+      }),
     ]);
 
     const workbook = new ExcelJS.Workbook();

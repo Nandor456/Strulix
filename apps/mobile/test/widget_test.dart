@@ -93,34 +93,43 @@ void main() {
     expect(redirect, '/login?redirect=%2Fworkpoints%2Fabc');
   });
 
-  test('route guard blocks worker-only documents for leaders', () {
-    final redirect = buildPulseRedirect(
+  test('route guard allows attendance participant routes for leaders', () {
+    final documentsRedirect = buildPulseRedirect(
       isAuthenticated: true,
       role: UserRole.leader,
       uri: Uri.parse('/documents'),
     );
+    final scanRedirect = buildPulseRedirect(
+      isAuthenticated: true,
+      role: UserRole.leader,
+      uri: Uri.parse('/scan'),
+    );
 
-    expect(redirect, '/');
+    expect(documentsRedirect, isNull);
+    expect(scanRedirect, isNull);
   });
 
-  test('route guard allows the shared leave calendar for workers and leaders', () {
-    expect(
-      buildPulseRedirect(
-        isAuthenticated: true,
-        role: UserRole.worker,
-        uri: Uri.parse('/leave-calendar'),
-      ),
-      isNull,
-    );
-    expect(
-      buildPulseRedirect(
-        isAuthenticated: true,
-        role: UserRole.leader,
-        uri: Uri.parse('/leave-calendar'),
-      ),
-      isNull,
-    );
-  });
+  test(
+    'route guard allows the shared leave calendar for workers and leaders',
+    () {
+      expect(
+        buildPulseRedirect(
+          isAuthenticated: true,
+          role: UserRole.worker,
+          uri: Uri.parse('/leave-calendar'),
+        ),
+        isNull,
+      );
+      expect(
+        buildPulseRedirect(
+          isAuthenticated: true,
+          role: UserRole.leader,
+          uri: Uri.parse('/leave-calendar'),
+        ),
+        isNull,
+      );
+    },
+  );
 
   test('route guard allows unauthenticated forgot password route', () {
     final redirect = buildPulseRedirect(
@@ -133,7 +142,7 @@ void main() {
   });
 
   test('formatters and user model mirror web behavior', () {
-    expect(formatHours(2.75), '2.75h');
+    expect(formatHours(2.75), '2h 45min');
     expect(formatMoney(null), 'Not set');
 
     final user = User.fromJson({

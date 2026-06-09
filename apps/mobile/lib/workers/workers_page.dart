@@ -59,7 +59,7 @@ class _WorkersPageState extends State<WorkersPage> {
     final l10n = context.l10n;
     final confirmed = await confirmAction(
       context,
-      title: l10n.t('Delete worker'),
+      title: l10n.t('Delete team member'),
       message: l10n.t('Delete {name}? This action cannot be undone.', {
         'name': worker.username,
       }),
@@ -88,12 +88,14 @@ class _WorkersPageState extends State<WorkersPage> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            l10n.t('Workers'),
+            l10n.t('Team members'),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.t('Manage registered workers and their documents.'),
+            l10n.t(
+              'Manage registered workers and leaders, wages, and documents.',
+            ),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
@@ -104,7 +106,7 @@ class _WorkersPageState extends State<WorkersPage> {
           else if (_workers.isEmpty)
             EmptyState(
               icon: Icons.groups_outlined,
-              title: l10n.t('No workers registered yet'),
+              title: l10n.t('No workers or leaders registered yet'),
             )
           else
             ..._workers.map(
@@ -218,7 +220,7 @@ class _EditWorkerDialogState extends State<_EditWorkerDialog> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return AlertDialog(
-      title: Text(l10n.t('Edit worker')),
+      title: Text(l10n.t('Edit team member')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -32,7 +32,7 @@ import type { UserRole } from "./types/UserTypes";
 function Home() {
     const { user } = useAuth();
 
-    if (user?.role === "WORKER") {
+    if (user?.role === "WORKER" || user?.role === "LEADER") {
         return <WorkerHomePage />;
     }
 
@@ -104,7 +104,7 @@ function AuthenticatedRoutes() {
             <Route
                 path="/documents"
                 element={
-                    <RequireRoles roles={["WORKER"]}>
+                    <RequireRoles roles={["WORKER", "LEADER"]}>
                         <WorkerDocumentsPage />
                     </RequireRoles>
                 }
@@ -112,7 +112,7 @@ function AuthenticatedRoutes() {
             <Route
                 path="/scan"
                 element={
-                    <RequireRoles roles={["WORKER"]}>
+                    <RequireRoles roles={["WORKER", "LEADER"]}>
                         <ScanPage />
                     </RequireRoles>
                 }

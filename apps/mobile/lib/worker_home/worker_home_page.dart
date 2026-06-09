@@ -50,10 +50,7 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
       });
     } catch (error) {
       setState(
-        () => _error = errorMessage(
-          error,
-          'Failed to load your worker dashboard.',
-        ),
+        () => _error = errorMessage(error, 'Failed to load your dashboard.'),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -74,6 +71,7 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final userRole = AppScope.authOf(context).user?.role;
     final (year, month) = parsePeriod(_period);
     final summary = _summary;
     final hourlyWage = summary?.hourlyWage;
@@ -83,6 +81,9 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
           0,
           9999,
         );
+    final profileLabel = userRole == UserRole.leader
+        ? l10n.t('Leader profile')
+        : l10n.t('Worker profile');
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -167,7 +168,7 @@ class _WorkerHomePageState extends State<WorkerHomePage> {
                   label: l10n.t('Hourly wage'),
                   value: formatMoney(summary?.hourlyWage, precise: true),
                   icon: Icons.price_check_outlined,
-                  helper: l10n.t('Worker profile'),
+                  helper: profileLabel,
                 ),
                 StatTile(
                   label: l10n.t('Hours'),

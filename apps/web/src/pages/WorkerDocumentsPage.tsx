@@ -55,7 +55,7 @@ export default function WorkerDocumentsPage() {
         <div>
           <h1 className="text-3xl font-semibold">{t("Documents")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("Preview and download documents shared with your worker profile.")}
+            {t("Preview and download documents shared with your profile.")}
           </p>
         </div>
       </div>

@@ -63,6 +63,7 @@ export async function uploadWorkPointDocumentController(
       workPointId: id,
       uploadedById: req.auth!.userId,
       companyId: req.auth!.companyId,
+      userRole: req.auth!.role,
       file,
     });
     res.status(201).json({ document });
@@ -80,7 +81,11 @@ export async function deleteWorkPointDocumentController(
   const { documentId } = req.params;
 
   try {
-    await deleteWorkPointDocument(documentId, req.auth!.companyId);
+    await deleteWorkPointDocument(documentId, {
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     res.status(204).send();
   } catch (error) {
     res

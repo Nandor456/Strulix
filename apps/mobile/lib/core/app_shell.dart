@@ -106,21 +106,21 @@ class _AppShellState extends State<AppShell> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
-                    if (auth.isWorker)
+                    if (auth.isAttendanceParticipant)
                       _NavTile(
                         icon: Icons.home_outlined,
                         label: l10n.t('Home'),
                         selected: widget.location == '/',
                         onTap: () => _go(context, '/'),
                       ),
-                    if (auth.isWorker)
+                    if (auth.isAttendanceParticipant)
                       _NavTile(
                         icon: Icons.qr_code_scanner,
                         label: l10n.t('Scan QR'),
                         selected: widget.location.startsWith('/scan'),
                         onTap: () => _go(context, '/scan'),
                       ),
-                    if (auth.isWorker)
+                    if (auth.isAttendanceParticipant)
                       _NavTile(
                         icon: Icons.description_outlined,
                         label: l10n.t('Documents'),
@@ -153,7 +153,7 @@ class _AppShellState extends State<AppShell> {
                     if (auth.canViewWorkers)
                       _NavTile(
                         icon: Icons.groups_outlined,
-                        label: l10n.t('Workers'),
+                        label: l10n.t('Team'),
                         selected: widget.location.startsWith('/workers'),
                         onTap: () => _go(context, '/workers'),
                       ),
