@@ -67,9 +67,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.t(
-              'Preview and download documents shared with your worker profile.',
-            ),
+            l10n.t('Preview and download documents shared with your profile.'),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),

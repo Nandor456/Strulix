@@ -19,6 +19,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Actions": "Acțiuni",
     "Already completed today": "Deja finalizată astăzi",
     "Already have an account?": "Ai deja un cont?",
+    "All team members": "Toți membrii echipei",
     "All workpoints": "Toate punctele de lucru",
     "Allow camera access to scan attendance.":
       "Permite accesul la cameră pentru a înregistra prezența.",
@@ -35,6 +36,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Automatically closed at 22:00": "Închisă automat la 22:00",
     "Browse your job sites and open one to manage its workers, attendance, and QR tools.":
       "Răsfoiește șantierele tale și deschide unul pentru a gestiona muncitorii, prezența și instrumentele QR.",
+    "Browse your job sites and open one to manage its team, attendance, and QR tools.":
+      "Răsfoiește șantierele tale și deschide unul pentru a gestiona echipa, prezența și instrumentele QR.",
     "Camera scanning requires HTTPS.": "Scanarea camerei necesită HTTPS.",
     "Cancel": "Anulează",
     "Change language": "Schimbă limba",
@@ -49,6 +52,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Coordinate workpoints, QR attendance, worker documents, leave requests, and team messaging in one focused construction operations system.":
       "Coordonează punctele de lucru, prezența QR, documentele muncitorilor, cererile de concediu și mesajele echipei într-un sistem concentrat pentru operațiuni de construcții.",
     "Configured on your worker profile": "Configurat în profilul tău de muncitor",
+    "Configured on your leader profile":
+      "Configurat în profilul tău de șef de echipă",
     "Coordinates are generated automatically from the address.":
       "Coordonatele sunt generate automat din adresă.",
     "Copied!": "Copiat!",
@@ -73,6 +78,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Sun": "Dum",
     "Deadline": "Termen-limită",
     "Delete": "Șterge",
+    "Delete team member": "Șterge membrul echipei",
     "Delete workpoint": "Șterge punctul de lucru",
     "Description": "Descriere",
     "Documents": "Documente",
@@ -81,6 +87,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Download document": "Descarcă documentul",
     "Earnings": "Câștiguri",
     "Edit workpoint": "Editează punctul de lucru",
+    "Edit team member": "Editează membrul echipei",
     "Email": "Email",
     "Email address": "Adresă de email",
     "Email is locked to the invited address.":
@@ -97,6 +104,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Failed to load your documents.":
       "Documentele tale nu au putut fi încărcate.",
     "Failed to load your worker dashboard.":
+      "Tabloul tău de bord nu a putut fi încărcat.",
+    "Failed to load your dashboard.":
       "Tabloul tău de bord nu a putut fi încărcat.",
     "Failed to save workpoint": "Punctul de lucru nu a putut fi salvat",
     "Failed to send invitation": "Invitația nu a putut fi trimisă",
@@ -117,6 +126,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Alătură-te sistemului ERP pentru construcții",
     "LEADER": "Șef de echipă",
     "Leader": "Șef de echipă",
+    "Leader dashboard": "Tablou de bord șef de echipă",
     "Light theme": "Tema deschisă",
     "Leave and documents": "Concedii și documente",
     "Location timed out. Move somewhere with a clearer signal and try again.":
@@ -194,6 +204,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Planifică și gestionează șantierele, muncitorii alocați, documentele și prezența zilnică dintr-un singur loc.",
     "Place the attendance QR code inside the frame.":
       "Așază codul QR de prezență în interiorul cadrului.",
+    "People checked in": "Persoane prezente",
+    "Person": "Persoană",
     "Please enter a username and password.":
       "Introdu un nume de utilizator și o parolă.",
     "Incorrect username or password":
@@ -207,6 +219,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Previous workpoint": "Punct de lucru anterior",
     "Preview and download documents shared with your worker profile.":
       "Previzualizează și descarcă documentele distribuite profilului tău de muncitor.",
+    "Preview and download documents shared with your profile.":
+      "Previzualizează și descarcă documentele distribuite profilului tău.",
     "Preview is not available for this document.":
       "Previzualizarea nu este disponibilă pentru acest document.",
     "QR attendance": "Prezență QR",
@@ -280,9 +294,13 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Workpoints": "Puncte de lucru",
     "WORKER": "Muncitor",
     "Worker": "Muncitor",
+    "Worker or leader": "Muncitor sau șef de echipă",
     "Worker dashboard": "Tablou de bord muncitor",
     "Worker management": "Gestionare muncitori",
     "Workers": "Muncitori",
+    "Team": "Echipă",
+    "Team management": "Gestionare echipă",
+    "Team members": "Membrii echipei",
     "Workers scan on site while managers review hours, missing check-outs, and Excel exports.":
       "Muncitorii scanează pe șantier, iar managerii verifică orele, ieșirile lipsă și exporturile Excel.",
     "Workpoint control": "Controlul punctelor de lucru",
@@ -296,6 +314,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Add": "Adaugă",
     "Add a check-in and optional check-out for a worker.":
       "Adaugă o intrare și o ieșire opțională pentru un muncitor.",
+    "Add a check-in and optional check-out for a worker or leader.":
+      "Adaugă o intrare și o ieșire opțională pentru un muncitor sau șef de echipă.",
     "Attachment": "Atașament",
     "Automatically closed at 22:00. Edit to mark reviewed.":
       "Închisă automat la 22:00. Editează pentru a marca verificarea.",
@@ -394,6 +414,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Choose a conversation from the list or start a new one.":
       "Alege o conversație din listă sau începe una nouă.",
     "Choose worker": "Alege muncitor",
+    "Choose worker or leader": "Alege muncitor sau șef de echipă",
     "Close": "Închide",
     "Close notification": "Închide notificarea",
     "Conversations": "Conversații",
@@ -433,6 +454,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Gestionează prezența, accesul QR, documentele și exporturile pentru acest punct.",
     "Manage registered workers and their documents.":
       "Gestionează muncitorii înregistrați și documentele lor.",
+    "Manage registered workers and leaders, wages, and documents.":
+      "Gestionează muncitorii și șefii de echipă înregistrați, salariile și documentele.",
     "Manage worker documents": "Gestionează documentele muncitorului",
     "Messaging": "Mesagerie",
     "New conversation": "Conversație nouă",
@@ -451,7 +474,11 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "No wage": "Fără salariu",
     "No workers have checked in to this workpoint yet.":
       "Niciun muncitor nu a intrat încă la acest punct de lucru.",
+    "No workers or leaders have checked in to this workpoint yet.":
+      "Niciun muncitor sau șef de echipă nu a intrat încă la acest punct de lucru.",
     "No workers registered yet.": "Nu există muncitori înregistrați încă.",
+    "No workers or leaders registered yet.":
+      "Nu există muncitori sau șefi de echipă înregistrați încă.",
     "Offline": "Offline",
     "Online": "Online",
     "Preview document": "Previzualizează documentul",
@@ -681,6 +708,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Actions": "Műveletek",
     "Already completed today": "Ma már lezárva",
     "Already have an account?": "Már van fiókod?",
+    "All team members": "Összes csapattag",
     "All workpoints": "Összes munkapont",
     "Allow camera access to scan attendance.":
       "Engedélyezd a kamera használatát a jelenlét rögzítéséhez.",
@@ -697,6 +725,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Automatically closed at 22:00": "Automatikusan zárva 22:00-kor",
     "Browse your job sites and open one to manage its workers, attendance, and QR tools.":
       "Böngéssz a munkaterületeid között, és nyiss meg egyet a dolgozók, a jelenlét és a QR-eszközök kezelésére.",
+    "Browse your job sites and open one to manage its team, attendance, and QR tools.":
+      "Böngéssz a munkaterületeid között, és nyiss meg egyet a csapat, a jelenlét és a QR-eszközök kezelésére.",
     "Camera scanning requires HTTPS.":
       "A kamera szkenneléshez HTTPS szükséges.",
     "Cancel": "Mégse",
@@ -712,6 +742,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Coordinate workpoints, QR attendance, worker documents, leave requests, and team messaging in one focused construction operations system.":
       "Koordináld a munkapontokat, QR-jelenlétet, dolgozói dokumentumokat, szabadságkérelmeket és csapatüzeneteket egy célzott építőipari műveleti rendszerben.",
     "Configured on your worker profile": "A dolgozói profilodon beállítva",
+    "Configured on your leader profile":
+      "A csapatvezetői profilodon beállítva",
     "Coordinates are generated automatically from the address.":
       "A koordináták automatikusan készülnek a címből.",
     "Copied!": "Másolva!",
@@ -736,6 +768,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Sun": "Vas",
     "Deadline": "Határidő",
     "Delete": "Törlés",
+    "Delete team member": "Csapattag törlése",
     "Delete workpoint": "Munkapont törlése",
     "Description": "Leírás",
     "Documents": "Dokumentumok",
@@ -744,6 +777,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Download document": "Dokumentum letöltése",
     "Earnings": "Kereset",
     "Edit workpoint": "Munkapont szerkesztése",
+    "Edit team member": "Csapattag szerkesztése",
     "Email": "Email",
     "Email address": "Email cím",
     "Email is locked to the invited address.":
@@ -763,6 +797,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "A dokumentumok betöltése nem sikerült.",
     "Failed to load your worker dashboard.":
       "A dolgozói áttekintés betöltése nem sikerült.",
+    "Failed to load your dashboard.":
+      "Az áttekintés betöltése nem sikerült.",
     "Failed to save workpoint": "A munkapont mentése nem sikerült",
     "Failed to send invitation": "A meghívó küldése nem sikerült",
     "File": "Fájl",
@@ -782,6 +818,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Csatlakozz az építőipari ERP rendszerhez",
     "LEADER": "Csapatvezető",
     "Leader": "Csapatvezető",
+    "Leader dashboard": "Csapatvezetői áttekintés",
     "Light theme": "Világos téma",
     "Leave and documents": "Szabadságok és dokumentumok",
     "Location timed out. Move somewhere with a clearer signal and try again.":
@@ -858,6 +895,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Tervezd és kezeld a munkaterületeket, hozzárendelt dolgozókat, dokumentumokat és napi jelenlétet egy helyről.",
     "Place the attendance QR code inside the frame.":
       "Helyezd a jelenléti QR-kódot a keretbe.",
+    "People checked in": "Bejelentkezett személyek",
+    "Person": "Személy",
     "Please enter a username and password.":
       "Adj meg egy felhasználónevet és egy jelszót.",
     "Incorrect username or password":
@@ -871,6 +910,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Previous workpoint": "Korábbi munkapont",
     "Preview and download documents shared with your worker profile.":
       "Tekintsd meg és töltsd le a dolgozói profilodhoz megosztott dokumentumokat.",
+    "Preview and download documents shared with your profile.":
+      "Tekintsd meg és töltsd le a profilodhoz megosztott dokumentumokat.",
     "Preview is not available for this document.":
       "Ehhez a dokumentumhoz nem érhető el előnézet.",
     "QR attendance": "QR-jelenlét",
@@ -944,9 +985,13 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Workpoints": "Munkapontok",
     "WORKER": "Munkás",
     "Worker": "Munkás",
+    "Worker or leader": "Munkás vagy csapatvezető",
     "Worker dashboard": "Dolgozói áttekintés",
     "Worker management": "Dolgozók kezelése",
     "Workers": "Dolgozók",
+    "Team": "Csapat",
+    "Team management": "Csapat kezelése",
+    "Team members": "Csapattagok",
     "Workers scan on site while managers review hours, missing check-outs, and Excel exports.":
       "A dolgozók a helyszínen szkennelnek, miközben a vezetők ellenőrzik az órákat, hiányzó kilépéseket és Excel-exportokat.",
     "Workpoint control": "Munkapont-irányítás",
@@ -960,6 +1005,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Add": "Hozzáad",
     "Add a check-in and optional check-out for a worker.":
       "Adj hozzá egy belépést és opcionális kilépést egy dolgozóhoz.",
+    "Add a check-in and optional check-out for a worker or leader.":
+      "Adj hozzá egy belépést és opcionális kilépést egy munkáshoz vagy csapatvezetőhöz.",
     "Attachment": "Melléklet",
     "Automatically closed at 22:00. Edit to mark reviewed.":
       "Automatikusan lezárva 22:00-kor. Szerkeszd az ellenőrzöttként jelöléshez.",
@@ -1058,6 +1105,7 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "Choose a conversation from the list or start a new one.":
       "Válassz egy beszélgetést a listából, vagy indíts egy újat.",
     "Choose worker": "Válassz dolgozót",
+    "Choose worker or leader": "Válassz munkást vagy csapatvezetőt",
     "Close": "Bezár",
     "Close notification": "Értesítés bezárása",
     "Conversations": "Beszélgetések",
@@ -1097,6 +1145,8 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
       "Kezeld a jelenlétet, a QR-hozzáférést, a dokumentumokat és az exportokat ezen a helyen.",
     "Manage registered workers and their documents.":
       "Kezeld a regisztrált dolgozókat és dokumentumaikat.",
+    "Manage registered workers and leaders, wages, and documents.":
+      "Kezeld a regisztrált munkásokat és csapatvezetőket, béreket és dokumentumokat.",
     "Manage worker documents": "Dolgozói dokumentumok kezelése",
     "Messaging": "Üzenetküldés",
     "New conversation": "Új beszélgetés",
@@ -1115,7 +1165,11 @@ const messages: Record<Exclude<AppLanguage, "en">, Record<string, string>> = {
     "No wage": "Nincs bér",
     "No workers have checked in to this workpoint yet.":
       "Még egy dolgozó sem jelentkezett be ezen a munkaponton.",
+    "No workers or leaders have checked in to this workpoint yet.":
+      "Még egy munkás vagy csapatvezető sem jelentkezett be ezen a munkaponton.",
     "No workers registered yet.": "Még nincs regisztrált dolgozó.",
+    "No workers or leaders registered yet.":
+      "Még nincs regisztrált munkás vagy csapatvezető.",
     "Offline": "Offline",
     "Online": "Online",
     "Preview document": "Dokumentum előnézete",

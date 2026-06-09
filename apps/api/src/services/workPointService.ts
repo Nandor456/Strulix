@@ -13,6 +13,11 @@ import {
   affiliationForCompany,
   type WorkerAffiliation,
 } from "./subcontractorService.js";
+import {
+  attendanceParticipantRoleFilter,
+  companyWorkPointAccessWhere,
+  workPointAssignmentWhere,
+} from "./accessPolicy.js";
 
 type PublicUserSummary = {
   id: string;
@@ -147,6 +152,7 @@ const workPointSummarySelect = {
 const workPointDetailSelect = {
   ...workPointSummarySelect,
   workers: {
+    where: { role: attendanceParticipantRoleFilter() },
     select: {
       ...publicUserSelect,
       companyId: true,
@@ -267,9 +273,17 @@ export function parseAddressCoordinates(address: string): Coords | null {
   return { lat, lng };
 }
 
-async function ensureWorkPointExists(id: string, companyId: string) {
+async function ensureWorkPointExists(params: {
+  id: string;
+  userId: string;
+  companyId: string;
+  role: string;
+}) {
   const workPoint = await prisma.workPoint.findFirst({
-    where: { id, companyId },
+    where: {
+      id: params.id,
+      ...companyWorkPointAccessWhere(params),
+    },
     select: { id: true },
   });
 
@@ -285,9 +299,13 @@ async function syncOwnerChatParticipant(workPointId: string, ownerId?: string) {
   await addParticipantToChat(chatId, ownerId);
 }
 
-export async function listWorkPoints(companyId: string): Promise<WorkPointSummary[]> {
+export async function listWorkPoints(params: {
+  userId: string;
+  companyId: string;
+  role: string;
+}): Promise<WorkPointSummary[]> {
   const workPoints = await prisma.workPoint.findMany({
-    where: { companyId },
+    where: companyWorkPointAccessWhere(params),
     select: workPointSummarySelect,
     orderBy: [{ uploadedAt: "desc" }],
   });
@@ -300,11 +318,7 @@ export async function listMyAssignedWorkPoints(
   companyId: string,
 ): Promise<AssignedWorkPointSummary[]> {
   const workPoints = await prisma.workPoint.findMany({
-    where: {
-      workers: {
-        some: { id: userId },
-      },
-    },
+    where: workPointAssignmentWhere(userId),
     select: assignedWorkPointSelect,
     orderBy: [{ uploadedAt: "desc" }],
   });
@@ -314,10 +328,17 @@ export async function listMyAssignedWorkPoints(
 
 export async function getWorkPointById(
   id: string,
-  companyId: string,
+  params: {
+    userId: string;
+    companyId: string;
+    role: string;
+  },
 ): Promise<WorkPointDetail | null> {
   const workPoint = await prisma.workPoint.findFirst({
-    where: { id, companyId },
+    where: {
+      id,
+      ...companyWorkPointAccessWhere(params),
+    },
     select: workPointDetailSelect,
   });
 
@@ -328,6 +349,7 @@ export async function createWorkPoint(
   input: WorkPointInput,
   ownerId?: string,
   companyId?: string,
+  ownerRole?: string,
 ): Promise<WorkPointDetail> {
   if (!companyId) {
     throw new Error("Company is required");
@@ -344,13 +366,20 @@ export async function createWorkPoint(
       description: input.description ?? null,
       deadline: parseDeadline(input.deadline) ?? null,
       userId: ownerId,
+      ...(ownerId && ownerRole === "LEADER"
+        ? { workers: { connect: { id: ownerId } } }
+        : {}),
     },
     select: { id: true },
   });
 
   await syncOwnerChatParticipant(workPoint.id, ownerId);
 
-  const created = await getWorkPointById(workPoint.id, companyId);
+  const created = await getWorkPointById(workPoint.id, {
+    userId: ownerId ?? "",
+    companyId,
+    role: ownerRole ?? "ADMIN",
+  });
   if (!created) {
     throw new Error("Work point not found");
   }
@@ -360,10 +389,14 @@ export async function createWorkPoint(
 
 export async function updateWorkPoint(
   id: string,
-  companyId: string,
+  params: {
+    userId: string;
+    companyId: string;
+    role: string;
+  },
   input: UpdateWorkPointInput,
 ): Promise<WorkPointDetail> {
-  await ensureWorkPointExists(id, companyId);
+  await ensureWorkPointExists({ id, ...params });
   const nextCoords = input.address !== undefined
     ? await resolveAddressCoordinates(input.address)
     : undefined;
@@ -396,7 +429,7 @@ export async function updateWorkPoint(
     });
   }
 
-  const updated = await getWorkPointById(id, companyId);
+  const updated = await getWorkPointById(id, params);
   if (!updated) {
     throw new Error("Work point not found");
   }
@@ -404,8 +437,15 @@ export async function updateWorkPoint(
   return updated;
 }
 
-export async function deleteWorkPoint(id: string, companyId: string): Promise<void> {
-  await ensureWorkPointExists(id, companyId);
+export async function deleteWorkPoint(
+  id: string,
+  params: {
+    userId: string;
+    companyId: string;
+    role: string;
+  },
+): Promise<void> {
+  await ensureWorkPointExists({ id, ...params });
   const documentStoredNames = await listWorkPointDocumentStoredNames(id);
 
   const chat = await prisma.chat.findUnique({

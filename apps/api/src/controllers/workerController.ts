@@ -8,10 +8,19 @@ import {
   listWorkersForWorkPoint,
   updateWorker,
 } from "../services/workerService.js";
+import { companyWorkPointAccessWhere } from "../services/accessPolicy.js";
 
-async function ensureWorkPointExists(workPointId: string, companyId: string) {
+async function ensureWorkPointExists(params: {
+  workPointId: string;
+  userId: string;
+  companyId: string;
+  role: string;
+}) {
   return prisma.workPoint.findFirst({
-    where: { id: workPointId, companyId },
+    where: {
+      id: params.workPointId,
+      ...companyWorkPointAccessWhere(params),
+    },
     select: { id: true },
   });
 }
@@ -37,12 +46,21 @@ export async function listWorkPointWorkersController(
   const { id } = req.params;
 
   try {
-    const workPoint = await ensureWorkPointExists(id, req.auth!.companyId);
+    const workPoint = await ensureWorkPointExists({
+      workPointId: id,
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     if (!workPoint) {
       return res.status(404).json({ error: "Work point not found" });
     }
 
-    const workers = await listWorkersForWorkPoint(id, req.auth!.companyId);
+    const workers = await listWorkersForWorkPoint(id, {
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     res.json({ workers });
   } catch (error) {
     const message =
@@ -60,14 +78,23 @@ export async function listAttendanceWorkersController(
   const { id } = req.params;
 
   try {
-    const workPoint = await ensureWorkPointExists(id, req.auth!.companyId);
+    const workPoint = await ensureWorkPointExists({
+      workPointId: id,
+      userId: req.auth!.userId,
+      companyId: req.auth!.companyId,
+      role: req.auth!.role,
+    });
     if (!workPoint) {
       return res.status(404).json({ error: "Work point not found" });
     }
 
     const workers = await listAttendanceWorkersForWorkPoint(
       id,
-      req.auth!.companyId,
+      {
+        userId: req.auth!.userId,
+        companyId: req.auth!.companyId,
+        role: req.auth!.role,
+      },
     );
     res.json({ workers });
   } catch (error) {

@@ -5,6 +5,11 @@ import {
   getAcceptedSubcontractorCompanyIds,
   type WorkerAffiliation,
 } from "./subcontractorService.js";
+import {
+  attendanceParticipantRoleFilter,
+  companyWorkPointAccessWhere,
+  isAttendanceParticipantRole,
+} from "./accessPolicy.js";
 
 type CompanySummary = {
   id: string;
@@ -66,7 +71,7 @@ function toWorkerSummary(worker: SelectedWorker, ownerCompanyId: string): Worker
 
 export async function listWorkers(companyId: string): Promise<WorkerSummary[]> {
   const workers = await prisma.user.findMany({
-    where: { companyId, role: "WORKER" },
+    where: { companyId, role: attendanceParticipantRoleFilter() },
     select: workerSummarySelect,
     orderBy: { username: "asc" },
   });
@@ -76,13 +81,21 @@ export async function listWorkers(companyId: string): Promise<WorkerSummary[]> {
 
 export async function listWorkersForWorkPoint(
   workPointId: string,
-  companyId: string,
+  params: {
+    userId: string;
+    companyId: string;
+    role: string;
+  },
 ): Promise<WorkerStats[]> {
   const workPoint = await prisma.workPoint.findFirst({
-    where: { id: workPointId, companyId },
+    where: {
+      id: workPointId,
+      ...companyWorkPointAccessWhere(params),
+    },
     select: {
       companyId: true,
       workers: {
+        where: { role: attendanceParticipantRoleFilter() },
         select: workerSummarySelect,
         orderBy: { username: "asc" },
       },
@@ -98,23 +111,30 @@ export async function listWorkersForWorkPoint(
 
 export async function listAttendanceWorkersForWorkPoint(
   workPointId: string,
-  companyId: string,
+  params: {
+    userId: string;
+    companyId: string;
+    role: string;
+  },
 ): Promise<WorkerSummary[]> {
   const workPoint = await prisma.workPoint.findFirst({
-    where: { id: workPointId, companyId },
+    where: {
+      id: workPointId,
+      ...companyWorkPointAccessWhere(params),
+    },
     select: { id: true, companyId: true },
   });
 
   if (!workPoint) return [];
 
   const subcontractorCompanyIds = await getAcceptedSubcontractorCompanyIds(
-    companyId,
+    params.companyId,
   );
-  const companyIds = [companyId, ...subcontractorCompanyIds];
+  const companyIds = [params.companyId, ...subcontractorCompanyIds];
 
   const workers = await prisma.user.findMany({
     where: {
-      role: "WORKER",
+      role: attendanceParticipantRoleFilter(),
       companyId: { in: companyIds },
     },
     select: workerSummarySelect,
@@ -131,6 +151,9 @@ export async function updateWorker(
 ): Promise<WorkerSummary> {
   if (data.role === "ADMIN") {
     throw new Error("A company can have only one admin");
+  }
+  if (data.role !== undefined && !isAttendanceParticipantRole(data.role)) {
+    throw new Error("Only worker and leader roles can be edited here");
   }
 
   const existingWorker = await prisma.user.findFirst({

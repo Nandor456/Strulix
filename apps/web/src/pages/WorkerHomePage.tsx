@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMyDailyStats, useMyMonthlySummary } from "@/hooks/useAttendance";
+import { useAuth } from "@/hooks/useAuth";
 import { useMyAssignedWorkPoints } from "@/hooks/useWorkPoints";
 import {
   formatDate,
@@ -100,6 +101,7 @@ function buildAttendanceGroups(
 
 export default function WorkerHomePage() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [period, setPeriod] = useState(getCurrentPeriod);
   const [documentsWorkPoint, setDocumentsWorkPoint] =
     useState<AssignedWorkPointSummary | null>(null);
@@ -133,6 +135,12 @@ export default function WorkerHomePage() {
   );
 
   const hasWage = monthlySummary?.hourlyWage != null;
+  const dashboardLabel =
+    user?.role === "LEADER" ? t("Leader dashboard") : t("Worker dashboard");
+  const profileLabel =
+    user?.role === "LEADER"
+      ? t("Configured on your leader profile")
+      : t("Configured on your worker profile");
   const openRecords = Math.max(
     0,
     (monthlySummary?.totalDays ?? 0) - (monthlySummary?.completeDays ?? 0),
@@ -151,7 +159,7 @@ export default function WorkerHomePage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <Badge variant="outline" className="mb-3 bg-background/70">
-                {t("Worker dashboard")}
+                {dashboardLabel}
               </Badge>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 {t("Your Strulix home")}
@@ -190,7 +198,7 @@ export default function WorkerHomePage() {
 
       {hasError && !isLoading && (
         <Alert variant="destructive" className="mb-4">
-          {t("Failed to load your worker dashboard.")}
+          {t("Failed to load your dashboard.")}
         </Alert>
       )}
 
@@ -214,7 +222,7 @@ export default function WorkerHomePage() {
             <SummaryCard
               label={t("Hourly wage")}
               value={formatMoney(monthlySummary?.hourlyWage, { precise: true })}
-              helper={t("Configured on your worker profile")}
+              helper={profileLabel}
               icon={<DollarSign className="h-4 w-4" />}
             />
             <SummaryCard

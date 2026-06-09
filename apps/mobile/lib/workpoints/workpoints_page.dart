@@ -92,7 +92,7 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
                     const SizedBox(height: 4),
                     Text(
                       l10n.t(
-                        'Browse job sites and manage workers, attendance, and QR tools.',
+                        'Browse job sites and manage team members, attendance, and QR tools.',
                       ),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -129,7 +129,7 @@ class _WorkpointsPageState extends State<WorkpointsPage> {
                     title: Text(workPoint.name),
                     subtitle: Text(
                       '${workPoint.address}\n'
-                      '${l10n.t('Workers')}: ${workPoint.workerCount} · '
+                      '${l10n.t('Team')}: ${workPoint.workerCount} · '
                       '${l10n.t('Attendance')}: ${workPoint.attendanceCount} · '
                       '${l10n.t('Deadline')}: ${formatDate(workPoint.deadline)}',
                     ),

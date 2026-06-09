@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { prisma } from "../../database/prisma.js";
+import { isAttendanceParticipantRole } from "./accessPolicy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,7 +113,11 @@ async function ensureWorkerTarget(workerId: string, companyId: string) {
     select: { id: true, companyId: true, role: true },
   });
 
-  if (!worker || worker.companyId !== companyId || worker.role !== "WORKER") {
+  if (
+    !worker ||
+    worker.companyId !== companyId ||
+    !isAttendanceParticipantRole(worker.role)
+  ) {
     throw new WorkerDocumentError("Worker not found", 404);
   }
 }

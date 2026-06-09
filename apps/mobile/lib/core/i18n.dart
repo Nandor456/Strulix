@@ -173,6 +173,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Failed to load workpoint documents.':
         'Failed to load workpoint documents.',
     'Failed to load your documents.': 'Failed to load your documents.',
+    'Failed to load your dashboard.': 'Failed to load your dashboard.',
     'Failed to load your worker dashboard.':
         'Failed to load your worker dashboard.',
     'Failed to save workpoint.': 'Failed to save workpoint.',
@@ -191,6 +192,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Invitation link copied.': 'Invitation link copied.',
     'Join the Construction ERP system': 'Join the Construction ERP system',
     'LEADER': 'Leader',
+    'Leader profile': 'Leader profile',
     'Loading dashboard...': 'Loading dashboard...',
     'Loading documents...': 'Loading documents...',
     'Loading invitations...': 'Loading invitations...',
@@ -255,10 +257,11 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password must be at most 100 characters.':
         'Password must be at most 100 characters.',
     'Please enter a username.': 'Please enter a username.',
-    'Incorrect username or password':
-        'Incorrect username or password',
+    'Incorrect username or password': 'Incorrect username or password',
     'Preview and download documents shared with your worker profile.':
         'Preview and download documents shared with your worker profile.',
+    'Preview and download documents shared with your profile.':
+        'Preview and download documents shared with your profile.',
     'Preview is not available for this file.':
         'Preview is not available for this file.',
     'Refresh': 'Refresh',
@@ -325,6 +328,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Workpoint documents': 'Workpoint documents',
     'Workpoints': 'Workpoints',
     'Worker profile': 'Worker profile',
+    'Team': 'Team',
+    'Team members': 'Team members',
     '{count} complete': '{count} complete',
     '{count} complete days': '{count} complete days',
     '{hours} · {count} records': '{hours} · {count} records',
@@ -364,6 +369,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Delete {name}? This action cannot be undone.':
         'Delete {name}? This action cannot be undone.',
     'Delete worker': 'Delete worker',
+    'Delete team member': 'Delete team member',
     'Documents for {name}': 'Documents for {name}',
     'Email': 'Email',
     'Existing printed codes will stop working.':
@@ -395,12 +401,16 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Manual entry': 'Manual entry',
     'Manage registered workers and their documents.':
         'Manage registered workers and their documents.',
+    'Manage registered workers and leaders, wages, and documents.':
+        'Manage registered workers and leaders, wages, and documents.',
     'New conversation': 'New conversation',
     'No conversations': 'No conversations',
     'No messages yet': 'No messages yet',
     'No users found': 'No users found',
     'No wage': 'No wage',
     'No workers registered yet': 'No workers registered yet',
+    'No workers or leaders registered yet':
+        'No workers or leaders registered yet',
     'Not checked out yet': 'Not checked out yet',
     'Offline': 'Offline',
     'Open QR': 'Open QR',
@@ -424,9 +434,17 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'To': 'To',
     'Typing...': 'Typing...',
     'Worker': 'Worker',
+    'Worker or leader': 'Worker or leader',
     'Workers {count}': 'Workers {count}',
     'Workers scan this code to check in or out.':
         'Workers scan this code to check in or out.',
+    'Workers and leaders scan this code to check in or out.':
+        'Workers and leaders scan this code to check in or out.',
+    'Browse job sites and manage team members, attendance, and QR tools.':
+        'Browse job sites and manage team members, attendance, and QR tools.',
+    'Edit team member': 'Edit team member',
+    'No workers or leaders have checked in to this workpoint yet.':
+        'No workers or leaders have checked in to this workpoint yet.',
     'Worker not found': 'Worker not found',
     'Workpoint details': 'Workpoint details',
     'Work point not found': 'Work point not found',
@@ -636,6 +654,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Documentele punctului de lucru nu au putut fi încărcate.',
     'Failed to load your documents.':
         'Documentele tale nu au putut fi încărcate.',
+    'Failed to load your dashboard.':
+        'Tabloul tău de bord nu a putut fi încărcat.',
     'Failed to load your worker dashboard.':
         'Tabloul tău de bord nu a putut fi încărcat.',
     'Failed to save workpoint.': 'Punctul de lucru nu a putut fi salvat.',
@@ -655,6 +675,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Join the Construction ERP system':
         'Alătură-te sistemului ERP pentru construcții',
     'LEADER': 'Șef echipă',
+    'Leader profile': 'Profil șef de echipă',
     'Loading dashboard...': 'Se încarcă tabloul de bord...',
     'Loading documents...': 'Se încarcă documentele...',
     'Loading invitations...': 'Se încarcă invitațiile...',
@@ -720,10 +741,11 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password must be at most 100 characters.':
         'Parola poate avea cel mult 100 de caractere.',
     'Please enter a username.': 'Introdu un nume de utilizator.',
-    'Incorrect username or password':
-        'Nume de utilizator sau parolă incorectă',
+    'Incorrect username or password': 'Nume de utilizator sau parolă incorectă',
     'Preview and download documents shared with your worker profile.':
         'Previzualizează și descarcă documentele distribuite profilului tău de muncitor.',
+    'Preview and download documents shared with your profile.':
+        'Previzualizează și descarcă documentele distribuite profilului tău.',
     'Preview is not available for this file.':
         'Previzualizarea nu este disponibilă pentru acest fișier.',
     'Refresh': 'Reîncarcă',
@@ -789,6 +811,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Welcome back to BuildPulse': 'Bine ai revenit la Strulix',
     'WORKER': 'Muncitor',
     'Workers': 'Muncitori',
+    'Team': 'Echipă',
+    'Team members': 'Membrii echipei',
     'Workpoint': 'Punct de lucru',
     'Workpoint documents': 'Documente punct de lucru',
     'Workpoints': 'Puncte de lucru',
@@ -831,6 +855,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Delete {name}? This action cannot be undone.':
         'Ștergi {name}? Această acțiune nu poate fi anulată.',
     'Delete worker': 'Șterge muncitor',
+    'Delete team member': 'Șterge membrul echipei',
     'Documents for {name}': 'Documente pentru {name}',
     'Email': 'Email',
     'Existing printed codes will stop working.':
@@ -863,12 +888,16 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Manual entry': 'Intrare manuală',
     'Manage registered workers and their documents.':
         'Gestionează muncitorii înregistrați și documentele lor.',
+    'Manage registered workers and leaders, wages, and documents.':
+        'Gestionează muncitorii și șefii de echipă înregistrați, salariile și documentele.',
     'New conversation': 'Conversație nouă',
     'No conversations': 'Nicio conversație',
     'No messages yet': 'Niciun mesaj încă',
     'No users found': 'Nu s-au găsit utilizatori',
     'No wage': 'Fără salariu',
     'No workers registered yet': 'Nu există muncitori înregistrați încă',
+    'No workers or leaders registered yet':
+        'Nu există muncitori sau șefi de echipă înregistrați încă',
     'Not checked out yet': 'Ieșire neînregistrată încă',
     'Offline': 'Offline',
     'Open QR': 'Deschide QR',
@@ -890,9 +919,17 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'To': 'Până la',
     'Typing...': 'Tastează...',
     'Worker': 'Muncitor',
+    'Worker or leader': 'Muncitor sau șef de echipă',
     'Workers {count}': 'Muncitori {count}',
     'Workers scan this code to check in or out.':
         'Muncitorii scanează acest cod pentru a intra sau ieși.',
+    'Workers and leaders scan this code to check in or out.':
+        'Muncitorii și șefii de echipă scanează acest cod pentru a intra sau ieși.',
+    'Browse job sites and manage team members, attendance, and QR tools.':
+        'Răsfoiește șantierele și gestionează membrii echipei, prezența și instrumentele QR.',
+    'Edit team member': 'Editează membrul echipei',
+    'No workers or leaders have checked in to this workpoint yet.':
+        'Niciun muncitor sau șef de echipă nu a intrat încă la acest punct de lucru.',
     'Worker not found': 'Muncitorul nu a fost găsit',
     'Workpoint details': 'Detalii punct de lucru',
     'Work point not found': 'Punctul de lucru nu a fost găsit',
@@ -1108,6 +1145,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Failed to load workpoint documents.':
         'A munkapont dokumentumainak betöltése nem sikerült.',
     'Failed to load your documents.': 'A dokumentumok betöltése nem sikerült.',
+    'Failed to load your dashboard.': 'Az áttekintés betöltése nem sikerült.',
     'Failed to load your worker dashboard.':
         'A dolgozói áttekintés betöltése nem sikerült.',
     'Failed to save workpoint.': 'A munkapont mentése nem sikerült.',
@@ -1127,6 +1165,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Join the Construction ERP system':
         'Csatlakozz az építőipari ERP-rendszerhez',
     'LEADER': 'Csapatvezető',
+    'Leader profile': 'Csapatvezetői profil',
     'Loading dashboard...': 'Áttekintés betöltése...',
     'Loading documents...': 'Dokumentumok betöltése...',
     'Loading invitations...': 'Meghívók betöltése...',
@@ -1192,10 +1231,11 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Password must be at most 100 characters.':
         'A jelszó legfeljebb 100 karakter lehet.',
     'Please enter a username.': 'Adj meg egy felhasználónevet.',
-    'Incorrect username or password':
-        'Hibás felhasználónév vagy jelszó',
+    'Incorrect username or password': 'Hibás felhasználónév vagy jelszó',
     'Preview and download documents shared with your worker profile.':
         'Tekintsd meg és töltsd le a dolgozói profilodhoz megosztott dokumentumokat.',
+    'Preview and download documents shared with your profile.':
+        'Tekintsd meg és töltsd le a profilodhoz megosztott dokumentumokat.',
     'Preview is not available for this file.':
         'Ehhez a fájlhoz nem érhető el előnézet.',
     'Refresh': 'Frissítés',
@@ -1278,6 +1318,8 @@ final Map<AppLanguage, Map<String, String>> _messages = {
         'Egy meghívót fogadsz el. A szerepköröd automatikusan be lesz állítva.',
     'Browse job sites and manage workers, attendance, and QR tools.':
         'Böngéssz a munkaterületek között, és kezeld a dolgozókat, a jelenlétet és a QR-eszközöket.',
+    'Browse job sites and manage team members, attendance, and QR tools.':
+        'Böngéssz a munkaterületek között, és kezeld a csapattagokat, a jelenlétet és a QR-eszközöket.',
     'by {name}': '{name} által',
     'Create one to start tracking attendance.':
         'Hozz létre egyet a jelenlét követéséhez.',
@@ -1302,6 +1344,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Delete {name}? This action cannot be undone.':
         'Töröljük {name} nevű elemet? Ez a művelet nem vonható vissza.',
     'Delete worker': 'Dolgozó törlése',
+    'Delete team member': 'Csapattag törlése',
     'Documents for {name}': 'Dokumentumok: {name}',
     'Email': 'Email',
     'Existing printed codes will stop working.':
@@ -1333,12 +1376,16 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Manual entry': 'Manuális bejegyzés',
     'Manage registered workers and their documents.':
         'Kezeld a regisztrált dolgozókat és dokumentumaikat.',
+    'Manage registered workers and leaders, wages, and documents.':
+        'Kezeld a regisztrált dolgozókat és csapatvezetőket, béreket és dokumentumokat.',
     'New conversation': 'Új beszélgetés',
     'No conversations': 'Nincsenek beszélgetések',
     'No messages yet': 'Még nincsenek üzenetek',
     'No users found': 'Nincsenek találatok',
     'No wage': 'Nincs bér',
     'No workers registered yet': 'Még nincsenek regisztrált dolgozók',
+    'No workers or leaders registered yet':
+        'Még nincsenek regisztrált dolgozók vagy csapatvezetők',
     'Not checked out yet': 'Még nincs kilépés rögzítve',
     'Offline': 'Offline',
     'Open QR': 'QR megnyitása',
@@ -1360,9 +1407,17 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'To': 'Ig',
     'Typing...': 'Gépel...',
     'Worker': 'Dolgozó',
+    'Worker or leader': 'Dolgozó vagy csapatvezető',
     'Workers {count}': 'Dolgozók: {count}',
     'Workers scan this code to check in or out.':
         'A dolgozók ezzel a kóddal lépnek be vagy ki.',
+    'Workers and leaders scan this code to check in or out.':
+        'A dolgozók és csapatvezetők ezzel a kóddal lépnek be vagy ki.',
+    'Team': 'Csapat',
+    'Team members': 'Csapattagok',
+    'Edit team member': 'Csapattag szerkesztése',
+    'No workers or leaders have checked in to this workpoint yet.':
+        'Még egy dolgozó vagy csapatvezető sem jelentkezett be ezen a munkaponton.',
     'Worker not found': 'A dolgozó nem található',
     'Workpoint details': 'Munkapont részletei',
     'Work point not found': 'A munkapont nem található',

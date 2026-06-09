@@ -179,9 +179,9 @@ export default function WorkerManagementPage() {
             <div className="mb-6 flex items-center gap-3">
                 <Users className="h-8 w-8 text-primary" />
                 <div>
-                    <h1 className="text-3xl font-semibold">{t("Workers")}</h1>
+                    <h1 className="text-3xl font-semibold">{t("Team members")}</h1>
                     <p className="text-sm text-muted-foreground">
-                        {t("Manage registered workers and their documents.")}
+                        {t("Manage registered workers and leaders, wages, and documents.")}
                     </p>
                 </div>
             </div>
@@ -193,13 +193,13 @@ export default function WorkerManagementPage() {
             )}
 
             {!isLoading && workers.length === 0 && (
-                <Alert>{t("No workers registered yet.")}</Alert>
+                <Alert>{t("No workers or leaders registered yet.")}</Alert>
             )}
 
             {!isLoading && workers.length > 0 && (
                 <div className="overflow-hidden rounded-md border bg-card">
                     <div className="border-b px-4 py-3">
-                        <h2 className="text-sm font-semibold">{t("All workers")}</h2>
+                        <h2 className="text-sm font-semibold">{t("All team members")}</h2>
                     </div>
                     <Table>
                         <TableHeader>
@@ -249,7 +249,7 @@ export default function WorkerManagementPage() {
                                                         <FileText className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
-                                                <TooltipContent>{t("Worker documents")}</TooltipContent>
+                                                <TooltipContent>{t("Documents")}</TooltipContent>
                                             </Tooltip>
                                             {canManageWorkerAccounts && (
                                                 <>
@@ -259,12 +259,12 @@ export default function WorkerManagementPage() {
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 onClick={() => openEditDialog(worker)}
-                                                                aria-label={t("Edit worker")}
+                                                                aria-label={t("Edit team member")}
                                                             >
                                                                 <Pencil className="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent>{t("Edit worker")}</TooltipContent>
+                                                        <TooltipContent>{t("Edit team member")}</TooltipContent>
                                                     </Tooltip>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
@@ -273,12 +273,12 @@ export default function WorkerManagementPage() {
                                                                 size="icon"
                                                                 className="text-destructive hover:text-destructive"
                                                                 onClick={() => setDeleteWorker(worker)}
-                                                                aria-label={t("Delete worker")}
+                                                                aria-label={t("Delete team member")}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
-                                                        <TooltipContent>{t("Delete worker")}</TooltipContent>
+                                                        <TooltipContent>{t("Delete team member")}</TooltipContent>
                                                     </Tooltip>
                                                 </>
                                             )}
@@ -433,7 +433,7 @@ export default function WorkerManagementPage() {
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{t("Edit worker")}</DialogTitle>
+                        <DialogTitle>{t("Edit team member")}</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1.5">
@@ -503,7 +503,7 @@ export default function WorkerManagementPage() {
             >
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>{t("Delete worker")}</DialogTitle>
+                        <DialogTitle>{t("Delete team member")}</DialogTitle>
                     </DialogHeader>
                     <p className="text-sm text-muted-foreground">
                         {t("Are you sure you want to delete {name}? This action cannot be undone.", {

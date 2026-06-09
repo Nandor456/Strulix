@@ -21,12 +21,16 @@ class AuthController extends ChangeNotifier {
 
   bool get isWorker => _user?.role == UserRole.worker;
 
+  bool get isAttendanceParticipant =>
+      _user?.role == UserRole.worker || _user?.role == UserRole.leader;
+
   bool get canManageWorkPoints =>
       _user?.role == UserRole.admin || _user?.role == UserRole.leader;
 
   bool get canViewWorkers => canManageWorkPoints;
 
-  bool get canManageUsers => _user?.role == UserRole.admin;
+  bool get canManageUsers =>
+      _user?.role == UserRole.admin || _user?.role == UserRole.leader;
 
   Future<void> bootstrap() async {
     _isLoading = true;

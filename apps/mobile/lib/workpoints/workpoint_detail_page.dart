@@ -322,7 +322,7 @@ class _Overview extends StatelessWidget {
           _OverviewInfoGrid(
             items: [
               _OverviewInfoItem(
-                label: l10n.t('Workers'),
+                label: l10n.t('Team'),
                 value: '${workPoint.workerCount}',
               ),
               _OverviewInfoItem(
@@ -421,9 +421,13 @@ class _WorkersSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return SectionCard(
-      title: l10n.t('Workers'),
+      title: l10n.t('Team'),
       child: workers.isEmpty
-          ? Text(l10n.t('No workers have checked in to this workpoint yet.'))
+          ? Text(
+              l10n.t(
+                'No workers or leaders have checked in to this workpoint yet.',
+              ),
+            )
           : Column(
               children: workers
                   .map(
@@ -483,7 +487,9 @@ class _QrSection extends StatelessWidget {
     final l10n = context.l10n;
     return SectionCard(
       title: l10n.t('QR check-in'),
-      subtitle: l10n.t('Workers scan this code to check in or out.'),
+      subtitle: l10n.t(
+        'Workers and leaders scan this code to check in or out.',
+      ),
       child: data == null
           ? Text(l10n.t('QR code is not available yet.'))
           : Column(
@@ -1075,15 +1081,17 @@ class _ManualAttendanceDialogState extends State<_ManualAttendanceDialog> {
           children: [
             DropdownButtonFormField<String>(
               initialValue: _workerId,
-              decoration: InputDecoration(labelText: l10n.t('Worker')),
+              decoration: InputDecoration(
+                labelText: l10n.t('Worker or leader'),
+              ),
               items: widget.workers
                   .map(
                     (worker) => DropdownMenuItem(
                       value: worker.id,
                       child: Text(
                         worker.affiliation == 'SUBCONTRACTOR'
-                            ? '${worker.username} (${worker.company.name})'
-                            : worker.username,
+                            ? '${worker.username} (${worker.company.name}) · ${l10n.roleLabel(worker.role)}'
+                            : '${worker.username} · ${l10n.roleLabel(worker.role)}',
                       ),
                     ),
                   )

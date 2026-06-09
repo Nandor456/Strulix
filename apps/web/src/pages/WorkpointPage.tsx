@@ -163,7 +163,7 @@ export default function WorkpointPage() {
             <h1 className="text-3xl font-semibold">{t("Workpoints")}</h1>
             <p className="text-sm text-muted-foreground">
               {t(
-                "Browse your job sites and open one to manage its workers, attendance, and QR tools.",
+                "Browse your job sites and open one to manage its team, attendance, and QR tools.",
               )}
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function WorkpointPage() {
                 <TableRow>
                   <TableHead>{t("Name")}</TableHead>
                   <TableHead>{t("Address")}</TableHead>
-                  <TableHead className="text-center">{t("Workers")}</TableHead>
+                  <TableHead className="text-center">{t("Team")}</TableHead>
                   <TableHead className="text-center">{t("Attendance")}</TableHead>
                   <TableHead className="text-center">{t("Actions")}</TableHead>
                 </TableRow>

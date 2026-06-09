@@ -217,7 +217,7 @@ export default function LiveFollowPage({
               <SummaryTile
                 fullscreen={isFullscreen}
                 icon={<Users className="h-5 w-5" />}
-                label={t("Workers checked in")}
+                label={t("People checked in")}
                 value={data.totals.activeWorkers}
               />
               <SummaryTile
