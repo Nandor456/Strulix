@@ -21,6 +21,33 @@ export const useLiveFollow = (limit = 5) =>
     staleTime: 0,
   });
 
+export const useAttendanceLocationAlerts = (params?: {
+  workPointId?: string;
+  status?: "OPEN" | "REVIEWED" | "ALL";
+}) =>
+  useQuery({
+    queryKey: QUERY_KEYS.attendance.locationAlerts(params),
+    queryFn: () => attendanceAPI.listLocationAlerts(params),
+    enabled: params?.workPointId !== "",
+  });
+
+export const useReviewAttendanceLocationAlert = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      alertId: string;
+      outcome: "VALID" | "INVALID";
+      note?: string | null;
+    }) => attendanceAPI.reviewLocationAlert(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.attendance.locationAlertsBase,
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.liveFollow });
+    },
+  });
+};
+
 export const useWorkPointQr = (workPointId: string) =>
   useQuery({
     queryKey: QUERY_KEYS.attendance.qr(workPointId),

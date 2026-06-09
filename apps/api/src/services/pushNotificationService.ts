@@ -1,4 +1,5 @@
 import type { MessagePayload } from "./messagingService.js";
+import type { AttendanceLocationAlertDTO } from "./attendanceLocationService.js";
 import { prisma } from "../../database/prisma.js";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
@@ -58,6 +59,84 @@ function previewForMessage(message: MessagePayload) {
   if (body.length > 0) return body.length > 140 ? `${body.slice(0, 137)}...` : body;
   if (message.attachmentName) return "sent an attachment";
   return "sent a message";
+}
+
+function alertTypeLabel(type: string) {
+  if (type === "OUT_OF_RADIUS") return "Worker outside workpoint radius";
+  if (type === "MISSED_CHECK") return "Hourly location check missed";
+  return "Attendance monitoring unavailable";
+}
+
+async function sendMulticastAndPruneInvalidTokens(params: {
+  tokens: string[];
+  title: string;
+  body: string;
+  data: Record<string, string>;
+  threadId: string;
+}) {
+  const messaging = getFirebaseMessaging();
+  if (!messaging || params.tokens.length === 0) return;
+
+  const response = await messaging.sendEachForMulticast({
+    tokens: params.tokens,
+    notification: {
+      title: params.title,
+      body: params.body,
+    },
+    data: params.data,
+    android: {
+      priority: "high",
+      notification: {
+        title: params.title,
+        body: params.body,
+        channelId: "buildpulse_messages",
+        priority: "high",
+        sound: "default",
+      },
+    },
+    apns: {
+      headers: {
+        "apns-priority": "10",
+        "apns-push-type": "alert",
+      },
+      payload: {
+        aps: {
+          alert: {
+            title: params.title,
+            body: params.body,
+          },
+          sound: "default",
+          threadId: params.threadId,
+        },
+      },
+    },
+  });
+
+  if (response.failureCount > 0) {
+    console.warn(
+      `[push] ${response.failureCount}/${params.tokens.length} notifications failed.`,
+    );
+    response.responses.forEach((result, index) => {
+      if (result.success) return;
+      const errorCode = result.error?.code ?? "<unknown>";
+      const errorMessage = result.error?.message ?? "Unknown Firebase error";
+      console.warn(
+        `[push] delivery failure token=${maskToken(params.tokens[index] ?? "")} code=${errorCode} message=${errorMessage}`,
+      );
+    });
+  }
+
+  const invalidTokens = response.responses
+    .map((result, index) =>
+      !result.success &&
+      result.error?.code &&
+      INVALID_TOKEN_ERROR_CODES.has(result.error.code)
+        ? params.tokens[index]
+        : null,
+    )
+    .filter((token): token is string => Boolean(token));
+
+  await deletePushDevicesByTokens(invalidTokens);
 }
 
 export async function notifyMessageRecipients(message: MessagePayload) {
@@ -142,4 +221,29 @@ export async function notifyMessageRecipients(message: MessagePayload) {
     .filter((token): token is string => Boolean(token));
 
   await deletePushDevicesByTokens(invalidTokens);
+}
+
+export async function notifyAttendanceLocationAlertRecipients(params: {
+  alert: AttendanceLocationAlertDTO;
+  recipientIds: string[];
+}) {
+  const devices = await listPushDevicesForUsers(params.recipientIds);
+  const tokens = [...new Set(devices.map((device) => device.token))];
+  if (tokens.length === 0) return;
+
+  const title = "Attendance alert";
+  const body = `${params.alert.worker.username} - ${alertTypeLabel(params.alert.type)}`;
+  await sendMulticastAndPruneInvalidTokens({
+    tokens,
+    title,
+    body,
+    data: {
+      type: "attendance_location_alert",
+      alertId: params.alert.id,
+      workPointId: params.alert.workPointId,
+      attendanceId: params.alert.attendanceId,
+      workerId: params.alert.workerId,
+    },
+    threadId: params.alert.workPointId,
+  });
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/attendance/attendance_location_monitor_controller.dart';
 import 'package:mobile/auth/auth_controller.dart';
 import 'package:mobile/auth/auth_pages.dart';
 import 'package:mobile/core/api/api_client.dart';
@@ -299,6 +300,10 @@ Widget _host(Widget child) {
   final api = BuildPulseApi(apiClient);
   final auth = AuthController(api);
   final messaging = MessagingController(api, auth);
+  final attendanceMonitor = AttendanceLocationMonitorController(
+    api: api,
+    auth: auth,
+  );
   final theme = ThemeController();
   final language = LanguageController(systemLocale: const Locale('en'));
 
@@ -306,6 +311,7 @@ Widget _host(Widget child) {
     api: api,
     auth: auth,
     messaging: messaging,
+    attendanceMonitor: attendanceMonitor,
     theme: theme,
     language: language,
     child: MaterialApp(home: child),
@@ -316,6 +322,10 @@ Future<Widget> _hostWithApi(BuildPulseApi api, Widget child) async {
   final auth = AuthController(api);
   await auth.bootstrap();
   final messaging = MessagingController(api, auth);
+  final attendanceMonitor = AttendanceLocationMonitorController(
+    api: api,
+    auth: auth,
+  );
   final theme = ThemeController();
   final language = LanguageController(systemLocale: const Locale('en'));
 
@@ -323,6 +333,7 @@ Future<Widget> _hostWithApi(BuildPulseApi api, Widget child) async {
     api: api,
     auth: auth,
     messaging: messaging,
+    attendanceMonitor: attendanceMonitor,
     theme: theme,
     language: language,
     child: MaterialApp(home: child),

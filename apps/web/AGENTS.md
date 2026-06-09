@@ -10,11 +10,12 @@
 - Env loading: Vite mode files are used normally (`.env.development`, `.env.production`); `VITE_API_PROXY_TARGET` is read in `vite.config.ts` and `VITE_API_BASE_URL` is read in browser code
 - Public landing includes a Stripe signup CTA; `VITE_REQUEST_ACCESS_URL` is still available for request-access links
 - Authenticated user settings live at `/settings`; admin billing management is inside Settings, while `/billing` redirects there for older links
-- Worker/Leader QR attendance uses `@zxing/browser` for camera scanning and the browser Geolocation API for a one-time scan location; production needs HTTPS for camera/geolocation
+- Worker/Leader QR attendance uses `@zxing/browser` for camera scanning and the browser Geolocation API for a one-time scan location; production needs HTTPS for camera/geolocation. Web check-ins identify `monitoringPlatform: "web"` and are flagged for admin/leader review because hourly native background monitoring is unavailable.
 - Cloudflare Pages deploys should use root `apps/web`, build command `npm run build`, output directory `dist`; explicit SPA route rewrites live in `public/_redirects`
 - Web localization lives in `src/lib/i18n.ts` and `src/context/i18n-context.ts`; use `useI18n()` for copy/labels and `src/lib/format.ts` for locale-aware date, money, and size formatting
 - Leave calendar lives at `/leave-calendar`; WORKER and LEADER can create requests, ADMIN and LEADER can review requests; live updates come through the existing socket provider via `leave-request:changed`
-- Live Follow lives at `/live-follow` with a fullscreen TV route at `/live-follow/display`; ADMIN and LEADER only; attendance changes refresh through the existing socket provider plus polling fallback; LEADER data is backend-filtered to assigned workpoints
+- Live Follow lives at `/live-follow` with a fullscreen TV route at `/live-follow/display`; ADMIN and LEADER only; attendance changes and attendance location alerts refresh through the existing socket provider plus polling fallback; LEADER data is backend-filtered to assigned workpoints
+- Workpoint Detail includes admin/leader attendance location alert review for outside-radius, missed-check, and monitoring-unavailable alerts.
 
 ## Commands
 

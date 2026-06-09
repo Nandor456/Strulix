@@ -166,6 +166,26 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
             }
         };
 
+        const handleAttendanceLocationAlertChanged = ({
+            workPointId,
+        }: {
+            alertId: string;
+            workPointId: string;
+            attendanceId: string;
+            workerId: string;
+            type: string;
+            status: string;
+            changedAt: string;
+        }) => {
+            void qc.invalidateQueries({
+                queryKey: QUERY_KEYS.attendance.locationAlertsBase,
+            });
+            void qc.invalidateQueries({ queryKey: QUERY_KEYS.attendance.liveFollow });
+            void qc.invalidateQueries({
+                queryKey: QUERY_KEYS.attendance.byWorkPoint(workPointId),
+            });
+        };
+
         const handleLeaveRequestChanged = ({
             action,
             leaveRequest,
@@ -218,6 +238,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
         socket.on("chat:bumped", handleChatBumped);
         socket.on("chat:changed", handleChatChanged);
         socket.on("attendance:changed", handleAttendanceChanged);
+        socket.on("attendance-location-alert:changed", handleAttendanceLocationAlertChanged);
         socket.on("leave-request:changed", handleLeaveRequestChanged);
         socket.connect();
 
@@ -231,6 +252,7 @@ export function MessagingSocketProvider({ children }: { children: ReactNode }) {
             socket.off("chat:bumped", handleChatBumped);
             socket.off("chat:changed", handleChatChanged);
             socket.off("attendance:changed", handleAttendanceChanged);
+            socket.off("attendance-location-alert:changed", handleAttendanceLocationAlertChanged);
             socket.off("leave-request:changed", handleLeaveRequestChanged);
         };
     }, [isAuthenticated, isLoading, qc, socket, user?.id]);

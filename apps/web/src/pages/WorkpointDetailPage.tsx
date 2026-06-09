@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -56,7 +57,9 @@ import {
 } from "@/components/ui/tooltip";
 import {
   useDeleteAttendance,
+  useAttendanceLocationAlerts,
   useManualMark,
+  useReviewAttendanceLocationAlert,
   useRotateQrToken,
   useUpdateAttendanceTimes,
   useWorkPointAttendance,
@@ -68,7 +71,11 @@ import {
   useAttendanceWorkers,
   useWorkPointWorkers,
 } from "@/hooks/useWorkers";
-import { attendanceAPI, type AttendanceRecord } from "@/services/api/attendanceApi";
+import {
+  attendanceAPI,
+  type AttendanceLocationAlert,
+  type AttendanceRecord,
+} from "@/services/api/attendanceApi";
 import {
   formatDate,
   formatDateTime,
@@ -118,6 +125,28 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
 }
 
+function locationAlertTypeLabel(
+  type: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  if (type === "OUT_OF_RADIUS") return t("Outside radius");
+  if (type === "MISSED_CHECK") return t("Missed hourly check");
+  return t("Monitoring unavailable");
+}
+
+function locationAlertDetail(
+  alert: AttendanceLocationAlert,
+  t: (key: string, params?: Record<string, string | number>) => string,
+) {
+  if (alert.type === "OUT_OF_RADIUS" && alert.distanceMeters != null) {
+    return t("{meters}m from workpoint", {
+      meters: Math.round(alert.distanceMeters),
+    });
+  }
+  if (alert.type === "MISSED_CHECK") return t("No sample arrived after grace period");
+  return t("Background monitoring was not available for this attendance");
+}
+
 export default function WorkpointDetailPage() {
   const navigate = useNavigate();
   const { id: workPointId } = useParams<{ id: string }>();
@@ -142,6 +171,13 @@ export default function WorkpointDetailPage() {
   const manualMark = useManualMark(workPointId ?? "");
   const updateAttendanceTimes = useUpdateAttendanceTimes(workPointId ?? "");
   const deleteAttendance = useDeleteAttendance(workPointId ?? "");
+  const locationAlertParams = useMemo(
+    () => ({ workPointId: workPointId ?? "", status: "OPEN" as const }),
+    [workPointId],
+  );
+  const { data: locationAlerts = [], isLoading: isLocationAlertsLoading } =
+    useAttendanceLocationAlerts(locationAlertParams);
+  const reviewLocationAlert = useReviewAttendanceLocationAlert();
   const { data: qr, isLoading: isQrLoading } = useWorkPointQr(workPointId ?? "");
   const rotateQr = useRotateQrToken(workPointId ?? "");
 
@@ -159,6 +195,11 @@ export default function WorkpointDetailPage() {
   const [copiedQr, setCopiedQr] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [reviewingLocationAlert, setReviewingLocationAlert] =
+    useState<AttendanceLocationAlert | null>(null);
+  const [locationAlertOutcome, setLocationAlertOutcome] =
+    useState<"VALID" | "INVALID">("VALID");
+  const [locationAlertNote, setLocationAlertNote] = useState("");
 
   const scanUrl = qr ? `${window.location.origin}/checkin/${qr.qrToken}` : "";
 
@@ -270,6 +311,23 @@ export default function WorkpointDetailPage() {
     await rotateQr.mutateAsync();
   }
 
+  function openLocationAlertReview(alert: AttendanceLocationAlert) {
+    setReviewingLocationAlert(alert);
+    setLocationAlertOutcome("VALID");
+    setLocationAlertNote("");
+  }
+
+  async function handleLocationAlertReviewSave() {
+    if (!reviewingLocationAlert) return;
+    await reviewLocationAlert.mutateAsync({
+      alertId: reviewingLocationAlert.id,
+      outcome: locationAlertOutcome,
+      note: locationAlertNote,
+    });
+    setReviewingLocationAlert(null);
+    setLocationAlertNote("");
+  }
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -344,6 +402,60 @@ export default function WorkpointDetailPage() {
                 </span>
               )}
             </div>
+          </div>
+
+          <div className="rounded-md border bg-card p-4">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <CircleAlert className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold">{t("Location alerts")}</h3>
+                {locationAlerts.length > 0 && (
+                  <Badge variant="warning">{locationAlerts.length}</Badge>
+                )}
+              </div>
+              {isLocationAlertsLoading && <Spinner size={16} />}
+            </div>
+
+            {isLocationAlertsLoading ? (
+              <div className="flex justify-center py-6">
+                <Spinner size={24} />
+              </div>
+            ) : locationAlerts.length === 0 ? (
+              <Alert>{t("No open location alerts for this workpoint.")}</Alert>
+            ) : (
+              <div className="space-y-2">
+                {locationAlerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="flex flex-col gap-3 rounded-md border px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium">{alert.worker.username}</p>
+                        <Badge variant="warning">
+                          {locationAlertTypeLabel(alert.type, t)}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {locationAlertDetail(alert, t)}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {t("Due")}: {formatDateTime(alert.dueAt)}
+                        {" · "}
+                        {t("Created")}: {formatDateTime(alert.createdAt)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => openLocationAlertReview(alert)}
+                    >
+                      <Check className="h-4 w-4" />
+                      {t("Review")}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-md border bg-card p-4">
@@ -764,6 +876,73 @@ export default function WorkpointDetailPage() {
               disabled={!attendanceCheckedInValue || updateAttendanceTimes.isPending}
             >
               {updateAttendanceTimes.isPending ? (
+                <Spinner size={16} />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              {t("Save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={reviewingLocationAlert !== null}
+        onOpenChange={(open) => {
+          if (!open) setReviewingLocationAlert(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("Review location alert")}</DialogTitle>
+            {reviewingLocationAlert && (
+              <DialogDescription>
+                {reviewingLocationAlert.worker.username} ·{" "}
+                {locationAlertTypeLabel(reviewingLocationAlert.type, t)}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="location-alert-outcome">{t("Decision")}</Label>
+              <Select
+                value={locationAlertOutcome}
+                onValueChange={(value) =>
+                  setLocationAlertOutcome(value as "VALID" | "INVALID")
+                }
+              >
+                <SelectTrigger id="location-alert-outcome">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="VALID">{t("Valid absence")}</SelectItem>
+                  <SelectItem value="INVALID">{t("Unauthorized absence")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="location-alert-note">{t("Note")}</Label>
+              <Textarea
+                id="location-alert-note"
+                value={locationAlertNote}
+                onChange={(event) => setLocationAlertNote(event.target.value)}
+                placeholder={t("Optional review note")}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReviewingLocationAlert(null)}
+            >
+              <X className="h-4 w-4" />
+              {t("Cancel")}
+            </Button>
+            <Button
+              onClick={() => void handleLocationAlertReviewSave()}
+              disabled={reviewLocationAlert.isPending}
+            >
+              {reviewLocationAlert.isPending ? (
                 <Spinner size={16} />
               ) : (
                 <Check className="h-4 w-4" />

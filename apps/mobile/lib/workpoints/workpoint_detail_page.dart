@@ -33,6 +33,7 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
   List<WorkerSummary> _attendanceWorkers = const [];
   List<WorkerSummary> _assignedWorkers = const [];
   List<AttendanceRecord> _attendance = const [];
+  List<AttendanceLocationAlert> _locationAlerts = const [];
   QrData? _qr;
 
   late String _from = monthBounds(currentPeriod()).from;
@@ -56,12 +57,14 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
         api.listAttendanceWorkers(widget.id),
         api.listWorkPointWorkers(widget.id),
         api.getQr(widget.id),
+        api.listAttendanceLocationAlerts(workPointId: widget.id),
       ]);
       setState(() {
         _workPoint = results[0] as WorkPointDetail;
         _attendanceWorkers = results[1] as List<WorkerSummary>;
         _assignedWorkers = results[2] as List<WorkerSummary>;
         _qr = results[3] as QrData;
+        _locationAlerts = results[4] as List<AttendanceLocationAlert>;
       });
       await _loadAttendance();
     } catch (error) {
@@ -252,6 +255,11 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
               onCheckout: _showCheckoutDialog,
               onDelete: _deleteAttendance,
             ),
+            const SizedBox(height: 12),
+            _LocationAlertsSection(
+              alerts: _locationAlerts,
+              onReview: _showLocationAlertReviewDialog,
+            ),
           ],
         ],
       ),
@@ -295,6 +303,22 @@ class _WorkpointDetailPageState extends State<WorkpointDetailPage> {
     if (!confirmed) return;
     await api.deleteAttendance(record.id);
     await _loadAttendance();
+  }
+
+  Future<void> _showLocationAlertReviewDialog(
+    AttendanceLocationAlert alert,
+  ) async {
+    final api = AppScope.apiOf(context);
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => _LocationAlertReviewDialog(alert: alert),
+    );
+    if (saved == true) {
+      final alerts = await api.listAttendanceLocationAlerts(
+        workPointId: widget.id,
+      );
+      if (mounted) setState(() => _locationAlerts = alerts);
+    }
   }
 }
 
@@ -650,6 +674,195 @@ class _AttendanceSection extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _LocationAlertsSection extends StatelessWidget {
+  const _LocationAlertsSection({required this.alerts, required this.onReview});
+
+  final List<AttendanceLocationAlert> alerts;
+  final Future<void> Function(AttendanceLocationAlert alert) onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SectionCard(
+      title: l10n.t('Location alerts'),
+      subtitle: l10n.t('Review potential departures during active attendance.'),
+      trailing: alerts.isEmpty
+          ? null
+          : Chip(label: Text('${alerts.length} ${l10n.t('Open')}')),
+      child: alerts.isEmpty
+          ? Text(l10n.t('No open location alerts for this workpoint.'))
+          : Column(
+              children: alerts
+                  .map(
+                    (alert) => Card(
+                      elevation: 0,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.45),
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.warning_amber_outlined),
+                        ),
+                        title: Text(alert.worker.username),
+                        subtitle: Text(
+                          '${_locationAlertTypeLabel(context, alert.type)}\n'
+                          '${_locationAlertDetail(context, alert)}\n'
+                          '${l10n.t('Due')}: ${formatDateTime(alert.dueAt)}',
+                        ),
+                        isThreeLine: true,
+                        trailing: FilledButton.tonal(
+                          onPressed: () => onReview(alert),
+                          child: Text(l10n.t('Review')),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+    );
+  }
+}
+
+String _locationAlertTypeLabel(BuildContext context, String type) {
+  final l10n = context.l10n;
+  return switch (type) {
+    'OUT_OF_RADIUS' => l10n.t('Outside radius'),
+    'MISSED_CHECK' => l10n.t('Missed hourly check'),
+    _ => l10n.t('Monitoring unavailable'),
+  };
+}
+
+String _locationAlertDetail(
+  BuildContext context,
+  AttendanceLocationAlert alert,
+) {
+  final l10n = context.l10n;
+  if (alert.type == 'OUT_OF_RADIUS' && alert.distanceMeters != null) {
+    return l10n.t('{meters}m from workpoint', {
+      'meters': alert.distanceMeters!.round().toString(),
+    });
+  }
+  if (alert.type == 'MISSED_CHECK') {
+    return l10n.t('No sample arrived after grace period');
+  }
+  return l10n.t('Background monitoring was not available for this attendance');
+}
+
+class _LocationAlertReviewDialog extends StatefulWidget {
+  const _LocationAlertReviewDialog({required this.alert});
+
+  final AttendanceLocationAlert alert;
+
+  @override
+  State<_LocationAlertReviewDialog> createState() =>
+      _LocationAlertReviewDialogState();
+}
+
+class _LocationAlertReviewDialogState
+    extends State<_LocationAlertReviewDialog> {
+  String _outcome = 'VALID';
+  final _note = TextEditingController();
+  bool _isSaving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() {
+      _isSaving = true;
+      _error = null;
+    });
+    try {
+      await AppScope.apiOf(context).reviewAttendanceLocationAlert(
+        alertId: widget.alert.id,
+        outcome: _outcome,
+        note: _note.text,
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _error = errorMessage(
+            error,
+            context.l10n.t('Failed to review location alert.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.t('Review location alert')),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${widget.alert.worker.username} · '
+              '${_locationAlertTypeLabel(context, widget.alert.type)}',
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _outcome,
+              decoration: InputDecoration(labelText: l10n.t('Decision')),
+              items: [
+                DropdownMenuItem(
+                  value: 'VALID',
+                  child: Text(l10n.t('Valid absence')),
+                ),
+                DropdownMenuItem(
+                  value: 'INVALID',
+                  child: Text(l10n.t('Unauthorized absence')),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _outcome = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _note,
+              decoration: InputDecoration(labelText: l10n.t('Note')),
+              minLines: 3,
+              maxLines: 5,
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              ErrorBanner(_error!),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.of(context).pop(false),
+          child: Text(l10n.t('Cancel')),
+        ),
+        FilledButton(
+          onPressed: _isSaving ? null : _save,
+          child: _isSaving
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(l10n.t('Save')),
+        ),
+      ],
     );
   }
 }

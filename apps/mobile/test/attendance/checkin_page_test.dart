@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/attendance/checkin_page.dart';
+import 'package:mobile/attendance/attendance_location_monitor_controller.dart';
 import 'package:mobile/auth/auth_controller.dart';
 import 'package:mobile/core/api/api_client.dart';
 import 'package:mobile/core/api/buildpulse_api.dart';
@@ -26,9 +27,8 @@ void main() {
             ),
             GoRoute(
               path: '/scan',
-              builder: (context, state) => const Scaffold(
-                body: Center(child: Text('Scanner screen')),
-              ),
+              builder: (context, state) =>
+                  const Scaffold(body: Center(child: Text('Scanner screen'))),
             ),
           ],
         ),
@@ -55,6 +55,10 @@ Widget _routerHost({
   final api = BuildPulseApi(apiClient);
   final auth = AuthController(api);
   final messaging = MessagingController(api, auth);
+  final attendanceMonitor = AttendanceLocationMonitorController(
+    api: api,
+    auth: auth,
+  );
   final theme = ThemeController();
   final language = LanguageController(systemLocale: const Locale('en'));
   final router = GoRouter(initialLocation: initialLocation, routes: routes);
@@ -63,6 +67,7 @@ Widget _routerHost({
     api: api,
     auth: auth,
     messaging: messaging,
+    attendanceMonitor: attendanceMonitor,
     theme: theme,
     language: language,
     child: MaterialApp.router(

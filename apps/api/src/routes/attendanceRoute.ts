@@ -18,12 +18,19 @@ import {
   getMyDailyStatsController,
   getMyMonthlySummaryController,
   liveFollowController,
+  getMyOpenAttendancesController,
+  recordLocationCheckController,
+  listLocationAlertsController,
+  reviewLocationAlertController,
 } from "../controllers/attendanceController.js";
 import {
   checkinSchema,
+  listLocationAlertsSchema,
   listAttendanceSchema,
   liveFollowSchema,
   manualMarkSchema,
+  recordLocationCheckSchema,
+  reviewLocationAlertSchema,
   deleteAttendanceSchema,
   updateAttendanceTimesSchema,
   updateCheckoutSchema,
@@ -46,12 +53,29 @@ router.post(
 // Any authenticated user can read their own stats
 router.get("/me/daily", ensureAuthenticated, validate(myStatsSchema), getMyDailyStatsController);
 router.get("/me/monthly", ensureAuthenticated, validate(myStatsSchema), getMyMonthlySummaryController);
+router.get("/me/open", ensureAuthenticated, ensureRole("WORKER", "LEADER"), getMyOpenAttendancesController);
+router.post(
+  "/location-checks",
+  ensureAuthenticated,
+  ensureRole("WORKER", "LEADER"),
+  ensureActiveBillingForWrites,
+  validate(recordLocationCheckSchema),
+  recordLocationCheckController,
+);
 
 // Workpoint operators
 const workPointAccess = [ensureAuthenticated, ensureRole("ADMIN", "LEADER")];
 const adminAccess = [ensureAuthenticated, ensureRole("ADMIN")];
 
 router.get("/live-follow", workPointAccess, validate(liveFollowSchema), liveFollowController);
+router.get("/location-alerts", workPointAccess, validate(listLocationAlertsSchema), listLocationAlertsController);
+router.patch(
+  "/location-alerts/:id/review",
+  workPointAccess,
+  ensureActiveBillingForWrites,
+  validate(reviewLocationAlertSchema),
+  reviewLocationAlertController,
+);
 router.get("/workpoint/:id", workPointAccess, validate(listAttendanceSchema), listAttendanceController);
 router.post("/workpoint/:id/manual", workPointAccess, ensureActiveBillingForWrites, validate(manualMarkSchema), manualMarkController);
 router.patch("/:id/checkout", adminAccess, ensureActiveBillingForWrites, validate(updateCheckoutSchema), updateCheckoutController);

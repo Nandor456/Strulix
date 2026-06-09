@@ -60,6 +60,19 @@ async function startServer() {
     );
     startAttendanceAutoCloseJob();
 
+    logStartup("Starting attendance location monitoring job");
+    const { startAttendanceLocationMonitoringJob } = await import(
+      "./services/attendanceLocationService.js",
+    );
+    const { notifyAttendanceLocationAlertChanged } = await import(
+      "./controllers/attendanceController.js",
+    );
+    startAttendanceLocationMonitoringJob({
+      onAlertsCreated(alerts) {
+        alerts.forEach(notifyAttendanceLocationAlertChanged);
+      },
+    });
+
     logStartup("Verifying SMTP connection");
     const { getTransporter } = await import("./services/emailService.js");
     const transporter = getTransporter();

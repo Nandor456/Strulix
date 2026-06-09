@@ -550,9 +550,14 @@ class QrData {
 class ScanResult {
   const ScanResult({
     required this.event,
+    required this.attendanceId,
     required this.workPointName,
     required this.date,
     required this.checkedInAt,
+    this.monitoringStatus,
+    this.monitoringPlatform,
+    this.monitoringStartedAt,
+    this.nextCheckpointDueAt,
     this.checkedOutAt,
     this.checkoutSource,
     this.hours,
@@ -560,9 +565,14 @@ class ScanResult {
   });
 
   final String event;
+  final String attendanceId;
   final String workPointName;
   final String date;
   final String checkedInAt;
+  final String? monitoringStatus;
+  final String? monitoringPlatform;
+  final String? monitoringStartedAt;
+  final String? nextCheckpointDueAt;
   final String? checkedOutAt;
   final String? checkoutSource;
   final double? hours;
@@ -575,13 +585,118 @@ class ScanResult {
   factory ScanResult.fromJson(JsonMap json) {
     return ScanResult(
       event: _string(json['event']),
+      attendanceId: _string(json['attendanceId']),
       workPointName: _string(json['workPointName']),
       date: _string(json['date']),
       checkedInAt: _string(json['checkedInAt']),
+      monitoringStatus: _nullableString(json['monitoringStatus']),
+      monitoringPlatform: _nullableString(json['monitoringPlatform']),
+      monitoringStartedAt: _nullableString(json['monitoringStartedAt']),
+      nextCheckpointDueAt: _nullableString(json['nextCheckpointDueAt']),
       checkedOutAt: _nullableString(json['checkedOutAt']),
       checkoutSource: _nullableString(json['checkoutSource']),
       hours: _nullableDouble(json['hours']),
       earnings: _nullableDouble(json['earnings']),
+    );
+  }
+}
+
+class OpenAttendanceMonitoring {
+  const OpenAttendanceMonitoring({
+    required this.attendanceId,
+    required this.workPointId,
+    required this.workPointName,
+    required this.checkedInAt,
+    required this.monitoringStatus,
+    required this.monitoringPlatform,
+    required this.monitoringStartedAt,
+    required this.nextCheckpointDueAt,
+    required this.intervalMinutes,
+    required this.graceMinutes,
+    required this.radiusMeters,
+  });
+
+  final String attendanceId;
+  final String workPointId;
+  final String workPointName;
+  final String checkedInAt;
+  final String monitoringStatus;
+  final String? monitoringPlatform;
+  final String? monitoringStartedAt;
+  final String nextCheckpointDueAt;
+  final int intervalMinutes;
+  final int graceMinutes;
+  final int radiusMeters;
+
+  factory OpenAttendanceMonitoring.fromJson(JsonMap json) {
+    return OpenAttendanceMonitoring(
+      attendanceId: _string(json['attendanceId']),
+      workPointId: _string(json['workPointId']),
+      workPointName: _string(json['workPointName']),
+      checkedInAt: _string(json['checkedInAt']),
+      monitoringStatus: _string(json['monitoringStatus']),
+      monitoringPlatform: _nullableString(json['monitoringPlatform']),
+      monitoringStartedAt: _nullableString(json['monitoringStartedAt']),
+      nextCheckpointDueAt: _string(json['nextCheckpointDueAt']),
+      intervalMinutes: _int(json['intervalMinutes']),
+      graceMinutes: _int(json['graceMinutes']),
+      radiusMeters: _int(json['radiusMeters']),
+    );
+  }
+}
+
+class AttendanceLocationAlert {
+  const AttendanceLocationAlert({
+    required this.id,
+    required this.attendanceId,
+    required this.workPointId,
+    required this.workerId,
+    required this.type,
+    required this.status,
+    required this.dueAt,
+    required this.capturedAt,
+    required this.distanceMeters,
+    required this.reviewOutcome,
+    required this.reviewNote,
+    required this.reviewedAt,
+    required this.createdAt,
+    required this.worker,
+    required this.workPointName,
+  });
+
+  final String id;
+  final String attendanceId;
+  final String workPointId;
+  final String workerId;
+  final String type;
+  final String status;
+  final String? dueAt;
+  final String? capturedAt;
+  final double? distanceMeters;
+  final String? reviewOutcome;
+  final String? reviewNote;
+  final String? reviewedAt;
+  final String createdAt;
+  final AttendanceWorkerSummary worker;
+  final String workPointName;
+
+  factory AttendanceLocationAlert.fromJson(JsonMap json) {
+    return AttendanceLocationAlert(
+      id: _string(json['id']),
+      attendanceId: _string(json['attendanceId']),
+      workPointId: _string(json['workPointId']),
+      workerId: _string(json['workerId']),
+      type: _string(json['type']),
+      status: _string(json['status']),
+      dueAt: _nullableString(json['dueAt']),
+      capturedAt: _nullableString(json['capturedAt']),
+      distanceMeters: _nullableDouble(json['distanceMeters']),
+      reviewOutcome: _nullableString(json['reviewOutcome']),
+      reviewNote: _nullableString(json['reviewNote']),
+      reviewedAt: _nullableString(json['reviewedAt']),
+      createdAt: _string(json['createdAt']),
+      worker: AttendanceWorkerSummary.fromJson(_map(json['worker'])),
+      workPointName: _string(_map(json['workPoint'])['name']),
     );
   }
 }
