@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   Check,
@@ -61,6 +61,7 @@ import {
   useManualMark,
   useReviewAttendanceLocationAlert,
   useRotateQrToken,
+  useUpdateCheckout,
   useUpdateAttendanceTimes,
   useWorkPointAttendance,
   useWorkPointQr,
@@ -107,6 +108,13 @@ function getAttendanceHours(record: AttendanceRecord) {
   const start = new Date(record.checkedInAt).getTime();
   const end = new Date(record.checkedOutAt).getTime();
   return Math.max(0, (end - start) / (1000 * 60 * 60));
+}
+
+function isAttendanceOpenOverTenHours(record: AttendanceRecord, now: Date) {
+  if (record.checkedOutAt) return false;
+  const checkedInAt = new Date(record.checkedInAt);
+  if (Number.isNaN(checkedInAt.getTime())) return false;
+  return now.getTime() - checkedInAt.getTime() >= 10 * 60 * 60 * 1000;
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -169,6 +177,7 @@ export default function WorkpointDetailPage() {
   const { data: attendance = [], isLoading: isAttendanceLoading } =
     useWorkPointAttendance(workPointId ?? "", attendanceParams);
   const manualMark = useManualMark(workPointId ?? "");
+  const updateCheckout = useUpdateCheckout(workPointId ?? "");
   const updateAttendanceTimes = useUpdateAttendanceTimes(workPointId ?? "");
   const deleteAttendance = useDeleteAttendance(workPointId ?? "");
   const locationAlertParams = useMemo(
@@ -192,6 +201,9 @@ export default function WorkpointDetailPage() {
   const [attendanceCheckedInValue, setAttendanceCheckedInValue] = useState("");
   const [attendanceCheckedOutValue, setAttendanceCheckedOutValue] = useState("");
   const [attendanceTimeError, setAttendanceTimeError] = useState<string | null>(null);
+  const [checkoutRecord, setCheckoutRecord] = useState<AttendanceRecord | null>(null);
+  const [checkoutValue, setCheckoutValue] = useState("");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [copiedQr, setCopiedQr] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
@@ -200,8 +212,14 @@ export default function WorkpointDetailPage() {
   const [locationAlertOutcome, setLocationAlertOutcome] =
     useState<"VALID" | "INVALID">("VALID");
   const [locationAlertNote, setLocationAlertNote] = useState("");
+  const [now, setNow] = useState(() => new Date());
 
   const scanUrl = qr ? `${window.location.origin}/checkin/${qr.qrToken}` : "";
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   function resetManualAttendanceForm() {
     const today = getTodayInputValue();
@@ -248,6 +266,20 @@ export default function WorkpointDetailPage() {
     setAttendanceTimeError(null);
   }
 
+  function openCheckoutDialog(record: AttendanceRecord) {
+    setCheckoutRecord(record);
+    setCheckoutValue(
+      getDateTimeInputValue(record.checkedOutAt ?? new Date().toISOString()),
+    );
+    setCheckoutError(null);
+  }
+
+  function closeCheckoutDialog() {
+    setCheckoutRecord(null);
+    setCheckoutValue("");
+    setCheckoutError(null);
+  }
+
   async function handleAttendanceTimesSave() {
     if (!attendanceTimeRecord || !attendanceCheckedInValue) return;
     setAttendanceTimeError(null);
@@ -266,6 +298,24 @@ export default function WorkpointDetailPage() {
         (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
         t("Failed to update attendance hours");
       setAttendanceTimeError(message);
+    }
+  }
+
+  async function handleCheckoutSave() {
+    if (!checkoutRecord || !checkoutValue) return;
+    setCheckoutError(null);
+
+    try {
+      await updateCheckout.mutateAsync({
+        id: checkoutRecord.id,
+        checkedOutAt: new Date(checkoutValue).toISOString(),
+      });
+      closeCheckoutDialog();
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        t("Failed to set checkout.");
+      setCheckoutError(message);
     }
   }
 
@@ -642,6 +692,7 @@ export default function WorkpointDetailPage() {
                   <TableBody>
                     {attendance.map((record) => {
                       const hours = getAttendanceHours(record);
+                      const isOpenTooLong = isAttendanceOpenOverTenHours(record, now);
                       return (
                         <TableRow key={record.id}>
                           <TableCell className="font-medium">
@@ -675,6 +726,15 @@ export default function WorkpointDetailPage() {
                                   ? formatDateTime(record.checkedOutAt)
                                   : t("Open")}
                               </span>
+                              {isOpenTooLong && (
+                                <Badge
+                                  variant="warning"
+                                  title={t("Open over 10h")}
+                                >
+                                  <CircleAlert className="h-3 w-3" />
+                                  {t("Open over 10h")}
+                                </Badge>
+                              )}
                               {record.checkoutSource === "AUTO" && (
                                 <Badge
                                   variant="destructive"
@@ -693,6 +753,21 @@ export default function WorkpointDetailPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-1">
+                              {!record.checkedOutAt && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => openCheckoutDialog(record)}
+                                      aria-label={t("Set checkout")}
+                                    >
+                                      <Clock className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{t("Set checkout")}</TooltipContent>
+                                </Tooltip>
+                              )}
                               {isAdmin && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -829,6 +904,48 @@ export default function WorkpointDetailPage() {
           workPointName={workPoint.name}
         />
       )}
+
+      <Dialog
+        open={checkoutRecord !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeCheckoutDialog();
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("Set checkout")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="attendance-checkout-value">{t("Check-out time")}</Label>
+            <Input
+              id="attendance-checkout-value"
+              type="datetime-local"
+              value={checkoutValue}
+              onChange={(event) => setCheckoutValue(event.target.value)}
+            />
+          </div>
+          {checkoutError && <Alert variant="destructive">{checkoutError}</Alert>}
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCheckoutDialog}>
+              <X className="h-4 w-4" />
+              {t("Cancel")}
+            </Button>
+            <Button
+              onClick={() => void handleCheckoutSave()}
+              disabled={!checkoutValue || updateCheckout.isPending}
+            >
+              {updateCheckout.isPending ? (
+                <Spinner size={16} />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              {t("Save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={attendanceTimeRecord !== null}

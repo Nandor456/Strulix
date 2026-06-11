@@ -41,9 +41,8 @@ function getDateTimePartsInZone(date: Date, tz: string): DateTimeParts {
   };
 }
 
-// Returns a Date at UTC midnight representing the calendar day in the given timezone.
-// This ensures the @@unique([workerId, workPointId, date]) constraint works
-// correctly regardless of server UTC offset.
+// Returns a Date at UTC midnight representing the calendar day in the given
+// timezone so attendance rows can be grouped and filtered consistently.
 export function dateInZone(date: Date, tz: string = ATTENDANCE_TIMEZONE): Date {
   const parts = getDateTimePartsInZone(date, tz);
 

@@ -54,12 +54,6 @@ async function startServer() {
   httpServer.listen(port, async () => {
     logStartup(`Server listening on port ${port} (${nodeEnv})`);
 
-    logStartup("Starting attendance auto-close job");
-    const { startAttendanceAutoCloseJob } = await import(
-      "./services/attendanceService.js",
-    );
-    startAttendanceAutoCloseJob();
-
     logStartup("Starting attendance location monitoring job");
     const { startAttendanceLocationMonitoringJob } = await import(
       "./services/attendanceLocationService.js",

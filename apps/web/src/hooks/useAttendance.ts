@@ -111,6 +111,10 @@ export const useUpdateCheckout = (workPointId: string) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.attendance.byWorkPoint(workPointId),
       });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.attendance.locationAlertsBase,
+      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.attendance.liveFollow });
     },
   });
 };

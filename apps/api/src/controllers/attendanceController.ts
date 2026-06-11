@@ -435,7 +435,11 @@ export async function updateCheckoutController(
   try {
     const record = await setCheckoutTime(
       id,
-      req.auth!.companyId,
+      {
+        userId: req.auth!.userId,
+        companyId: req.auth!.companyId,
+        role: req.auth!.role,
+      },
       new Date(checkedOutAtStr),
     );
     notifyAttendanceChanged({
