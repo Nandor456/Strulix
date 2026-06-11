@@ -882,6 +882,14 @@ class _AttendanceRecordCard extends StatelessWidget {
     return record.checkedOutAt == null || record.checkoutSource == 'AUTO';
   }
 
+  bool get isOpenOverTenHours {
+    if (record.checkedOutAt != null) return false;
+    final checkedInAt = DateTime.tryParse(record.checkedInAt);
+    if (checkedInAt == null) return false;
+    return DateTime.now().toUtc().difference(checkedInAt.toUtc()) >=
+        const Duration(hours: 10);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1035,6 +1043,42 @@ class _AttendanceRecordCard extends StatelessWidget {
                   : formatDateTime(record.checkedOutAt),
               muted: record.checkedOutAt == null,
             ),
+
+            if (isOpenOverTenHours) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer.withValues(
+                    alpha: 0.55,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 18,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.t('Open over 10h'),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

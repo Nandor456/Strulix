@@ -238,6 +238,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Open': 'Open',
     'Open attachment': 'Open attachment',
     'Open records': 'Open records',
+    'Open over 10h': 'Open over 10h',
     'Open theme': 'Open theme',
     'PDF': 'PDF',
     'Paid registration is not available yet.':
@@ -722,6 +723,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Open': 'Deschide',
     'Open attachment': 'Deschide atașamentul',
     'Open records': 'Înregistrări deschise',
+    'Open over 10h': 'Deschis peste 10h',
     'Open theme': 'Deschide tema',
     'PDF': 'PDF',
     'Paid registration is not available yet.':
@@ -1211,6 +1213,7 @@ final Map<AppLanguage, Map<String, String>> _messages = {
     'Open': 'Megnyitás',
     'Open attachment': 'Csatolmány megnyitása',
     'Open records': 'Nyitott bejegyzések',
+    'Open over 10h': 'Több mint 10 órája nyitott',
     'Open theme': 'Téma megnyitása',
     'PDF': 'PDF',
     'Paid registration is not available yet.':

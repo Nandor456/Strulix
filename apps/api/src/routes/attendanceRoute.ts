@@ -78,7 +78,7 @@ router.patch(
 );
 router.get("/workpoint/:id", workPointAccess, validate(listAttendanceSchema), listAttendanceController);
 router.post("/workpoint/:id/manual", workPointAccess, ensureActiveBillingForWrites, validate(manualMarkSchema), manualMarkController);
-router.patch("/:id/checkout", adminAccess, ensureActiveBillingForWrites, validate(updateCheckoutSchema), updateCheckoutController);
+router.patch("/:id/checkout", workPointAccess, ensureActiveBillingForWrites, validate(updateCheckoutSchema), updateCheckoutController);
 router.patch("/:id/times", adminAccess, ensureActiveBillingForWrites, validate(updateAttendanceTimesSchema), updateAttendanceTimesController);
 router.delete("/:id", workPointAccess, ensureActiveBillingForWrites, validate(deleteAttendanceSchema), deleteAttendanceController);
 router.get("/workpoint/:id/qr", workPointAccess, validate(qrSchema), getQrController);

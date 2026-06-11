@@ -383,78 +383,6 @@ function assertWithinAttendanceRecordingWindow(now: Date): void {
   }
 }
 
-async function closeEligibleOpenAttendances(now: Date): Promise<number> {
-  const today = dateInZone(now, ATTENDANCE_TIMEZONE);
-  const openRecords = await prisma.attendance.findMany({
-    where: {
-      checkedOutAt: null,
-      date: { lte: today },
-    },
-    select: { id: true, date: true },
-  });
-
-  const updates = openRecords
-    .map((record) => ({
-      id: record.id,
-      checkedOutAt: attendanceDateTimeToUtc({
-        date: record.date,
-        hour: 22,
-        tz: ATTENDANCE_TIMEZONE,
-      }),
-    }))
-    .filter((record) => record.checkedOutAt <= now);
-
-  if (updates.length === 0) return 0;
-
-  const results = await prisma.$transaction(
-    updates.map((record) =>
-      prisma.attendance.updateMany({
-        where: { id: record.id, checkedOutAt: null },
-        data: {
-          checkedOutAt: record.checkedOutAt,
-          checkoutSource: "AUTO",
-          monitoringStatus: "STOPPED",
-        },
-      }),
-    ),
-  );
-
-  return results.reduce((sum, result) => sum + result.count, 0);
-}
-
-let activeAutoClose: Promise<number> | null = null;
-let autoCloseInterval: NodeJS.Timeout | null = null;
-
-export function autoCloseOpenAttendances(now = new Date()): Promise<number> {
-  if (activeAutoClose) return activeAutoClose;
-
-  activeAutoClose = closeEligibleOpenAttendances(now).finally(() => {
-    activeAutoClose = null;
-  });
-
-  return activeAutoClose;
-}
-
-export function startAttendanceAutoCloseJob(): NodeJS.Timeout {
-  if (autoCloseInterval) return autoCloseInterval;
-
-  const run = () => {
-    void autoCloseOpenAttendances()
-      .then((closedCount) => {
-        if (closedCount > 0) {
-          console.log(`Auto-closed ${closedCount} attendance record(s).`);
-        }
-      })
-      .catch((err) => {
-        console.error("Attendance auto-close job failed:", err);
-      });
-  };
-
-  run();
-  autoCloseInterval = setInterval(run, 60_000);
-  return autoCloseInterval;
-}
-
 async function buildCompletedScanResult(params: {
   userId: string;
   ownerCompanyId: string;
@@ -522,8 +450,6 @@ export async function recordAttendance(params: {
 }): Promise<AttendanceScanResult> {
   const now = params.now ?? new Date();
 
-  await autoCloseOpenAttendances(now);
-
   const workPoint = await prisma.workPoint.findUnique({
     where: { qrToken: params.qrToken },
     select: {
@@ -580,13 +506,11 @@ export async function recordAttendance(params: {
 
   const date = dateInZone(now, ATTENDANCE_TIMEZONE);
 
-  const existing = await prisma.attendance.findUnique({
+  const existing = await prisma.attendance.findFirst({
     where: {
-      workerId_workPointId_date: {
-        workerId: params.userId,
-        workPointId: workPoint.id,
-        date,
-      },
+      workerId: params.userId,
+      workPointId: workPoint.id,
+      checkedOutAt: null,
     },
     select: {
       id: true,
@@ -594,6 +518,7 @@ export async function recordAttendance(params: {
       checkedOutAt: true,
       checkoutSource: true,
     },
+    orderBy: [{ checkedInAt: "desc" }, { id: "desc" }],
   });
 
   if (!existing) {
@@ -652,31 +577,6 @@ export async function recordAttendance(params: {
       ...(locationAlert?.created ? { locationAlert: locationAlert.alert } : {}),
     };
   }
-
-  if (existing.checkedOutAt !== null) {
-    const workerAssociated = await associateWorkerWithWorkPoint({
-      workPointId: workPoint.id,
-      workerId: params.userId,
-      alreadyAssociated: workPoint.workers.length > 0,
-    });
-    return {
-      result: await buildCompletedScanResult({
-        userId: params.userId,
-        ownerCompanyId: workPoint.companyId,
-        event: "ALREADY_COMPLETED",
-        attendanceId: existing.id,
-        workPointId: workPoint.id,
-        workPointName: workPoint.name,
-        date,
-        checkedInAt: existing.checkedInAt,
-        checkedOutAt: existing.checkedOutAt,
-        checkoutSource: existing.checkoutSource,
-      }),
-      workerAssociated,
-    };
-  }
-
-  assertWithinAttendanceRecordingWindow(now);
   const workerAssociated = await associateWorkerWithWorkPoint({
     workPointId: workPoint.id,
     workerId: params.userId,
@@ -715,8 +615,6 @@ export async function listAttendance(params: {
   from?: Date;
   to?: Date;
 }): Promise<AttendanceRecord[]> {
-  await autoCloseOpenAttendances();
-
   const records = await prisma.attendance.findMany({
     where: {
       workPointId: params.workPointId,
@@ -743,8 +641,6 @@ export async function getLiveFollowSnapshot(params: {
   role: string;
   limit?: number;
 }): Promise<LiveFollowSnapshot> {
-  await autoCloseOpenAttendances();
-
   const eventLimit = normalizeLiveFollowEventLimit(params.limit);
   const now = new Date();
   const workPointWhere = companyWorkPointAccessWhere(params);
@@ -1059,15 +955,22 @@ export async function manualMark(params: {
 
 export async function setCheckoutTime(
   attendanceId: string,
-  companyId: string,
+  params: {
+    userId: string;
+    companyId: string;
+    role: string;
+  },
   checkedOutAt: Date,
 ): Promise<AttendanceRecord> {
-  const record = await prisma.attendance.findUnique({
-    where: { id: attendanceId },
-    select: { checkedInAt: true, workPoint: { select: { companyId: true } } },
+  const record = await prisma.attendance.findFirst({
+    where: {
+      id: attendanceId,
+      workPoint: companyWorkPointAccessWhere(params),
+    },
+    select: { checkedInAt: true },
   });
 
-  if (!record || record.workPoint.companyId !== companyId) {
+  if (!record) {
     const err = new Error("Attendance record not found");
     (err as NodeJS.ErrnoException).code = "NOT_FOUND";
     throw err;
@@ -1273,8 +1176,6 @@ export async function getAttendanceSummary(
     role: string;
   },
 ): Promise<AttendanceSummary[]> {
-  await autoCloseOpenAttendances();
-
   const assignedWorkers = await prisma.workPoint.findFirst({
     where: {
       id: workPointId,
@@ -1359,8 +1260,6 @@ export async function getMyDailyStats(
   year: number,
   month: number,
 ): Promise<DailyStatRow[]> {
-  await autoCloseOpenAttendances();
-
   const from = new Date(Date.UTC(year, month - 1, 1));
   const to = new Date(Date.UTC(year, month, 0));
 
@@ -1382,7 +1281,7 @@ export async function getMyDailyStats(
       checkoutSource: true,
       workPoint: { select: { id: true, name: true } },
     },
-    orderBy: { date: "asc" },
+    orderBy: [{ date: "asc" }, { checkedInAt: "asc" }, { id: "asc" }],
   });
 
   return records.map((r) => {

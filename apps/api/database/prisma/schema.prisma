@@ -205,9 +205,9 @@ model Attendance {
   locationChecks AttendanceLocationCheck[]
   locationAlerts AttendanceLocationAlert[]
 
-  @@unique([workerId, workPointId, date])
   @@index([workPointId, date])
   @@index([checkedOutAt, monitoringStatus])
+  @@index([workerId, workPointId, checkedOutAt, checkedInAt])
   @@map("attendances")
 }
 
